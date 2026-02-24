@@ -43,8 +43,9 @@ should_include_repo() {
   if [ "$repos_filter" = "__ALL__" ]; then
     return 0
   fi
-  echo "$repos_filter" | tr ',' '\n' | while IFS= read -r r; do
-    [ "$r" = "$repo_name" ] && exit 0
+  local IFS=','
+  for r in $repos_filter; do
+    [ "$r" = "$repo_name" ] && return 0
   done
   return 1
 }
