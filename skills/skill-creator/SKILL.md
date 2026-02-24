@@ -51,3 +51,10 @@ Usa `assets/SKILL-TEMPLATE.md` como base.
 - Referencias largas van en `references/` (no inflar `SKILL.md`).
 - Si se requieren pasos determinísticos, agregar scripts en `scripts/`.
 - Al final, ejecutar `./scripts/ai/sync.sh` para actualizar `AGENTS.md`.
+
+## Guía de scopes y auto_invoke
+
+Ver `.ai-kit/references/auto-invoke-actions.md` para:
+- catálogo recomendado de `auto_invoke` Actions,
+- cómo definir `scope`,
+- ejemplos para skills core vs skills por micro.
