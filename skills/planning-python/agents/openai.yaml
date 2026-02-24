@@ -1,0 +1,4 @@
+interface:
+  display_name: "Planning Python (Asulado)"
+  short_description: "Planifica contratos y planes Python"
+  default_prompt: "Usa -python para generar contrato y plan de la HU-XXXX en servicios Python."

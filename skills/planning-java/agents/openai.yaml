@@ -1,0 +1,4 @@
+interface:
+  display_name: "Planning Java (Asulado)"
+  short_description: "Planifica contratos y planes Java"
+  default_prompt: "Usa -java para generar contrato y plan de la HU-XXXX en servicios Java."

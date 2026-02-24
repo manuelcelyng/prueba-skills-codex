@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dev Python (Asulado)"
+  short_description: "Implementa cambios Python con reglas"
+  default_prompt: "Usa -python para implementar la HU-XXXX en servicios Python siguiendo los contextos."
