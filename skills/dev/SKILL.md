@@ -1,10 +1,16 @@
 ---
 name: dev
-description: Coordina desarrollo en servicios Java y Python del workspace ASULADO. Usar cuando el trabajo cruza lenguajes o el usuario no especifica; derivar a dev-java o dev-python.
+description: >
+  Coordina desarrollo cuando el trabajo cruza Java y Python o el stack no está claro.
+  Trigger: Cambios que tocan múltiples servicios/tecnologías o cuando se necesite enrutar a dev-java/dev-python.
+license: Internal
 metadata:
-  scope: root
+  author: pragma-asulado
+  version: "0.1"
+  scope: [root]
   auto_invoke:
     - "Coordinar implementación multi-stack"
+allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 ---
 
 # Desarrollo (coordinador)

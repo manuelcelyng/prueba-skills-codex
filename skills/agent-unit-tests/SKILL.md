@@ -1,10 +1,16 @@
 ---
 name: agent-unit-tests
-description: Write and update robust unit tests for Java 21 + Spring Boot codebases using JUnit 5, Mockito, and AssertJ/JUnit assertions in a BDD style. Keep strong guidance for reactive code (Reactor StepVerifier) and enforce >=83% coverage on new code.
+description: >
+  Write and update robust unit tests for Java 21 + Spring Boot codebases using JUnit 5, Mockito, and AssertJ/JUnit assertions in a BDD style.
+  Trigger: When writing/updating unit tests (especially for UseCases, SQL Providers, Adapters, Routers/Handlers).
+license: Internal
 metadata:
-  scope: root
+  author: pragma-asulado
+  version: "0.1"
+  scope: [root]
   auto_invoke:
     - "Escribir/actualizar unit tests"
+allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 ---
 
 # Agent Unit Tests (Spring Boot / Java 21)

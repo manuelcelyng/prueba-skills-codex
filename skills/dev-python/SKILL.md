@@ -1,17 +1,23 @@
 ---
 name: dev-python
-description: Implementa cambios en servicios Python del workspace ASULADO (lambda-*, motor-reglas-liquidacion). Usar para desarrollo, fixes o pruebas en Python; seguir contextos raiz y del servicio.
+description: >
+  Implementa cambios en servicios Python (lambda-* / FastAPI) respetando AGENTS.md y arquitectura local.
+  Trigger: Cuando el usuario pida implementar/fix/refactor o agregar tests en un servicio Python.
+license: Internal
 metadata:
-  scope: root
+  author: pragma-asulado
+  version: "0.1"
+  scope: [root]
   auto_invoke:
     - "Implementar cambios"
+allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 ---
 
-# Desarrollo Python
+## Purpose
 
-Usa este skill para implementar cambios en servicios Python del workspace.
+Implementar cambios en Python cumpliendo reglas del repo (arquitectura local, logging, configuración, tests).
 
-## Carga de contexto obligatoria (antes de escribir codigo)
+## Required Context (load order)
 1. Leer `AGENTS.md`.
 2. Leer `.ai-kit/references/context-readme.md`.
 3. Leer `.ai-kit/references/python-rules.md`.
@@ -21,14 +27,7 @@ Usa este skill para implementar cambios en servicios Python del workspace.
 7. Si hay HU, leer `context/hu/<HU_ID>/` y contratos/planes existentes.
 8. Si hay guias de tests (`tests/README.md`) o arquitectura (`src/app/README.md`), leerlas cuando apliquen.
 
-## Inventario de contextos Python (para ubicar reglas)
-- `lambda-recepcion-pagos/context`: `reglas-desarrollo.md`, `actualizacion-python-3.12.md`, `hu/`.
-- `lambda-pagos-liquidacion/context`: `reglas-desarrollo.md`, `hu/`.
-- `lambda-liquidacion-dispersion`: sin `context/`.
-- `lambda-smartpay-notificacion`: sin `context/` (usar `AGENTS.md` y `README.md`).
-- `motor-reglas-liquidacion`: sin `context/` (usar `AGENTS.md`, `pyproject.toml`, `k8s/` si aplica).
-
-## Gate obligatorio de planificacion
+## Gate (mandatory)
 Verificar que existan:
 - Contrato de interfaz con codigos de respuesta y ejemplos JSON para todas las respuestas.
 - Plan de implementacion con SQL borrador o explicacion explicita si no aplica SQL.
@@ -53,7 +52,7 @@ Si falta alguno, solicitar primero `planning-python` y detener implementacion.
 - Pytest con naming estandar.
 - Cobertura objetivo >80% cuando aplique.
 
-## Limites
+## Limits
 - No gestionar git, ramas o PRs.
 
 ## Referencias

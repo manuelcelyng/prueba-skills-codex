@@ -1,10 +1,16 @@
 ---
 name: planning
-description: Coordina planificacion para servicios Java y Python del workspace ASULADO. Usar cuando el trabajo cruza lenguajes o el usuario no especifica; derivar a planning-java o planning-python.
+description: >
+  Coordina planificación cuando el trabajo cruza Java y Python o el stack no está claro.
+  Trigger: Scoping/contratos que involucran múltiples servicios/tecnologías o cuando se necesite enrutar a planning-java/planning-python.
+license: Internal
 metadata:
-  scope: root
+  author: pragma-asulado
+  version: "0.1"
+  scope: [root]
   auto_invoke:
     - "Coordinar planning multi-stack"
+allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 ---
 
 # Planificacion (coordinador)

@@ -1,17 +1,23 @@
 ---
 name: planning-python
-description: Planifica cambios para servicios Python del workspace ASULADO (lambda-*, motor-reglas-liquidacion). Usar para scoping/HU/contratos Python; debe generar contrato con codigos y ejemplos JSON y luego plan de implementacion con SQL antes del desarrollo.
+description: >
+  Planifica cambios para servicios Python (lambda-* / FastAPI).
+  Trigger: Cuando se necesita contrato de interfaz/evento y plan de implementación antes de desarrollar.
+license: Internal
 metadata:
-  scope: root
+  author: pragma-asulado
+  version: "0.1"
+  scope: [root]
   auto_invoke:
     - "Planificar HU / contrato"
+allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 ---
 
-# Planificacion Python
+## Purpose
 
-Usa este skill para planear cambios en servicios Python del workspace.
+Planear cambios en Python y entregar primero contrato y luego plan de implementación (SDD).
 
-## Carga de contexto obligatoria
+## Required Context (load order)
 1. Leer `AGENTS.md`.
 2. Leer `.ai-kit/references/context-readme.md`.
 3. Leer `.ai-kit/references/python-rules.md`.
@@ -22,7 +28,7 @@ Usa este skill para planear cambios en servicios Python del workspace.
 8. Si hay guias de tests (`tests/README.md`) o arquitectura (`src/app/README.md`), leerlas cuando apliquen.
 9. En servicios FastAPI, leer `pyproject.toml` y guias de migraciones si existen.
 
-## Orden de entrega obligatorio
+## Output Order (mandatory)
 1. Contrato de interfaz.
 2. Plan de implementacion con SQL borrador o explicacion si no aplica SQL.
 3. Confirmar que el desarrollo puede iniciar con `dev-python`.
@@ -48,7 +54,7 @@ Usa este skill para planear cambios en servicios Python del workspace.
 - No hardcode de secretos; usar env/SSM.
 - Formato con black/isort/mypy segun `pyproject.toml`.
 
-## Limites
+## Limits
 - No gestionar git, ramas o PRs.
 
 ## Referencias

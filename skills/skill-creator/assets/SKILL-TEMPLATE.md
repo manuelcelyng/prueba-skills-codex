@@ -1,23 +1,28 @@
 ---
 name: <skill-name>
-description: <cuando-usar-este-skill-en-una-frase>
+description: >
+  <cuando-usar-este-skill-en-una-frase>.
+  Trigger: <cuando-deberia-cargarse-automaticamente-o-cuando-el-usuario-lo-pediria>.
+license: Internal
 metadata:
-  scope: root
+  author: pragma-asulado
+  version: "0.1"
+  scope: [root]
   auto_invoke:
     - "<accion-1>"
+allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 ---
 
-# <Skill Title>
+## Purpose
 
-## Objetivo
 - <qué resuelve>
 
-## Cuándo usar
+## When to use
 - <disparadores>
 
-## Flujo
+## Workflow
 1. <paso 1>
 2. <paso 2>
 
-## Referencias
+## Resources
 - `references/<archivo>.md`

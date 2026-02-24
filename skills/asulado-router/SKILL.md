@@ -1,22 +1,28 @@
 ---
 name: asulado-router
-description: Orquesta y enruta el trabajo con IA (SDD) hacia planning/dev/review según el tipo de tarea y el stack del repo.
+description: >
+  Orquesta y enruta el trabajo con IA (SDD) hacia planning/dev/review según el tipo de tarea y el stack del repo.
+  Trigger: Usar como punto de entrada cuando la solicitud sea ambigua o pueda requerir planificación (HU/contrato) antes de implementar.
+license: Internal
 metadata:
-  scope: root
+  author: pragma-asulado
+  version: "0.1"
+  scope: [root]
   auto_invoke:
     - "Enrutar tarea (orquestador)"
+allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 ---
 
-# ASULADO Router (Orchestrator / SDD)
+## Purpose
 
-Usa este skill como punto de entrada para enrutar la tarea al skill correcto y exigir el flujo **SDD**:
+Punto de entrada para enrutar la tarea al skill correcto y exigir flujo **SDD**:
 
-1) **Contexto** → leer `AGENTS.md` y `context/` del repo.
-2) **Contrato + plan** → si aplica HU/endpoint/SQL, exigir contrato y plan antes de implementar.
-3) **Ejecución** → delegar a `dev-java` o `dev-python`.
-4) **Verificación** → delegar a `review` cuando pidan auditoría/code review o al cerrar una HU.
+1) Contexto: leer `AGENTS.md` y `context/` del repo.
+2) Contrato + plan: si aplica HU/endpoint/SQL, exigir contrato y plan antes de implementar.
+3) Ejecución: delegar a `dev-java` o `dev-python`.
+4) Verificación: delegar a `review` al cerrar cambios o cuando pidan auditoría.
 
-## Routing de skills (reglas)
+## Routing
 
 - Si la solicitud es “planificar / contrato / HU / alcance / diseño”: invocar `planning-java` o `planning-python`.
 - Si la solicitud es “implementar / fix / refactor / agregar endpoint”: invocar `dev-java` o `dev-python`.
