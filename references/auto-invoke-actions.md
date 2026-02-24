@@ -44,6 +44,11 @@ Usa estas acciones tal cual para evitar drift:
 - `Coordinar planning multi-stack` → `planning`
 - `Coordinar implementación multi-stack` → `dev`
 
+## Dónde vive la guía HU
+
+- `.ai-kit/references/hu-prompts-and-template-usage.md`
+- `.ai-kit/references/hu-context-template.md`
+
 ## Convenciones
 
 1) **Acciones cortas y consistentes**
@@ -95,4 +100,3 @@ metadata:
 allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 ---
 ```
-
