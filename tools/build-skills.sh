@@ -9,6 +9,13 @@ OUT_DIR="$REPO_ROOT/.ai/skills"
 
 err() { echo "build-skills: $*" 1>&2; }
 
+LOCK_FILE="$REPO_ROOT/ai-kit.lock"
+if [ -f "$LOCK_FILE" ]; then
+  # Optional: allow repos to force a stack when auto-detection is not possible yet.
+  # shellcheck disable=SC1090
+  source "$LOCK_FILE"
+fi
+
 if [ ! -d "$AI_KIT_DIR" ]; then
   err "missing .ai-kit/. Run ./scripts/ai/bootstrap.sh first."
   exit 1
@@ -28,7 +35,7 @@ if [ -f "$REPO_ROOT/pyproject.toml" ] || [ -f "$REPO_ROOT/requirements.txt" ] ||
   is_python=true
 fi
 
-# Allow manual override (useful in mixed repos)
+# Allow manual override (useful in mixed repos / repos without manifests yet)
 #   AI_SKILLS_STACK=java|python|all
 stack="${AI_SKILLS_STACK:-}"
 
