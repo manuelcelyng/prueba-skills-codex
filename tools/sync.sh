@@ -182,13 +182,14 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 | Action | Skill |
 |--------|-------|"
 
-  awk -F'\t' -v scope="$scope" '$1==scope {print $2 "\t" $3}' "$sorted_file" | \
-    LC_ALL=C sort -t $'\t' -k1,1 -k2,2 | \
-    while IFS=$'\t' read -r action skill; do
-      [ -z "$action" ] && continue
-      auto_invoke_section="$auto_invoke_section
+  while IFS=$'\t' read -r action skill; do
+    [ -z "$action" ] && continue
+    auto_invoke_section="$auto_invoke_section
 | $action | \`$skill\` |"
-    done
+  done < <(
+    awk -F'\t' -v scope="$scope" '$1==scope {print $2 "\t" $3}' "$sorted_file" | \
+      LC_ALL=C sort -t $'\t' -k1,1 -k2,2
+  )
 
   if $DRY_RUN; then
     echo -e "${YELLOW}[DRY RUN] Would update $agents_path with:${NC}"
