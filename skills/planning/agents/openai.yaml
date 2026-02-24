@@ -1,4 +1,0 @@
-interface:
-  display_name: "Planning (Asulado)"
-  short_description: "Coordina planning Java y Python con contrato+plan"
-  default_prompt: "Usa  para planificar contratos y planes en Java/Python."

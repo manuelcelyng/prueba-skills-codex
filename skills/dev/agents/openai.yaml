@@ -1,4 +1,0 @@
-interface:
-  display_name: "Dev (Asulado)"
-  short_description: "Coordina desarrollo Java y Python en ASULADO"
-  default_prompt: "Usa  para coordinar cambios entre servicios Java y Python."

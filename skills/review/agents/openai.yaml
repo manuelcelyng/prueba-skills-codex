@@ -1,4 +1,0 @@
-interface:
-  display_name: "Review (Asulado)"
-  short_description: "Valida reglas y calidad en cambios del workspace"
-  default_prompt: "Usa  para auditar cambios y verificar cumplimiento de reglas."

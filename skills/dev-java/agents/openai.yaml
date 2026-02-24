@@ -1,4 +1,0 @@
-interface:
-  display_name: "Dev Java (Asulado)"
-  short_description: "Implementa cambios Java con reglas"
-  default_prompt: "Usa -java para implementar la HU-XXXX en servicios Java siguiendo los contextos."
