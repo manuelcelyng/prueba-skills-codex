@@ -155,7 +155,9 @@ while IFS= read -r skill_file; do
       printf "%s\t%s\t%s\n" "$scope" "$action" "$skill_name" >> "$rows_file"
     done
   done
-done < <(find "$SKILLS_DIR" -mindepth 2 -maxdepth 2 -name SKILL.md -print | sort)
+# Note: .ai/skills contains symlinks to skill directories; BSD find does not
+# traverse symlinked directories unless -L is used.
+done < <(find -L "$SKILLS_DIR" -mindepth 2 -maxdepth 2 -name SKILL.md -print | sort)
 
 sorted_file="$(mktemp)"
 LC_ALL=C sort -t $'\t' -k1,1 -k2,2 -k3,3 "$rows_file" > "$sorted_file"
