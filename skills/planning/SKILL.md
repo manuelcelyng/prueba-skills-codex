@@ -4,7 +4,7 @@ description: Coordina planificacion para servicios Java y Python del workspace A
 metadata:
   scope: root
   auto_invoke:
-    - "Planificar HU / contrato"
+    - "Coordinar planning multi-stack"
 ---
 
 # Planificacion (coordinador)

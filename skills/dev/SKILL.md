@@ -4,7 +4,7 @@ description: Coordina desarrollo en servicios Java y Python del workspace ASULAD
 metadata:
   scope: root
   auto_invoke:
-    - "Implementar cambios"
+    - "Coordinar implementación multi-stack"
 ---
 
 # Desarrollo (coordinador)
