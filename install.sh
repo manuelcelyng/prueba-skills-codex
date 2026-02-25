@@ -191,7 +191,7 @@ if [ ${#args[@]} -eq 0 ] && [ ! -f "$REPO_ROOT/AGENTS.md" ]; then
     exec 3>&- 2>/dev/null || true
     tmp_flags="$(mktemp)"
     "$REPO_ROOT/.ai-kit/tools/setup.sh" --choose-flags | tee "$tmp_flags"
-    flags_line="$(awk -F': ' '/^AI_KIT_FLAGS: /{print $2; exit}' "$tmp_flags")"
+    flags_line="$(sed -n "s/^AI_KIT_FLAGS: //p" "$tmp_flags" | head -n 1)"
     rm -f "$tmp_flags"
     [ -z "$flags_line" ] && flags_line="--codex"
   fi
@@ -288,7 +288,7 @@ choose_setup_args() {
     tmp_flags="$(mktemp)"
     # Show menu output to the user while capturing it for parsing.
     "$REPO_ROOT/.ai-kit/tools/setup.sh" --choose-flags | tee "$tmp_flags"
-    flags_line="$(awk -F': ' '/^AI_KIT_FLAGS: /{print $2; exit}' "$tmp_flags")"
+    flags_line="$(sed -n "s/^AI_KIT_FLAGS: //p" "$tmp_flags" | head -n 1)"
     rm -f "$tmp_flags"
     [ -z "$flags_line" ] && flags_line="--codex"
   else

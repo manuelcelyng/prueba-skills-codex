@@ -84,15 +84,12 @@ show_menu() {
     choice=""
     # Prefer /dev/tty so this works even when stdin is piped (curl | bash).
     # Only fall back to stdin if stdin is a TTY (avoid consuming piped script contents).
-    if [ -t 1 ]; then
-      # In a real terminal (stdout is a TTY), /dev/tty should be usable.
-      if ! read -r choice < /dev/tty 2>/dev/null; then
+    if ! read -r choice < /dev/tty 2>/dev/null; then
+      if [ -t 0 ]; then
+        read -r choice || choice=""
+      else
         choice=""
       fi
-    elif [ -t 0 ]; then
-      read -r choice || choice=""
-    else
-      choice=""
     fi
 
     case $choice in
