@@ -21,10 +21,11 @@ Planear cambios en Java y entregar primero **contrato** y luego **plan de implem
 1. Leer `AGENTS.md`.
 2. Leer `.ai-kit/references/context-readme.md`.
 3. Leer `.ai-kit/references/java-rules.md`.
-3.1. Usar `.ai-kit/references/hu-prompts-and-template-usage.md` como guía SDD.
-4. Si existe `context/agent-master-context.md`, leerlo completo.
-5. Si hay HU, leer `context/hu/<HU_ID>/` y usar `.ai-kit/references/hu-context-template.md` si se crea desde cero.
-6. Si existen, leer: `context/adr_optimized.md`, `context/dependencies_optimized.md`, `context/error-codes.md`, `context/ejemplos-api_optimized.md`, `context/mejores-practicas-calidad-codigo.md`.
+4. Leer `.ai-kit/references/java-playbook.md`.
+5. Usar `.ai-kit/references/hu-prompts-and-template-usage.md` como guía SDD.
+6. Si hay HU, leer `context/hu/<HU_ID>/`.
+7. Si existe un skill local de error codes (ej. `skills/*error-codes*/SKILL.md`), leerlo.
+8. Si aplica ADR/deps/ejemplos: cargar `.ai-kit/references/adr-guide.md`, `.ai-kit/references/dependencies-guide.md`, `.ai-kit/references/java-api-examples.md`.
 
 ## Output Order (mandatory)
 1. Contrato API completo.
@@ -36,8 +37,8 @@ Planear cambios en Java y entregar primero **contrato** y luego **plan de implem
 - Plan: `context/hu/<HU_ID>/plan-implementacion.md` (o el archivo existente en la HU).
 
 ## Resources
-- `references/contract-template-java.md`
-- `references/plan-template-java.md`
+- `.ai-kit/references/contract-template-java.md`
+- `.ai-kit/references/plan-template-java.md`
 
 ## Limits
 - No gestionar git, ramas o PRs.

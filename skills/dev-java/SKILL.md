@@ -21,13 +21,11 @@ Implementar cambios en Java cumpliendo reglas del repo (hexagonal/reactivo, no b
 1. Leer `AGENTS.md`.
 2. Leer `.ai-kit/references/context-readme.md`.
 3. Leer `.ai-kit/references/java-rules.md`.
-3.1. Si aplica HU, revisar `.ai-kit/references/hu-prompts-and-template-usage.md`.
-4. Si existe `context/agent-master-context.md`, leerlo completo.
-5. Si hay HU, leer `context/hu/<HU_ID>/` y todos los contratos/planes existentes.
-6. Si existen, leer: `context/adr_optimized.md`, `context/dependencies_optimized.md`, `context/error-codes.md`, `context/ejemplos-api_optimized.md`, `context/mejores-practicas-calidad-codigo.md`.
-7. Si se crea HU/contrato, usar:
-   - `.ai-kit/references/hu-context-template.md`
-   - `.ai-kit/references/hu-prompts-and-template-usage.md`
+4. Leer `.ai-kit/references/java-playbook.md`.
+5. Si aplica HU, revisar `.ai-kit/references/hu-prompts-and-template-usage.md`.
+6. Si hay HU, leer `context/hu/<HU_ID>/` y todos los contratos/planes existentes.
+7. Si existe un skill local de error codes (ej. `skills/*error-codes*/SKILL.md`), leerlo.
+8. Si necesitas ejemplos o checklist: cargar `.ai-kit/references/java-api-examples.md` y `.ai-kit/references/java-code-quality.md`.
 
 ## Gate (mandatory)
 Verificar que existan:
@@ -37,12 +35,13 @@ Si falta alguno, solicitar primero `planning-java` y detener implementacion.
 
 ## Workflow
 
-- Seguir el flujo HU/TDD del `context/agent-master-context.md` (si existe).
+- Seguir el flujo HU/TDD de `.ai-kit/references/java-playbook.md`.
 - Tests mínimos por HU: UseCase, SQL Provider, Adapter, Handler/Router.
 
 ## Limits
 - No gestionar git, ramas o PRs.
 
 ## Resources
-- `references/context-map-java.md`
-- `references/implementation-checklist-java.md`
+- `.ai-kit/references/java-playbook.md`
+- `.ai-kit/references/java-code-quality.md`
+- `.ai-kit/references/java-api-examples.md`

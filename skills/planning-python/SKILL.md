@@ -58,5 +58,5 @@ Planear cambios en Python y entregar primero contrato y luego plan de implementa
 - No gestionar git, ramas o PRs.
 
 ## Referencias
-    - `references/contract-template-python.md`
-    - `references/plan-template-python.md`
+- `.ai-kit/references/contract-template-python.md`
+- `.ai-kit/references/plan-template-python.md`

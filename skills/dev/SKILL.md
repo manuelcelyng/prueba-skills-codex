@@ -29,4 +29,4 @@ Usa este skill cuando la tarea combine Java y Python o el lenguaje no este claro
 - No gestionar git, ramas o PRs.
 
 ## Referencias
-    - `references/skill-routing.md`
+- `.ai-kit/references/skill-routing.md`

@@ -67,6 +67,9 @@ find "$WORKSPACE_ROOT" -maxdepth 3 -name ai-kit.lock -print 2>/dev/null | LC_ALL
 
   echo -e "${BLUE}Repo: $repo_root${NC}"
   (cd "$repo_root" && ./scripts/ai/bootstrap.sh)
+  if [ ! -f "$repo_root/AGENTS.md" ] && [ -x "$repo_root/scripts/ai/init-agents.sh" ]; then
+    (cd "$repo_root" && ./scripts/ai/init-agents.sh) >/dev/null 2>&1 || true
+  fi
   (cd "$repo_root" && ./scripts/ai/setup.sh --all)
   (cd "$repo_root" && ./scripts/ai/sync.sh)
   echo -e "${GREEN}OK${NC}"

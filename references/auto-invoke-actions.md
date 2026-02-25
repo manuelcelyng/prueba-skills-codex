@@ -39,10 +39,12 @@ Usa estas acciones tal cual para evitar drift:
 - `Escribir/actualizar unit tests` → `agent-unit-tests`
 - `Revisar cambios` → `review`
 - `Crear skills nuevas` → `skill-creator`
+- `Configurar herramientas IA` → `ai-setup`
 - `Regenerar auto-invoke (sync)` → `skill-sync`
 - `Después de crear/modificar un skill` → `skill-sync`
 - `Coordinar planning multi-stack` → `planning`
 - `Coordinar implementación multi-stack` → `dev`
+- `Definir / actualizar error codes` → `<servicio>-error-codes` (skills locales)
 
 ## Dónde vive la guía HU
 
@@ -79,6 +81,24 @@ metadata:
   scope: [root]
   auto_invoke:
     - "Implementar cambios"
+allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
+---
+```
+
+### Skill de catálogo de error codes (micro)
+```yaml
+---
+name: dispersion-error-codes
+description: >
+  Catálogo y reglas de ErrorCodes del micro Dispersión.
+  Trigger: Cuando se cree/edite un ErrorCode o se defina el mapeo HTTP/mensaje del contrato.
+license: Internal
+metadata:
+  author: pragma-asulado
+  version: "0.1"
+  scope: [root]
+  auto_invoke:
+    - "Definir / actualizar error codes"
 allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 ---
 ```

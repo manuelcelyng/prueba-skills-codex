@@ -23,7 +23,7 @@
 ## Errores y codigos
 - Errores hacia arriba como `BusinessException` con `ErrorCode` del modulo.
 - No propagar `RuntimeException` cruda a entry points.
-- Mantener `error-codes.md` actualizado en cada servicio.
+- Mantener el catálogo de error codes del micro actualizado (skill local o doc del servicio).
 
 ## SQL Providers
 - Consultas con parametros nombrados; nunca concatenar input.
@@ -38,4 +38,3 @@
 ## Calidad
 - Evitar code smells: metodos grandes, >5 parametros, duplicacion, imports `*`.
 - Sin logica de negocio en mappers/adapters/routers.
-

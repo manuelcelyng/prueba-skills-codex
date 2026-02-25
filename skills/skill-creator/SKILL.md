@@ -39,7 +39,10 @@ No crear un skill cuando:
 
 ## Template
 
-Usa `assets/SKILL-TEMPLATE.md` como base.
+Usa `assets/SKILL-TEMPLATE.md` como base o ejecuta el generador:
+
+- Skill local (desde un servicio): `./scripts/ai/create-skill.sh --name <servicio>-<tema> --auto "<Action>"`
+- Skill core (desde `ai-kit/`): `./tools/create-skill.sh --where ./skills --name <skill> --auto "<Action>"`
 
 ## Checklist
 

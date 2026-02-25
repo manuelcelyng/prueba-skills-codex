@@ -56,5 +56,5 @@ Si falta alguno, solicitar primero `planning-python` y detener implementacion.
 - No gestionar git, ramas o PRs.
 
 ## Referencias
-    - `references/context-map-python.md`
-    - `references/implementation-checklist-python.md`
+- `.ai-kit/references/context-map-python.md`
+- `.ai-kit/references/implementation-checklist-python.md`
