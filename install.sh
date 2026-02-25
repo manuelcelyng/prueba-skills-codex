@@ -186,8 +186,8 @@ args=("$@")
 # If no args and AGENTS.md is missing, choose flags once so the stub matches the selection.
 if [ ${#args[@]} -eq 0 ] && [ ! -f "$REPO_ROOT/AGENTS.md" ]; then
   flags_line="--codex"
-  if exec 3</dev/tty 2>/dev/null; then
-    exec 3<&-
+  if [ -t 0 ] || exec 3</dev/tty 2>/dev/null; then
+    exec 3<&- 2>/dev/null || true
     flags_line="$("$REPO_ROOT/.ai-kit/tools/setup.sh" --choose-flags)" || flags_line="--codex"
   fi
   # shellcheck disable=SC2206
@@ -265,17 +265,29 @@ choose_setup_args() {
     return 0
   fi
 
-  # If there's a controlling terminal, prompt once (menu to stderr, flags to stdout).
-  # Otherwise default to Codex-only (non-interactive safe).
+  # Prompt if we can actually read user input:
+  # - stdin is a TTY (script executed from a file), OR
+  # - /dev/tty is available (curl | bash).
   flags_line="--codex"
-  if exec 3</dev/tty 2>/dev/null; then
+  can_prompt=false
+  if [ -t 0 ]; then
+    can_prompt=true
+  elif exec 3</dev/tty 2>/dev/null; then
     exec 3<&-
+    can_prompt=true
+  fi
+
+  if [ "$can_prompt" = true ]; then
     echo "install: choose assistants (Enter = Codex default)..." 1>&2
     if flags_line="$("$REPO_ROOT/.ai-kit/tools/setup.sh" --choose-flags)"; then
       :
     else
       flags_line="--codex"
     fi
+  else
+    echo "install: non-interactive (no TTY). Defaulting to --codex." 1>&2
+    echo "install: to choose interactively, run:" 1>&2
+    echo "  curl -fsSLO https://raw.githubusercontent.com/manuelcelyng/prueba-skills-codex/main/install.sh && bash install.sh" 1>&2
   fi
 
   # Parse flags line into array

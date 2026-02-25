@@ -83,9 +83,13 @@ show_menu() {
     echo -n "Toggle (1-4, a, n) or Enter to confirm: "
     choice=""
     # Prefer /dev/tty so this works even when stdin is piped (curl | bash).
-    # If /dev/tty isn't available (no controlling terminal), fall back to stdin.
+    # Only fall back to stdin if stdin is a TTY (avoid consuming piped script contents).
     if ! read -r choice < /dev/tty 2>/dev/null; then
-      read -r choice || choice=""
+      if [ -t 0 ]; then
+        read -r choice || choice=""
+      else
+        choice=""
+      fi
     fi
 
     case $choice in
