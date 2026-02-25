@@ -44,6 +44,7 @@ Si falta alguno, solicitar primero `planning-java` y detener implementacion.
   - Si el query es complejo, permitir `DatabaseClient`/SQL Providers; si es intermedio y legible, `@Query`.
 - Reactor:
   - Evitar `collectList()` + `Flux::fromIterable` solo para reemitir y continuar el flujo; preferir streaming (`concatMap` si secuencial/ordenado).
+  - En flujos por lote, manejar errores por elemento (`onErrorResume` por item/lote) para que un fallo no aborte el proceso completo.
 
 ## Limits
 - No gestionar git, ramas o PRs.

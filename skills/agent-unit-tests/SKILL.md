@@ -42,6 +42,8 @@ Si alguna regla de este skill choca con el repo (por ejemplo, si el repo prohibe
 - Clase bajo prueba como `@InjectMocks` (SUT).
 - No hardcodear strings ni valores de negocio en tests del HU: moverlos a una clase `*TestData` del mismo modulo.
 - En `*TestData` centralizar constantes, builders y factories para requests/responses esperadas.
+- Mantener `*TestData` como utility consistente (ej. `@UtilityClass` si el repo usa Lombok); evitar estado mutable.
+- Usar nombres de tests y variables descriptivos (evitar `b1`, `b2`) para que el escenario se entienda leyendo el test.
 - Evitar FQCN inline en tests (ej. `co.com...Class` dentro del cuerpo): importar al inicio y usar el nombre simple.
 - Evitar flakiness: fechas/UUID deterministas salvo que el test lo tolere explicitamente.
 - NO escribir tests “cosmeticos”: cada test debe cubrir una rama/decision real.
@@ -109,6 +111,11 @@ Esto es prioritario en proyectos reactivos.
   - errores
   - interacciones con dependencias
 - Usar `withVirtualTime` solo cuando hay operadores basados en tiempo.
+
+## E2E (LocalStack) — si aplica
+
+- Para pruebas E2E con LocalStack, no basta con crear colas: el cliente SQS debe apuntar al endpoint correcto.
+- Cualquier ajuste “solo local” debe aislarse (perfil/config/stash) para no contaminar el camino a prod.
 
 ## Enfoque por capa (heuristica)
 

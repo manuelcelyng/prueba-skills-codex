@@ -13,6 +13,8 @@ Evitar code smells y issues típicos de Sonar/PR desde el inicio.
 7. **Reactor sin materializar flujos**: evitar `collectList()` + `Flux::fromIterable` solo para reemitir; preferir streaming (`concatMap` si secuencial/ordenado).
 8. **SQL Providers**: query base completa + `append` solo para filtros opcionales; parámetros siempre bind nombrado.
 9. **Imports explícitos**: evitar `import x.*`.
+10. **Batch robusto**: en flujos por lote, manejar errores por elemento (`onErrorResume` por item/lote) para que un fallo no aborte todo el proceso.
+11. **LocalStack E2E**: además de crear colas, el cliente SQS debe apuntar al endpoint correcto; aislar cualquier ajuste “solo local” para no contaminar prod.
 
 ## Anti-patrones comunes
 - Métodos gigantes o con >5 parámetros (considerar DTO/VO).

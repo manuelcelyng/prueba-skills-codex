@@ -40,9 +40,14 @@ Usa este skill para code review y validacion de cumplimiento.
   - Evitar métodos llamados `execute` en UseCases; el nombre debe describir claramente la funcionalidad.
 - Reactor:
   - Evitar `collectList()` + `Flux::fromIterable` solo para reemitir; preferir streaming (`concatMap` si secuencial/ordenado).
+- Batch:
+  - En flujos por lote, manejar errores por elemento (`onErrorResume` por item/lote) para que un fallo no aborte el proceso completo.
 - Tests:
   - Evitar data hardcodeada de negocio (ej. estados como `NUEVO`) directamente en los tests.
   - Centralizar constantes/objetos/fixtures en clases `*TestData` del módulo (siguiendo la estructura existente).
+  - `*TestData` como utility consistente (ej. `@UtilityClass` si el repo usa Lombok) y nombres descriptivos (evitar `b1`, `b2`).
+- E2E (LocalStack):
+  - Verificar que el cliente SQS apunte al endpoint correcto; aislar cambios “solo local” para no contaminar prod.
 
 ## Resources
 - `.ai-kit/references/review-checklist.md`
