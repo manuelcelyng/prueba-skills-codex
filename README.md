@@ -13,6 +13,7 @@ curl -fsSL https://raw.githubusercontent.com/manuelcelyng/prueba-skills-codex/ma
 ```
 
 Durante la instalación podrás elegir qué asistentes configurar (Claude/Gemini/Codex/Copilot).
+Por defecto verás todo deseleccionado; si presionas Enter sin seleccionar nada, se configura **Codex**.
 
 ### Instalación no interactiva (sin preguntas)
 
@@ -111,4 +112,3 @@ Ejemplo:
 ./scripts/ai/setup.sh --all
 ./scripts/ai/sync.sh
 ```
-
