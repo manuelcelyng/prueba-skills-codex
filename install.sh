@@ -270,6 +270,7 @@ choose_setup_args() {
   flags_line="--codex"
   if exec 3</dev/tty 2>/dev/null; then
     exec 3<&-
+    echo "install: choose assistants (Enter = Codex default)..." 1>&2
     if flags_line="$("$REPO_ROOT/.ai-kit/tools/setup.sh" --choose-flags)"; then
       :
     else

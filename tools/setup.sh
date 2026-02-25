@@ -61,6 +61,7 @@ ensure_skills_source() {
 show_menu() {
   echo -e "${BOLD}Which AI assistants do you use?${NC}"
   echo -e "${CYAN}(Use numbers to toggle, Enter to confirm)${NC}"
+  echo -e "${CYAN}(If you press Enter immediately, it defaults to Codex only)${NC}"
   echo ""
 
   local options=("Claude Code" "Gemini CLI" "Codex (OpenAI)" "GitHub Copilot")
