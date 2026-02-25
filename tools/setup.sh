@@ -80,8 +80,10 @@ show_menu() {
     echo -n "Toggle (1-4, a, n) or Enter to confirm: "
     # Prefer /dev/tty so this works even when stdin is piped (curl | bash),
     # but fall back to stdin if /dev/tty isn't available in this environment.
-    if [ -r /dev/tty ] && read -r choice < /dev/tty 2>/dev/null; then
-      : # ok
+    choice=""
+    if exec 3</dev/tty 2>/dev/null; then
+      read -r -u 3 choice || choice=""
+      exec 3<&-
     else
       read -r choice
     fi

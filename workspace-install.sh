@@ -87,7 +87,11 @@ elif [ "$SETUP_MODE" = "interactive" ]; then
     echo "  a) All"
     echo "  n) None"
     echo -n "Select (e.g. 1 3 4) or 'a' or 'n': "
-    if ! read -r choice < /dev/tty; then
+    choice=""
+    if exec 3</dev/tty 2>/dev/null; then
+      read -r -u 3 choice || choice="a"
+      exec 3<&-
+    else
       choice="a"
     fi
     case "$choice" in
