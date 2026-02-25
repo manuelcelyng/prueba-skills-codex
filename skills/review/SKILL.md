@@ -32,5 +32,17 @@ Usa este skill para code review y validacion de cumplimiento.
 - Luego listar preguntas o supuestos.
 - Cerrar con un resumen corto si es necesario.
 
+## Checks (mínimo)
+- Naming queries:
+  - Si el query es simple, preferir derived query en `ReactiveCrudRepository`/`CrudRepository` (por nombre).
+  - Si el query es complejo, permitir `DatabaseClient`/SQL Providers; si es intermedio y legible, `@Query`.
+- Naming de UseCases:
+  - Evitar métodos llamados `execute` en UseCases; el nombre debe describir claramente la funcionalidad.
+- Reactor:
+  - Evitar `collectList()` + `Flux::fromIterable` solo para reemitir; preferir streaming (`concatMap` si secuencial/ordenado).
+- Tests:
+  - Evitar data hardcodeada de negocio (ej. estados como `NUEVO`) directamente en los tests.
+  - Centralizar constantes/objetos/fixtures en clases `*TestData` del módulo (siguiendo la estructura existente).
+
 ## Resources
 - `.ai-kit/references/review-checklist.md`

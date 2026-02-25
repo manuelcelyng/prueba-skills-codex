@@ -37,6 +37,13 @@ Si falta alguno, solicitar primero `planning-java` y detener implementacion.
 
 - Seguir el flujo HU/TDD de `.ai-kit/references/java-playbook.md`.
 - Tests mínimos por HU: UseCase, SQL Provider, Adapter, Handler/Router.
+- Naming:
+  - Evitar métodos llamados `execute` en UseCases; usar nombres descriptivos que indiquen claramente la funcionalidad.
+- Queries:
+  - Si el query es simple, preferir derived query en `ReactiveCrudRepository`/`CrudRepository` (resolver por nombre).
+  - Si el query es complejo, permitir `DatabaseClient`/SQL Providers; si es intermedio y legible, `@Query`.
+- Reactor:
+  - Evitar `collectList()` + `Flux::fromIterable` solo para reemitir y continuar el flujo; preferir streaming (`concatMap` si secuencial/ordenado).
 
 ## Limits
 - No gestionar git, ramas o PRs.
