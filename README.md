@@ -105,6 +105,8 @@ Si prefieres correr los scripts “a mano” (en un repo de microservicio):
 4) `./scripts/ai/sync.sh`  
    Regenera `### Auto-invoke Skills` en `AGENTS.md` a partir de `metadata.scope` + `metadata.auto_invoke` en cada `SKILL.md`.
 
+Nota: `setup.sh`/`sync.sh` intentan crear `AGENTS.md` automáticamente si falta (vía `init-agents.sh`).
+
 ## Scripts (qué hace cada uno)
 
 En este repo (AI Kit):
