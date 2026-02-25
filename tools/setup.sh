@@ -62,7 +62,8 @@ show_menu() {
   echo ""
 
   local options=("Claude Code" "Gemini CLI" "Codex (OpenAI)" "GitHub Copilot")
-  local selected=(true true true true)
+  local selected=(false false false false)
+  local touched=false
 
   while true; do
     for i in "${!options[@]}"; do
@@ -84,13 +85,21 @@ show_menu() {
     fi
 
     case $choice in
-      1) selected[0]=$([ "${selected[0]}" = true ] && echo false || echo true) ;;
-      2) selected[1]=$([ "${selected[1]}" = true ] && echo false || echo true) ;;
-      3) selected[2]=$([ "${selected[2]}" = true ] && echo false || echo true) ;;
-      4) selected[3]=$([ "${selected[3]}" = true ] && echo false || echo true) ;;
-      a|A) selected=(true true true true) ;;
-      n|N) selected=(false false false false) ;;
-      "") break ;;
+      1) touched=true; selected[0]=$([ "${selected[0]}" = true ] && echo false || echo true) ;;
+      2) touched=true; selected[1]=$([ "${selected[1]}" = true ] && echo false || echo true) ;;
+      3) touched=true; selected[2]=$([ "${selected[2]}" = true ] && echo false || echo true) ;;
+      4) touched=true; selected[3]=$([ "${selected[3]}" = true ] && echo false || echo true) ;;
+      a|A) touched=true; selected=(true true true true) ;;
+      n|N) touched=true; selected=(false false false false) ;;
+      "")
+        # Default behavior:
+        # - If user didn't toggle anything and just pressed Enter, configure Codex only.
+        # - If user toggled and ended up selecting none, keep none (no setup).
+        if [ "$touched" = false ] && [ "${selected[0]}" = false ] && [ "${selected[1]}" = false ] && [ "${selected[2]}" = false ] && [ "${selected[3]}" = false ]; then
+          selected=(false false true false)
+        fi
+        break
+        ;;
       *) echo -e "${RED}Invalid option${NC}" ;;
     esac
 
