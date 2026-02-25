@@ -81,10 +81,11 @@ show_menu() {
     # Prefer /dev/tty so this works even when stdin is piped (curl | bash),
     # but fall back to stdin if /dev/tty isn't available in this environment.
     choice=""
-    if exec 3</dev/tty 2>/dev/null; then
-      read -r -u 3 choice || choice=""
-      exec 3<&-
+    if [ -t 1 ] && [ -r /dev/tty ]; then
+      # In a real terminal, use /dev/tty so this works even when stdin is piped.
+      read -r choice < /dev/tty || choice=""
     else
+      # In non-tty environments, avoid /dev/tty (can be "Device not configured").
       read -r choice
     fi
 
