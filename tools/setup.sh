@@ -78,8 +78,10 @@ show_menu() {
     echo -e "  ${YELLOW}n${NC}. Select none"
     echo ""
     echo -n "Toggle (1-4, a, n) or Enter to confirm: "
-    if [ -r /dev/tty ]; then
-      read -r choice < /dev/tty
+    # Prefer /dev/tty so this works even when stdin is piped (curl | bash),
+    # but fall back to stdin if /dev/tty isn't available in this environment.
+    if [ -r /dev/tty ] && read -r choice < /dev/tty; then
+      : # ok
     else
       read -r choice
     fi
