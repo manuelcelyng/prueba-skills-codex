@@ -32,6 +32,7 @@ SETUP_CLAUDE=false
 SETUP_GEMINI=false
 SETUP_CODEX=false
 SETUP_COPILOT=false
+CHOOSE_FLAGS=false
 
 show_help() {
   echo "Usage: $0 [OPTIONS]"
@@ -42,6 +43,7 @@ show_help() {
   echo "  --gemini    Configure Gemini CLI"
   echo "  --codex     Configure Codex (OpenAI)"
   echo "  --copilot   Configure GitHub Copilot"
+  echo "  --choose-flags  Interactive selection; prints flags and exits"
   echo "  --help|-h   Show help"
 }
 
@@ -78,15 +80,11 @@ show_menu() {
     echo -e "  ${YELLOW}n${NC}. Select none"
     echo ""
     echo -n "Toggle (1-4, a, n) or Enter to confirm: "
-    # Prefer /dev/tty so this works even when stdin is piped (curl | bash),
-    # but fall back to stdin if /dev/tty isn't available in this environment.
     choice=""
-    if [ -t 1 ] && [ -r /dev/tty ]; then
-      # In a real terminal, use /dev/tty so this works even when stdin is piped.
-      read -r choice < /dev/tty || choice=""
-    else
-      # In non-tty environments, avoid /dev/tty (can be "Device not configured").
-      read -r choice
+    # Prefer /dev/tty so this works even when stdin is piped (curl | bash).
+    # If /dev/tty isn't available (no controlling terminal), fall back to stdin.
+    if ! read -r choice < /dev/tty 2>/dev/null; then
+      read -r choice || choice=""
     fi
 
     case $choice in
@@ -115,6 +113,26 @@ show_menu() {
   SETUP_GEMINI=${selected[1]}
   SETUP_CODEX=${selected[2]}
   SETUP_COPILOT=${selected[3]}
+}
+
+normalized_flags_line() {
+  # Default to Codex if nothing selected.
+  if ! $SETUP_CLAUDE && ! $SETUP_GEMINI && ! $SETUP_CODEX && ! $SETUP_COPILOT; then
+    echo "--codex"
+    return 0
+  fi
+
+  if $SETUP_CLAUDE && $SETUP_GEMINI && $SETUP_CODEX && $SETUP_COPILOT; then
+    echo "--all"
+    return 0
+  fi
+
+  out=""
+  $SETUP_CLAUDE && out="$out --claude"
+  $SETUP_GEMINI && out="$out --gemini"
+  $SETUP_CODEX && out="$out --codex"
+  $SETUP_COPILOT && out="$out --copilot"
+  echo "$out" | sed 's/^[[:space:]]*//'
 }
 
 symlink_dir() {
@@ -189,6 +207,7 @@ while [[ $# -gt 0 ]]; do
       SETUP_COPILOT=true
       shift
       ;;
+    --choose-flags) CHOOSE_FLAGS=true; shift ;;
     --claude) SETUP_CLAUDE=true; shift ;;
     --gemini) SETUP_GEMINI=true; shift ;;
     --codex) SETUP_CODEX=true; shift ;;
@@ -201,6 +220,15 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+if $CHOOSE_FLAGS; then
+  # Print flags to stdout (installer-friendly). Render the menu to stderr.
+  if ! $SETUP_CLAUDE && ! $SETUP_GEMINI && ! $SETUP_CODEX && ! $SETUP_COPILOT; then
+    show_menu 1>&2
+  fi
+  normalized_flags_line
+  exit 0
+fi
 
 if ! $SETUP_CLAUDE && ! $SETUP_GEMINI && ! $SETUP_CODEX && ! $SETUP_COPILOT; then
   show_menu

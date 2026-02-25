@@ -13,7 +13,7 @@
 #   --force                Overwrite existing files
 #
 # Notes:
-# - This installer creates: ai-kit.lock, scripts/ai/*, updates .gitignore, creates AGENTS.md if missing.
+# - This installer creates: ai-kit.lock, scripts/ai/*, updates .gitignore, creates an AGENTS.md stub if missing.
 # - Requires: git, bash, and network access.
 
 set -euo pipefail
@@ -27,6 +27,7 @@ NO_RUN=false
 NO_SETUP=false
 FORCE=false
 SETUP_ARGS=()
+SETUP_ARGS_FINAL=()
 
 usage() {
   cat <<EOF
@@ -180,12 +181,24 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 "$REPO_ROOT/scripts/ai/bootstrap.sh"
 
-if [ ! -f "$REPO_ROOT/AGENTS.md" ]; then
-  "$REPO_ROOT/scripts/ai/init-agents.sh" >/dev/null 2>&1 || true
+args=("$@")
+
+# If no args and AGENTS.md is missing, choose flags once so the stub matches the selection.
+if [ ${#args[@]} -eq 0 ] && [ ! -f "$REPO_ROOT/AGENTS.md" ]; then
+  flags_line="--codex"
+  if exec 3</dev/tty 2>/dev/null; then
+    exec 3<&-
+    flags_line="$("$REPO_ROOT/.ai-kit/tools/setup.sh" --choose-flags)" || flags_line="--codex"
+  fi
+  # shellcheck disable=SC2206
+  args=($flags_line)
+  "$REPO_ROOT/scripts/ai/init-agents.sh" "${args[@]}" >/dev/null 2>&1 || true
+elif [ ! -f "$REPO_ROOT/AGENTS.md" ]; then
+  "$REPO_ROOT/scripts/ai/init-agents.sh" "${args[@]}" >/dev/null 2>&1 || true
 fi
 
 (cd "$REPO_ROOT" && "$REPO_ROOT/.ai-kit/tools/build-skills.sh")
-(cd "$REPO_ROOT" && "$REPO_ROOT/.ai-kit/tools/setup.sh" "$@")'
+(cd "$REPO_ROOT" && "$REPO_ROOT/.ai-kit/tools/setup.sh" "${args[@]}")'
 
 write_file "$REPO_ROOT/scripts/ai/sync.sh" \
 '#!/usr/bin/env bash
@@ -237,26 +250,49 @@ if $NO_RUN; then
   exit 0
 fi
 
-echo "install: running bootstrap/setup/sync"
+  echo "install: running bootstrap/setup/sync"
 "$REPO_ROOT/scripts/ai/bootstrap.sh"
 
+choose_setup_args() {
+  if [ ${#SETUP_ARGS[@]} -gt 0 ]; then
+    SETUP_ARGS_FINAL=("${SETUP_ARGS[@]}")
+    return 0
+  fi
+
+  # If setup is skipped, avoid prompting; keep a deterministic default for stub commands.
+  if $NO_SETUP; then
+    SETUP_ARGS_FINAL=(--codex)
+    return 0
+  fi
+
+  # If there's a controlling terminal, prompt once (menu to stderr, flags to stdout).
+  # Otherwise default to Codex-only (non-interactive safe).
+  flags_line="--codex"
+  if exec 3</dev/tty 2>/dev/null; then
+    exec 3<&-
+    if flags_line="$("$REPO_ROOT/.ai-kit/tools/setup.sh" --choose-flags)"; then
+      :
+    else
+      flags_line="--codex"
+    fi
+  fi
+
+  # Parse flags line into array
+  # shellcheck disable=SC2206
+  SETUP_ARGS_FINAL=($flags_line)
+  if [ ${#SETUP_ARGS_FINAL[@]} -eq 0 ]; then
+    SETUP_ARGS_FINAL=(--codex)
+  fi
+}
+
+choose_setup_args
+
 if [ ! -f "$REPO_ROOT/AGENTS.md" ]; then
-  "$REPO_ROOT/scripts/ai/init-agents.sh" >/dev/null 2>&1 || true
+  "$REPO_ROOT/scripts/ai/init-agents.sh" "${SETUP_ARGS_FINAL[@]}" >/dev/null 2>&1 || true
 fi
 
 if ! $NO_SETUP; then
-  # If user didn't pass setup flags:
-  # - interactive terminal: let setup.sh prompt (menu)
-  # - non-interactive: default to --all to avoid hanging
-  if [ ${#SETUP_ARGS[@]} -eq 0 ]; then
-    if [ -r /dev/tty ]; then
-      "$REPO_ROOT/scripts/ai/setup.sh"
-    else
-      "$REPO_ROOT/scripts/ai/setup.sh" --all
-    fi
-  else
-    "$REPO_ROOT/scripts/ai/setup.sh" "${SETUP_ARGS[@]}"
-  fi
+  "$REPO_ROOT/scripts/ai/setup.sh" "${SETUP_ARGS_FINAL[@]}"
 fi
 
 "$REPO_ROOT/scripts/ai/sync.sh"

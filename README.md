@@ -51,7 +51,7 @@ curl -fsSL https://raw.githubusercontent.com/manuelcelyng/prueba-skills-codex/ma
 
 Desde el root de una carpeta que contenga múltiples repos (subcarpetas con `.git`):
 
-### Instalar en todos (default: setup all)
+### Instalar en todos (default: Codex only)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/manuelcelyng/prueba-skills-codex/main/workspace-install.sh | bash
@@ -81,11 +81,18 @@ En cada repo de microservicio:
 - `ai-kit.lock` (apunta a este repo y un ref)
 - `scripts/ai/`:
   - `bootstrap.sh` (clona `.ai-kit/` en el repo)
-  - `init-agents.sh` (crea `AGENTS.md` si falta)
+  - `init-agents.sh` (crea un `AGENTS.md` **stub** si falta)
   - `setup.sh` (genera `.ai/skills` y configura `.claude/.gemini/.codex/.github`)
   - `sync.sh` (regenera `### Auto-invoke Skills` en `AGENTS.md`)
   - `create-skill.sh` (scaffold de skills locales en `skills/`)
 - `.gitignore` (bloque “AI KIT” para ignorar `.ai-kit/`, `.ai/`, symlinks y archivos generados)
+
+## Filosofía: `AGENTS.md` stub-first
+
+Cuando el repo no tiene `AGENTS.md`, el kit crea un **stub mínimo** con una regla:
+invocar el skill `ai-init-agents` para que la IA genere/mejore un `AGENTS.md` completo, específico del repo.
+
+La sección `### Auto-invoke Skills` se gestiona **solo** con `./scripts/ai/sync.sh`.
 
 ## Ejecución manual (orden recomendado)
 
@@ -95,7 +102,7 @@ Si prefieres correr los scripts “a mano” (en un repo de microservicio):
    Descarga/actualiza el kit en `.ai-kit/` según `ai-kit.lock`.
 
 2) `./scripts/ai/init-agents.sh` (solo si no existe `AGENTS.md`)  
-   Crea un `AGENTS.md` mínimo para el micro.
+   Crea un `AGENTS.md` stub que indica invocar `ai-init-agents` para generar/mejorar las guías del repo.
 
 3) `./scripts/ai/setup.sh [--all|--codex|--claude|--gemini|--copilot]`  
    - Construye `.ai/skills/` (merge core+local).
@@ -113,9 +120,10 @@ En este repo (AI Kit):
 - `install.sh`: instala el kit en **un repo** (crea `ai-kit.lock`, scripts, `.gitignore`; opcionalmente ejecuta bootstrap/setup/sync).
 - `workspace-install.sh`: instala el kit en **múltiples repos** (subcarpetas con `.git`). También puede crear un runner `workspace-ai.sh`.
 - `tools/setup.sh`: menú y configuración de asistentes (symlinks/copies). Se usa indirectamente vía `scripts/ai/setup.sh`.
+  - `tools/setup.sh --choose-flags`: selección interactiva que imprime flags (uso interno del installer).
 - `tools/sync.sh`: genera la tabla Auto-invoke en `AGENTS.md`. Se usa indirectamente vía `scripts/ai/sync.sh`.
 - `tools/create-skill.sh`: crea scaffolds de skills (`SKILL.md`) con frontmatter estándar.
-- `tools/init-agents.sh`: crea `AGENTS.md` mínimo cuando no existe.
+- `tools/init-agents.sh`: crea `AGENTS.md` **stub** cuando no existe (primera acción: invocar `ai-init-agents`).
 - `tools/build-skills.sh`: arma `.ai/skills` (merge core + overlay local) como symlinks.
 
 En el repo del micro (se instalan en `scripts/ai/`):
@@ -130,8 +138,8 @@ En el repo del micro (se instalan en `scripts/ai/`):
 `workspace-install.sh` puede crear un runner `workspace-ai.sh` en el root del workspace para re-sincronizar todo:
 
 ```bash
-./workspace-ai.sh --all
-./workspace-ai.sh --repos dispersion,pagos
+./workspace-ai.sh --all          # default: --codex
+./workspace-ai.sh --repos dispersion,pagos --claude
 ```
 
 ### Directorios clave en el repo del micro

@@ -28,6 +28,7 @@ Punto de entrada para enrutar la tarea al skill correcto y exigir flujo **SDD**:
 - Si la solicitud es “implementar / fix / refactor / agregar endpoint”: invocar `dev-java` o `dev-python`.
 - Si la solicitud es “review / checklist / validar cumplimiento / auditoría”: invocar `review`.
 - Si la solicitud es “configurar IA / sincronizar skills / onboarding”: invocar `ai-setup`.
+- Si la solicitud es “generar/mejorar AGENTS.md”: invocar `ai-init-agents` y luego `skill-sync`.
 - Si la solicitud es “crear un skill”: invocar `skill-creator` y al final `skill-sync`.
 
 ## Persistencia (Engram portable)

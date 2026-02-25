@@ -8,7 +8,8 @@
 #   --kit-repo <git-url>   Override AI_KIT_REPO
 #   --kit-ref <ref>        Override AI_KIT_REF (default: main)
 #   --repos a,b,c          Only install into these repo folder names
-#   --setup-all            Configure all assistants (default)
+#   --setup-all            Configure all assistants
+#   (default)              Configure Codex only
 #   --setup-interactive    Prompt once and apply to all repos
 #   --setup-none           Skip setup step for all repos
 #   --no-runner            Don't create/update a workspace-ai.sh runner in the workspace root
@@ -25,7 +26,7 @@ KIT_REF="$KIT_REF_DEFAULT"
 REPOS_FILTER=""
 NO_RUN=false
 FORCE=false
-SETUP_MODE="all"
+SETUP_MODE="codex"
 SETUP_ARGS=()
 WRITE_RUNNER=true
 
@@ -79,6 +80,8 @@ if [ "$SETUP_MODE" = "none" ]; then
   SETUP_ARGS+=(--no-setup)
 elif [ "$SETUP_MODE" = "all" ]; then
   SETUP_ARGS+=(--all)
+elif [ "$SETUP_MODE" = "codex" ]; then
+  SETUP_ARGS+=(--codex)
 elif [ "$SETUP_MODE" = "interactive" ]; then
   # Ask once, apply to all repos.
   echo "workspace-install: choose assistants (applies to all repos)"
@@ -91,12 +94,11 @@ elif [ "$SETUP_MODE" = "interactive" ]; then
     echo "  n) None"
     echo -n "Select (e.g. 1 3 4) or 'a' or 'n': "
     choice=""
-    if [ -t 1 ] && [ -r /dev/tty ]; then
-      read -r choice < /dev/tty || choice="a"
-    else
-      choice="a"
+    if ! read -r choice < /dev/tty 2>/dev/null; then
+      choice=""
     fi
     case "$choice" in
+      "") SETUP_ARGS+=(--codex) ;;
       a|A) SETUP_ARGS+=(--all) ;;
       n|N) SETUP_ARGS+=(--no-setup) ;;
       *)
@@ -113,7 +115,7 @@ elif [ "$SETUP_MODE" = "interactive" ]; then
     esac
   else
     # Non-interactive: safest default
-    SETUP_ARGS+=(--all)
+    SETUP_ARGS+=(--codex)
   fi
 fi
 
@@ -139,21 +141,31 @@ set -euo pipefail
 # Workspace runner: bootstrap + setup + sync across repos that have ai-kit.lock.
 #
 # Usage (from workspace root):
-#   ./workspace-ai.sh --all
-#   ./workspace-ai.sh --repos dispersion,pagos
+#   ./workspace-ai.sh --all --codex
+#   ./workspace-ai.sh --repos dispersion,pagos --claude
+#   ./workspace-ai.sh --all --setup-all
 
 WORKSPACE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 repos_filter="__ALL__"
+SETUP_ARGS=()
+NO_SETUP=false
 
 show_help() {
-  echo "Usage: $0 --all | --repos <comma-separated>"
+  echo "Usage:"
+  echo "  $0 --all|--repos <a,b,c> [--codex|--claude|--gemini|--copilot|--setup-all|--no-setup]"
 }
 
 while [[ $# -gt 0 ]]; do
   case $1 in
     --all) repos_filter="__ALL__"; shift ;;
     --repos) repos_filter="$2"; shift 2 ;;
+    --setup-all) SETUP_ARGS=(--all); shift ;;
+    --no-setup) NO_SETUP=true; shift ;;
+    --claude) SETUP_ARGS+=("--claude"); shift ;;
+    --gemini) SETUP_ARGS+=("--gemini"); shift ;;
+    --codex) SETUP_ARGS+=("--codex"); shift ;;
+    --copilot) SETUP_ARGS+=("--copilot"); shift ;;
     --help|-h) show_help; exit 0 ;;
     *)
       echo "Unknown option: $1" 1>&2
@@ -175,6 +187,17 @@ should_include_repo() {
   return 1
 }
 
+default_setup_args() {
+  if $NO_SETUP; then
+    return 0
+  fi
+  if [ ${#SETUP_ARGS[@]} -eq 0 ]; then
+    SETUP_ARGS=(--codex)
+  fi
+}
+
+default_setup_args
+
 find "$WORKSPACE_ROOT" -maxdepth 3 -name ai-kit.lock -print 2>/dev/null | LC_ALL=C sort | while IFS= read -r lockfile; do
   repo_root="$(cd "$(dirname "$lockfile")" && pwd)"
   repo_name="$(basename "$repo_root")"
@@ -189,9 +212,11 @@ find "$WORKSPACE_ROOT" -maxdepth 3 -name ai-kit.lock -print 2>/dev/null | LC_ALL
   echo "Repo: $repo_root"
   (cd "$repo_root" && ./scripts/ai/bootstrap.sh)
   if [ ! -f "$repo_root/AGENTS.md" ] && [ -x "$repo_root/scripts/ai/init-agents.sh" ]; then
-    (cd "$repo_root" && ./scripts/ai/init-agents.sh) >/dev/null 2>&1 || true
+    (cd "$repo_root" && ./scripts/ai/init-agents.sh "${SETUP_ARGS[@]}") >/dev/null 2>&1 || true
   fi
-  (cd "$repo_root" && ./scripts/ai/setup.sh --all)
+  if ! $NO_SETUP; then
+    (cd "$repo_root" && ./scripts/ai/setup.sh "${SETUP_ARGS[@]}")
+  fi
   (cd "$repo_root" && ./scripts/ai/sync.sh)
   echo "OK"
   echo ""

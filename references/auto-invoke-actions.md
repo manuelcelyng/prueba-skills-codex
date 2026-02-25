@@ -39,6 +39,7 @@ Usa estas acciones tal cual para evitar drift:
 - `Escribir/actualizar unit tests` → `agent-unit-tests`
 - `Revisar cambios` → `review`
 - `Crear skills nuevas` → `skill-creator`
+- `Generar/actualizar AGENTS.md` → `ai-init-agents`
 - `Configurar herramientas IA` → `ai-setup`
 - `Regenerar auto-invoke (sync)` → `skill-sync`
 - `Después de crear/modificar un skill` → `skill-sync`

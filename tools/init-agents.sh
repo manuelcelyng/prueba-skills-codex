@@ -5,9 +5,11 @@
 #   ./.ai-kit/tools/init-agents.sh
 #   ./.ai-kit/tools/init-agents.sh --force
 #   ./.ai-kit/tools/init-agents.sh --service pagos
+#   ./.ai-kit/tools/init-agents.sh --claude
 #
 # Notes:
-# - This script is intentionally minimal; service-specific rules should live in skills or existing docs.
+# - This script generates a minimal **stub**. The first AI action should be invoking the `ai-init-agents`
+#   skill to generate a useful, repo-specific AGENTS.md.
 
 set -e
 
@@ -16,15 +18,38 @@ REPO_ROOT="${REPO_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 
 SERVICE_NAME=""
 FORCE=false
+SETUP_CLAUDE=false
+SETUP_GEMINI=false
+SETUP_CODEX=false
+SETUP_COPILOT=false
+SETUP_TOUCHED=false
 
 show_help() {
-  echo "Usage: $0 [--service <name>] [--force]"
+  cat <<EOF
+Usage: $0 [--service <name>] [--force] [--all|--claude|--gemini|--codex|--copilot]
+
+Notes:
+  - If no assistant flags are provided, defaults to --codex.
+  - The chosen flags are only used to print the recommended setup command in the stub.
+EOF
 }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --service) SERVICE_NAME="$2"; shift 2 ;;
     --force) FORCE=true; shift ;;
+    --all)
+      SETUP_TOUCHED=true
+      SETUP_CLAUDE=true
+      SETUP_GEMINI=true
+      SETUP_CODEX=true
+      SETUP_COPILOT=true
+      shift
+      ;;
+    --claude) SETUP_TOUCHED=true; SETUP_CLAUDE=true; shift ;;
+    --gemini) SETUP_TOUCHED=true; SETUP_GEMINI=true; shift ;;
+    --codex) SETUP_TOUCHED=true; SETUP_CODEX=true; shift ;;
+    --copilot) SETUP_TOUCHED=true; SETUP_COPILOT=true; shift ;;
     --help|-h) show_help; exit 0 ;;
     *)
       echo "Unknown option: $1" >&2
@@ -45,65 +70,49 @@ if [ -f "$agents_file" ] && ! $FORCE; then
   exit 0
 fi
 
-is_java=false
-is_python=false
-if [ -f "$REPO_ROOT/gradlew" ] || [ -f "$REPO_ROOT/build.gradle" ] || [ -f "$REPO_ROOT/build.gradle.kts" ] || [ -f "$REPO_ROOT/settings.gradle" ] || [ -f "$REPO_ROOT/settings.gradle.kts" ]; then
-  is_java=true
-fi
-if [ -f "$REPO_ROOT/pyproject.toml" ] || [ -f "$REPO_ROOT/requirements.txt" ] || [ -f "$REPO_ROOT/requirements-dev.txt" ] || [ -f "$REPO_ROOT/template.yaml" ]; then
-  is_python=true
-fi
+normalize_setup_flags() {
+  # If user didn't touch selection, default to Codex.
+  if [ "$SETUP_TOUCHED" = false ] && ! $SETUP_CLAUDE && ! $SETUP_GEMINI && ! $SETUP_CODEX && ! $SETUP_COPILOT; then
+    SETUP_CODEX=true
+  fi
 
-stack_line=""
-if $is_java && $is_python; then
-  stack_line="Stack: Java + Python (mixed)."
-elif $is_java; then
-  stack_line="Stack: Java."
-elif $is_python; then
-  stack_line="Stack: Python."
-else
-  stack_line="Stack: (por definir)."
-fi
+  # If all selected, use --all.
+  if $SETUP_CLAUDE && $SETUP_GEMINI && $SETUP_CODEX && $SETUP_COPILOT; then
+    echo "--all"
+    return 0
+  fi
+
+  out=""
+  $SETUP_CLAUDE && out="$out --claude"
+  $SETUP_GEMINI && out="$out --gemini"
+  $SETUP_CODEX && out="$out --codex"
+  $SETUP_COPILOT && out="$out --copilot"
+
+  out="$(echo "$out" | sed 's/^[[:space:]]*//')"
+  if [ -z "$out" ]; then
+    out="--codex"
+  fi
+  echo "$out"
+}
+
+setup_flags="$(normalize_setup_flags)"
 
 cat > "$agents_file" <<EOF
 # Repository Guidelines
 
 Este documento guía contribuciones en el servicio \`$SERVICE_NAME\`.
 
-$stack_line
+## Regla única (obligatoria)
 
-## AI Skills
+Antes de iniciar cualquier tarea, invoca el skill \`ai-init-agents\` para generar/mejorar este \`AGENTS.md\` en base al análisis real del repo.
 
-- Configurar herramientas IA (Codex/Claude/Gemini/Copilot): \`./scripts/ai/setup.sh --all\`
-- Sincronizar tabla Auto-invoke: \`./scripts/ai/sync.sh\`
-- Crear \`AGENTS.md\` (si falta): \`./scripts/ai/init-agents.sh\`
-- Skills del micro (si existen): \`skills/\`
-- Skills core (vendor): \`.ai-kit/skills/\` (se proyectan a \`.ai/skills/\`)
+## Comandos (según tu asistente)
 
-## Project Structure
+- Setup: \`./scripts/ai/setup.sh $setup_flags\`
+- Sync: \`./scripts/ai/sync.sh\`
 
-- HUs (contratos/planes): \`context/hu/\` (si aplica).
-- Reglas comunes (kit): \`.ai-kit/references/\` (playbook, reglas, plantillas).
-
-## Build & Test (si aplica)
-
+> Nota: La sección \`### Auto-invoke Skills\` la gestiona \`./scripts/ai/sync.sh\` (no editar manualmente).
 EOF
-
-if $is_java; then
-  cat >> "$agents_file" <<'EOF'
-- `./gradlew clean build`
-- `./gradlew test`
-EOF
-fi
-
-if $is_python; then
-  cat >> "$agents_file" <<'EOF'
-- `python -m venv venv && source venv/bin/activate`
-- `pip install -r requirements.txt`
-- `pytest`
-EOF
-fi
 
 echo ""
 echo "init-agents: created $agents_file"
-

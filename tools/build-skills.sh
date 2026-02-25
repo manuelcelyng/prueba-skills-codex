@@ -44,7 +44,7 @@ should_link_core_skill() {
 
   # Always include orchestration + utilities
   case "$skill" in
-    asulado-router|review|skill-sync|skill-creator|dev|planning|ai-setup) return 0 ;;
+    asulado-router|ai-init-agents|review|skill-sync|skill-creator|dev|planning|ai-setup) return 0 ;;
   esac
 
   if [ "$stack" = "all" ]; then
