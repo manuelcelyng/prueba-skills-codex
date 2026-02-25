@@ -148,10 +148,20 @@ while IFS= read -r skill_file; do
   # Keep the auto-invoke table intentionally small for SmartPay.
   # Sub-agents (`sdd-*`) are invoked by the orchestrator and should not flood the table.
   if [ "$PROJECT" = "smartpay" ]; then
-    case "$skill_name" in
-      ai-init-agents|skill-sync|ai-setup|smartpay-sdd-orchestrator|smartpay-workspace-router) ;;
-      *) continue ;;
+    # Always allow service-local overlay skills to publish auto_invoke rows.
+    # (These live under ./skills and should be discoverable in the micro's AGENTS.md.)
+    local_overlay=false
+    skill_dir_real="$(cd "$(dirname "$skill_file")" && pwd -P)"
+    case "$skill_dir_real" in
+      "$REPO_ROOT/skills/"*) local_overlay=true ;;
     esac
+
+    if [ "$local_overlay" = false ]; then
+      case "$skill_name" in
+        ai-init-agents|skill-sync|ai-setup|smartpay-sdd-orchestrator|smartpay-workspace-router|smartpay-*) ;;
+        *) continue ;;
+      esac
+    fi
   fi
 
   # Only skills with metadata.auto_invoke participate in sync output.
