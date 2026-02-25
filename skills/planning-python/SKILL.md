@@ -5,7 +5,7 @@ description: >
   Trigger: Cuando se necesita contrato de interfaz/evento y plan de implementación antes de desarrollar.
 license: Internal
 metadata:
-  author: pragma-asulado
+  author: pragma-smartpay
   version: "0.1"
   scope: [root]
   auto_invoke:

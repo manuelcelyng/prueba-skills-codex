@@ -5,7 +5,7 @@ description: >
   Trigger: Después de crear/modificar un skill o cuando la tabla de Auto-invoke esté desactualizada.
 license: Internal
 metadata:
-  author: pragma-asulado
+  author: pragma-smartpay
   version: "0.1"
   scope: [root]
   auto_invoke:

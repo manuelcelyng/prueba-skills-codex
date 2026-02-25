@@ -5,7 +5,7 @@ description: >
   Trigger: Usar cuando falte `AGENTS.md`, cuando sea muy pobre, o cuando el repo cambie significativamente y haya que actualizar guías.
 license: Internal
 metadata:
-  author: pragma-asulado
+  author: pragma-smartpay
   version: "0.1"
   scope: [root]
   auto_invoke:
@@ -51,10 +51,9 @@ El `AGENTS.md` final debe tener, como mínimo:
 
 **Tabla 2: Project-Specific Skills**
 - Si `ai-kit.lock` tiene `AI_SKILLS_PROJECT=smartpay`, incluye `smartpay-*`.
-- Si es `asulado` (o vacío), incluye `asulado-router` y coordinadores (`dev`, `planning`) si están proyectados.
 
 **Tabla 3: Service Skills (overlay local)**
-- Skills bajo `./skills/*` del repo (prefijo recomendado: `<servicio>-<tema>`).
+- Skills bajo `./skills/*` del repo (prefijo recomendado: `smartpay-<micro>-<tema>`).
 
 Cada fila debe tener: `Skill | Description | Source`.
 El `Source` debe ser un path clickeable dentro del repo, preferiblemente:
@@ -81,7 +80,7 @@ Orden recomendado:
 
 Clasificación recomendada:
 - `Generic`: `sdd-*` + utilidades comunes (`ai-*`, `skill-*`, `review`, `agent-unit-tests`).
-- `Project-Specific`: skills con prefijo del proyecto (ej. `smartpay-*`, `asulado-router`).
+- `Project-Specific`: skills con prefijo del proyecto (ej. `smartpay-*`).
 - `Service overlay`: skills cuya carpeta fuente resuelve bajo `./skills/`.
 
 ### 3.3 “Async” vs “Auto-invoke” (aclaración obligatoria en el AGENTS final)

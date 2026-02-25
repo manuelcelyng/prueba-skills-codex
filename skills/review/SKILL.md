@@ -5,7 +5,7 @@ description: >
   Trigger: Cuando el usuario pida code review, auditoría o validación de HU/checklists.
 license: Internal
 metadata:
-  author: pragma-asulado
+  author: pragma-smartpay
   version: "0.1"
   scope: [root]
   auto_invoke:

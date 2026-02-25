@@ -7,7 +7,7 @@
 # Options:
 #   --kit-repo <git-url>   Override AI_KIT_REPO
 #   --kit-ref <ref>        Override AI_KIT_REF (default: main)
-#   --project <name>       Skill projection profile (e.g. asulado|smartpay)
+#   --project <name>       Skill projection profile (default: smartpay)
 #   --all/--claude/...     Pass-through flags for ./scripts/ai/setup.sh
 #   --no-run               Only install files; don't bootstrap/setup/sync
 #   --no-setup             Skip setup (symlinks/copies) step
@@ -24,7 +24,7 @@ KIT_REF_DEFAULT="main"
 
 KIT_REPO="$KIT_REPO_DEFAULT"
 KIT_REF="$KIT_REF_DEFAULT"
-PROJECT=""
+PROJECT="smartpay"
 NO_RUN=false
 NO_SETUP=false
 FORCE=false

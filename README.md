@@ -1,16 +1,15 @@
-# AI Kit — Install & Usage (ASULADO / SmartPay)
+# AI Kit — Install & Usage (SmartPay)
 
 Este repo contiene el **AI Kit** (skills + tools + references) para integrarlo en repos de servicios (microservicios) y/o en workspaces con múltiples repos.
 
-## Project profiles (`--project`)
+## Project profile (`--project`)
 
-El kit soporta “perfiles” para proyectar skills específicas sin contaminar otros proyectos:
+Por defecto el kit asume `--project smartpay`.
 
-- `--project asulado` (default): skills `asulado-*`, `dev*`, `planning*`, etc.
-- `--project smartpay`: skills SmartPay + SDD:
-  - `smartpay-sdd-orchestrator` (entrypoint SDD por micro)
-  - `sdd-*` (sub-agents de fases)
-  - `smartpay-workspace-router` (solo en **workspace root**, no en repos individuales)
+SmartPay incluye:
+- `smartpay-sdd-orchestrator` (entrypoint SDD por micro)
+- `sdd-*` (sub-agents de fases)
+- `smartpay-workspace-router` (solo en **workspace root**, no en repos individuales)
 
 ## Quick start (1 repo / 1 microservicio)
 
@@ -25,7 +24,7 @@ curl -fsSL https://raw.githubusercontent.com/manuelcelyng/prueba-skills-codex/ma
 Durante la instalación podrás elegir qué asistentes configurar (Claude/Gemini/Codex/Copilot).
 Por defecto verás todo deseleccionado; si presionas Enter sin seleccionar nada, se configura **Codex**.
 
-### Instalación para SmartPay (SDD)
+### Instalación para SmartPay (SDD) (explícita)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/manuelcelyng/prueba-skills-codex/main/install.sh | bash -s -- --project smartpay

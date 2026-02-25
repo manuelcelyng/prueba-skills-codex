@@ -5,7 +5,7 @@ description: >
   Trigger: Cambios que tocan múltiples servicios/tecnologías o cuando se necesite enrutar a dev-java/dev-python.
 license: Internal
 metadata:
-  author: pragma-asulado
+  author: pragma-smartpay
   version: "0.1"
   scope: [root]
   auto_invoke:

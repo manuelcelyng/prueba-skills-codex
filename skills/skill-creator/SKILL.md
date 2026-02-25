@@ -5,7 +5,7 @@ description: >
   Trigger: Cuando se quiera formalizar un patrón repetible o documentar convenciones específicas para IA.
 license: Internal
 metadata:
-  author: pragma-asulado
+  author: pragma-smartpay
   version: "0.1"
   scope: [root]
   auto_invoke:
@@ -34,7 +34,9 @@ No crear un skill cuando:
 
 ## Naming
 
-- Core/reusable: `asulado-<tema>` o `<tema>` si es técnico genérico (evitar colisiones).
+- Core/reusable: `<tema>` si es técnico genérico (evitar colisiones).
+- Project-specific (SmartPay): `smartpay-<tema>`.
+- Service-specific (SmartPay, overlay local): `smartpay-<micro>-<tema>`.
 - Service-only: `<servicio>-<tema>` (ej.: `dispersion-sql-providers`, `novedades-error-codes`).
 
 ## Template

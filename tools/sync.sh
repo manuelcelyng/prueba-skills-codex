@@ -25,7 +25,7 @@ PROJECT="${AI_SKILLS_PROJECT:-}"
 
 LOCK_FILE="$REPO_ROOT/ai-kit.lock"
 if [ -f "$LOCK_FILE" ]; then
-  # Optional: project-level filtering (e.g., smartpay vs asulado).
+  # Optional: project-level filtering (e.g., smartpay).
   # shellcheck disable=SC1090
   source "$LOCK_FILE"
   PROJECT="${AI_SKILLS_PROJECT:-$PROJECT}"

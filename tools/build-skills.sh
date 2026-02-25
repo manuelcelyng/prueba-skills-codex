@@ -51,8 +51,8 @@ fi
 stack="${AI_SKILLS_STACK:-}"
 
 # Allow project-level filtering to avoid polluting unrelated repos with project-specific skills.
-#   AI_SKILLS_PROJECT=asulado|smartpay
-project="${AI_SKILLS_PROJECT:-asulado}"
+#   AI_SKILLS_PROJECT=smartpay
+project="${AI_SKILLS_PROJECT:-smartpay}"
 
 should_link_core_skill() {
   local skill="$1"
@@ -68,11 +68,7 @@ should_link_core_skill() {
   esac
 
   # Project-specific always-included skills
-  if [ "$project" = "asulado" ]; then
-    case "$skill" in
-      asulado-router|dev|planning) return 0 ;;
-    esac
-  elif [ "$project" = "smartpay" ]; then
+  if [ "$project" = "smartpay" ]; then
     case "$skill" in
       smartpay-sdd-orchestrator) return 0 ;;
       smartpay-workspace-router) $is_workspace && return 0 || return 1 ;;

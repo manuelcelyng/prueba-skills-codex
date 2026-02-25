@@ -14,7 +14,7 @@ Reglas (según `ai-kit/tools/sync.sh`):
 - `scope: [<path>]` actualiza `./<path>/AGENTS.md` (solo si existe ese archivo).
 - Se permiten múltiples scopes: `scope: [root, api]` (monorepos).
 
-En ASULADO (modelo multi-repo), casi siempre es:
+En SmartPay (modelo multi-repo), casi siempre es:
 - `scope: [root]`
 
 ## Qué es `metadata.auto_invoke`
@@ -32,8 +32,6 @@ No es “ejecución automática” del runtime: es una **regla declarativa** que
 ## Catálogo recomendado de Actions (estables)
 
 Usa estas acciones tal cual para evitar drift:
-
-- `Enrutar tarea (orquestador)` → `asulado-router`
 - `Planificar HU / contrato` → `planning-java` / `planning-python`
 - `Implementar cambios` → `dev-java` / `dev-python`
 - `Escribir/actualizar unit tests` → `agent-unit-tests`
@@ -63,8 +61,8 @@ Usa estas acciones tal cual para evitar drift:
 - Si `dev-java` tiene `Implementar cambios`, evita poner la misma acción en `dev`.
 - Los coordinadores (`dev`, `planning`) deben tener acciones distintas (multi-stack).
 
-3) **Skills específicas de un micro**
-- Nombre recomendado: `<servicio>-<tema>` (ej. `dispersion-sql-providers`).
+3) **Skills específicas de un micro (SmartPay)**
+- Nombre recomendado: `smartpay-<micro>-<tema>` (ej. `smartpay-dispersion-sql-providers`).
 - `scope: [root]` (porque el repo del micro tiene su `AGENTS.md` en root).
 - `auto_invoke`: usar acción específica y estable (ej. `Modificar SQL Providers`), pero primero valida si ya existe una acción genérica que cubra el caso.
 
@@ -79,7 +77,7 @@ description: >
   Trigger: Cuando el usuario pida implementar/fix/refactor o agregar endpoints en un servicio Java.
 license: Internal
 metadata:
-  author: pragma-asulado
+  author: pragma-smartpay
   version: "0.1"
   scope: [root]
   auto_invoke:
@@ -97,7 +95,7 @@ description: >
   Trigger: Cuando se cree/edite un ErrorCode o se defina el mapeo HTTP/mensaje del contrato.
 license: Internal
 metadata:
-  author: pragma-asulado
+  author: pragma-smartpay
   version: "0.1"
   scope: [root]
   auto_invoke:
@@ -109,13 +107,13 @@ allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 ### Skill exclusiva de `dispersion`
 ```yaml
 ---
-name: dispersion-sql-providers
+name: smartpay-dispersion-sql-providers
 description: >
   Reglas y patrones específicos para SQL Providers en Dispersión.
   Trigger: Cuando se modifique/cree un SQL Provider en Dispersión.
 license: Internal
 metadata:
-  author: pragma-asulado
+  author: pragma-smartpay
   version: "0.1"
   scope: [root]
   auto_invoke:

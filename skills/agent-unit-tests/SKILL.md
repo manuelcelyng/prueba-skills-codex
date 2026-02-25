@@ -5,7 +5,7 @@ description: >
   Trigger: When writing/updating unit tests (especially for UseCases, SQL Providers, Adapters, Routers/Handlers).
 license: Internal
 metadata:
-  author: pragma-asulado
+  author: pragma-smartpay
   version: "0.1"
   scope: [root]
   auto_invoke:

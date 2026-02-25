@@ -5,7 +5,7 @@ description: >
   Trigger: Cuando un developer diga “configura IA”, “sincroniza skills” o cuando se acaba de clonar el repo y necesita habilitar el kit.
 license: Internal
 metadata:
-  author: pragma-asulado
+  author: pragma-smartpay
   version: "0.1"
   scope: [root]
   auto_invoke:

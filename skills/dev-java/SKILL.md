@@ -5,7 +5,7 @@ description: >
   Trigger: Cuando el usuario pida implementar/fix/refactor o agregar endpoints en un servicio Java.
 license: Internal
 metadata:
-  author: pragma-asulado
+  author: pragma-smartpay
   version: "0.1"
   scope: [root]
   auto_invoke:

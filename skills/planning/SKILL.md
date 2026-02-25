@@ -5,7 +5,7 @@ description: >
   Trigger: Scoping/contratos que involucran múltiples servicios/tecnologías o cuando se necesite enrutar a planning-java/planning-python.
 license: Internal
 metadata:
-  author: pragma-asulado
+  author: pragma-smartpay
   version: "0.1"
   scope: [root]
   auto_invoke:

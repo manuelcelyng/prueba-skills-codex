@@ -7,7 +7,7 @@
 # Options:
 #   --kit-repo <git-url>   Override AI_KIT_REPO
 #   --kit-ref <ref>        Override AI_KIT_REF (default: main)
-#   --project <name>       Skill projection profile (e.g. asulado|smartpay)
+#   --project <name>       Skill projection profile (default: smartpay)
 #   --repos a,b,c          Only install into these repo folder names
 #   --setup-all            Configure all assistants
 #   (default)              Configure Codex only
@@ -24,7 +24,7 @@ KIT_REF_DEFAULT="main"
 
 KIT_REPO="$KIT_REPO_DEFAULT"
 KIT_REF="$KIT_REF_DEFAULT"
-PROJECT=""
+PROJECT="smartpay"
 REPOS_FILTER=""
 NO_RUN=false
 FORCE=false
@@ -177,7 +177,7 @@ PROJECT=""
 show_help() {
   echo "Usage:"
   echo "  $0 --all|--repos <a,b,c> [--codex|--claude|--gemini|--copilot|--setup-all|--no-setup]"
-  echo "  $0 --init-agents [--project <asulado|smartpay>] [--codex|--claude|--gemini|--copilot|--setup-all|--no-setup]"
+  echo "  $0 --init-agents [--project <smartpay>] [--codex|--claude|--gemini|--copilot|--setup-all|--no-setup]"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -230,7 +230,9 @@ infer_project_from_any_repo() {
   if [ -n "${lockfile:-}" ] && [ -f "$lockfile" ]; then
     PROJECT="$(sed -n 's/^AI_SKILLS_PROJECT=//p' "$lockfile" | head -n 1 || true)"
   fi
-  [ -z "$PROJECT" ] && PROJECT="asulado"
+  if [ -z "$PROJECT" ]; then
+    PROJECT="smartpay"
+  fi
 }
 
 bootstrap_workspace_kit() {

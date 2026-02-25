@@ -5,7 +5,7 @@ description: >
   Trigger: <cuando-deberia-cargarse-automaticamente-o-cuando-el-usuario-lo-pediria>.
 license: Internal
 metadata:
-  author: pragma-asulado
+  author: pragma-smartpay
   version: "0.1"
   scope: [root]
   auto_invoke:
