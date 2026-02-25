@@ -15,6 +15,68 @@ SmartPay incluye:
 
 Desde el root del repo del micro (donde existe `.git`):
 
+## Onboarding (dev nuevo) — primer task con SDD
+
+Objetivo: que un dev nuevo pueda **clonar un micro**, instalar el kit y arrancar una tarea siguiendo SDD.
+
+### 1) Clonar el microservicio
+
+```bash
+git clone <repo-del-micro>
+cd <repo-del-micro>
+```
+
+### 2) Instalar AI Kit (SmartPay por defecto)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/manuelcelyng/prueba-skills-codex/main/install.sh | bash
+```
+
+Esto deja el repo con:
+- `ai-kit.lock`
+- `scripts/ai/*`
+- `.ai-kit/` (vendor del kit)
+- `.ai/skills/` (proyección efectiva core + overlay local)
+- `AGENTS.md` **stub** (si no existía)
+- `### Auto-invoke Skills` (generado por `sync`)
+
+### 3) Primer contacto con el repo (AGENTS “real”)
+
+Si el repo quedó con `AGENTS.md` stub (nuevo repo o repo sin guías), en tu primer interacción con la IA:
+- Invoca el skill `ai-init-agents` para reemplazar el stub por un `AGENTS.md` completo (tablas + build/test + reglas reales del repo).
+- Luego ejecuta `./scripts/ai/sync.sh` para regenerar `### Auto-invoke Skills`.
+
+### 4) Iniciar una tarea usando SDD (SmartPay)
+
+En tu prompt inicial para la IA, usa el entrypoint:
+- `smartpay-sdd-orchestrator`
+
+Convención recomendada:
+- `change-name`: corto, kebab-case (ej. `add-payment-retry`).
+
+Artefactos SDD (por micro) se escriben en:
+- `openspec/config.yaml`
+- `openspec/changes/<change-name>/...`
+
+### Flujo SDD (DAG + gates)
+
+```mermaid
+flowchart TD
+  A["Developer prompt: start change<br/>change-name + intent"] --> O["smartpay-sdd-orchestrator<br/>(delegate-only)"]
+  O --> I["sdd-init<br/>(if missing openspec/config.yaml)"]
+  I --> E["sdd-explore"]
+  E --> P["sdd-propose<br/>Gate: approval"]
+  P --> S["sdd-spec"]
+  P --> D["sdd-design"]
+  S --> G1["Gate: approval"]
+  D --> G1
+  G1 --> T["sdd-tasks<br/>Gate: approval"]
+  T --> A1["sdd-apply (batch 1)<br/>Gate: approval per batch"]
+  A1 --> A2["sdd-apply (batch N)<br/>Gate: approval per batch"]
+  A2 --> V["sdd-verify<br/>Gate: approval + evidence (tests/build)"]
+  V --> R["sdd-archive<br/>merge specs + archive"]
+```
+
 ### Instalación interactiva (recomendado)
 
 ```bash
@@ -199,7 +261,7 @@ En el repo del micro:
 Ejemplo:
 
 ```bash
-./scripts/ai/create-skill.sh --name <micro>-<tema> --auto "<Action>"
+./scripts/ai/create-skill.sh --name smartpay-<micro>-<tema> --auto "<Action>"
 ./scripts/ai/setup.sh --all
 ./scripts/ai/sync.sh
 ```
