@@ -77,7 +77,11 @@ show_menu() {
     echo -e "  ${YELLOW}n${NC}. Select none"
     echo ""
     echo -n "Toggle (1-4, a, n) or Enter to confirm: "
-    read -r choice
+    if [ -r /dev/tty ]; then
+      read -r choice < /dev/tty
+    else
+      read -r choice
+    fi
 
     case $choice in
       1) selected[0]=$([ "${selected[0]}" = true ] && echo false || echo true) ;;

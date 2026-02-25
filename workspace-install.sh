@@ -8,6 +8,9 @@
 #   --kit-repo <git-url>   Override AI_KIT_REPO
 #   --kit-ref <ref>        Override AI_KIT_REF (default: main)
 #   --repos a,b,c          Only install into these repo folder names
+#   --setup-all            Configure all assistants (default)
+#   --setup-interactive    Prompt once and apply to all repos
+#   --setup-none           Skip setup step for all repos
 #   --no-run               Only install files; don't run bootstrap/setup/sync
 #   --force                Overwrite existing files
 
@@ -21,6 +24,8 @@ KIT_REF="$KIT_REF_DEFAULT"
 REPOS_FILTER=""
 NO_RUN=false
 FORCE=false
+SETUP_MODE="all"
+SETUP_ARGS=()
 
 usage() {
   cat <<EOF
@@ -33,6 +38,9 @@ while [[ $# -gt 0 ]]; do
     --kit-repo) KIT_REPO="$2"; shift 2 ;;
     --kit-ref) KIT_REF="$2"; shift 2 ;;
     --repos) REPOS_FILTER="$2"; shift 2 ;;
+    --setup-all) SETUP_MODE="all"; shift ;;
+    --setup-none) SETUP_MODE="none"; shift ;;
+    --setup-interactive) SETUP_MODE="interactive"; shift ;;
     --no-run) NO_RUN=true; shift ;;
     --force) FORCE=true; shift ;;
     --help|-h) usage; exit 0 ;;
@@ -64,6 +72,43 @@ installer="$tmpdir/install.sh"
 curl -fsSL "https://raw.githubusercontent.com/manuelcelyng/prueba-skills-codex/${KIT_REF}/install.sh" -o "$installer"
 chmod +x "$installer"
 
+if [ "$SETUP_MODE" = "none" ]; then
+  SETUP_ARGS+=(--no-setup)
+elif [ "$SETUP_MODE" = "all" ]; then
+  SETUP_ARGS+=(--all)
+elif [ "$SETUP_MODE" = "interactive" ]; then
+  # Ask once, apply to all repos.
+  echo "workspace-install: choose assistants (applies to all repos)"
+  if [ -r /dev/tty ]; then
+    echo "  1) Claude"
+    echo "  2) Gemini"
+    echo "  3) Codex"
+    echo "  4) Copilot"
+    echo "  a) All"
+    echo "  n) None"
+    echo -n "Select (e.g. 1 3 4) or 'a' or 'n': "
+    read -r choice < /dev/tty
+    case "$choice" in
+      a|A) SETUP_ARGS+=(--all) ;;
+      n|N) SETUP_ARGS+=(--no-setup) ;;
+      *)
+        # split on spaces
+        for c in $choice; do
+          case "$c" in
+            1) SETUP_ARGS+=(--claude) ;;
+            2) SETUP_ARGS+=(--gemini) ;;
+            3) SETUP_ARGS+=(--codex) ;;
+            4) SETUP_ARGS+=(--copilot) ;;
+          esac
+        done
+        ;;
+    esac
+  else
+    # Non-interactive: safest default
+    SETUP_ARGS+=(--all)
+  fi
+fi
+
 for d in "$WORKSPACE_ROOT"/*; do
   [ -d "$d" ] || continue
   [ -d "$d/.git" ] || continue
@@ -71,8 +116,7 @@ for d in "$WORKSPACE_ROOT"/*; do
   should_include "$repo_name" || continue
 
   echo "workspace-install: repo=$repo_name"
-  (cd "$d" && "$installer" --kit-repo "$KIT_REPO" --kit-ref "$KIT_REF" $( $NO_RUN && echo "--no-run" ) $( $FORCE && echo "--force" ))
+  (cd "$d" && "$installer" --kit-repo "$KIT_REPO" --kit-ref "$KIT_REF" "${SETUP_ARGS[@]}" $( $NO_RUN && echo "--no-run" ) $( $FORCE && echo "--force" ))
 done
 
 echo "workspace-install: done"
-

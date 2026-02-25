@@ -7,7 +7,9 @@
 # Options:
 #   --kit-repo <git-url>   Override AI_KIT_REPO
 #   --kit-ref <ref>        Override AI_KIT_REF (default: main)
+#   --all/--claude/...     Pass-through flags for ./scripts/ai/setup.sh
 #   --no-run               Only install files; don't bootstrap/setup/sync
+#   --no-setup             Skip setup (symlinks/copies) step
 #   --force                Overwrite existing files
 #
 # Notes:
@@ -22,7 +24,9 @@ KIT_REF_DEFAULT="main"
 KIT_REPO="$KIT_REPO_DEFAULT"
 KIT_REF="$KIT_REF_DEFAULT"
 NO_RUN=false
+NO_SETUP=false
 FORCE=false
+SETUP_ARGS=()
 
 usage() {
   cat <<EOF
@@ -34,7 +38,10 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --kit-repo) KIT_REPO="$2"; shift 2 ;;
     --kit-ref) KIT_REF="$2"; shift 2 ;;
+    --all|--claude|--gemini|--codex|--copilot)
+      SETUP_ARGS+=("$1"); shift ;;
     --no-run) NO_RUN=true; shift ;;
+    --no-setup) NO_SETUP=true; shift ;;
     --force) FORCE=true; shift ;;
     --help|-h) usage; exit 0 ;;
     *)
@@ -75,7 +82,7 @@ append_gitignore_block() {
     touch "$path"
   fi
 
-  if rg -qF "$marker_begin" "$path" 2>/dev/null; then
+  if grep -qF "$marker_begin" "$path" 2>/dev/null; then
     echo "install: .gitignore already contains AI kit block"
     return 0
   fi
@@ -229,8 +236,21 @@ if [ ! -f "$REPO_ROOT/AGENTS.md" ]; then
   "$REPO_ROOT/scripts/ai/init-agents.sh" >/dev/null 2>&1 || true
 fi
 
-"$REPO_ROOT/scripts/ai/setup.sh" --all
+if ! $NO_SETUP; then
+  # If user didn't pass setup flags:
+  # - interactive terminal: let setup.sh prompt (menu)
+  # - non-interactive: default to --all to avoid hanging
+  if [ ${#SETUP_ARGS[@]} -eq 0 ]; then
+    if [ -r /dev/tty ]; then
+      "$REPO_ROOT/scripts/ai/setup.sh"
+    else
+      "$REPO_ROOT/scripts/ai/setup.sh" --all
+    fi
+  else
+    "$REPO_ROOT/scripts/ai/setup.sh" "${SETUP_ARGS[@]}"
+  fi
+fi
+
 "$REPO_ROOT/scripts/ai/sync.sh"
 
 echo "install: done"
-
