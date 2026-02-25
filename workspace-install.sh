@@ -7,6 +7,7 @@
 # Options:
 #   --kit-repo <git-url>   Override AI_KIT_REPO
 #   --kit-ref <ref>        Override AI_KIT_REF (default: main)
+#   --project <name>       Skill projection profile (e.g. asulado|smartpay)
 #   --repos a,b,c          Only install into these repo folder names
 #   --setup-all            Configure all assistants
 #   (default)              Configure Codex only
@@ -23,6 +24,7 @@ KIT_REF_DEFAULT="main"
 
 KIT_REPO="$KIT_REPO_DEFAULT"
 KIT_REF="$KIT_REF_DEFAULT"
+PROJECT=""
 REPOS_FILTER=""
 NO_RUN=false
 FORCE=false
@@ -32,15 +34,24 @@ WRITE_RUNNER=true
 
 usage() {
   cat <<EOF
-Usage: workspace-install.sh [--kit-repo <git-url>] [--kit-ref <ref>] [--repos a,b,c] [--no-run] [--force]
+Usage: workspace-install.sh [--kit-repo <git-url>] [--kit-ref <ref>] [--project <name>] [--repos a,b,c] [--no-run] [--force]
 EOF
 }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --kit-repo) KIT_REPO="$2"; shift 2 ;;
-    --kit-ref) KIT_REF="$2"; shift 2 ;;
-    --repos) REPOS_FILTER="$2"; shift 2 ;;
+    --kit-repo)
+      [ $# -ge 2 ] || { echo "workspace-install: --kit-repo requires a value" >&2; exit 1; }
+      KIT_REPO="$2"; shift 2 ;;
+    --kit-ref)
+      [ $# -ge 2 ] || { echo "workspace-install: --kit-ref requires a value" >&2; exit 1; }
+      KIT_REF="$2"; shift 2 ;;
+    --project)
+      [ $# -ge 2 ] || { echo "workspace-install: --project requires a value" >&2; exit 1; }
+      PROJECT="$2"; shift 2 ;;
+    --repos)
+      [ $# -ge 2 ] || { echo "workspace-install: --repos requires a value" >&2; exit 1; }
+      REPOS_FILTER="$2"; shift 2 ;;
     --setup-all) SETUP_MODE="all"; shift ;;
     --setup-none) SETUP_MODE="none"; shift ;;
     --setup-interactive) SETUP_MODE="interactive"; shift ;;
@@ -126,7 +137,12 @@ for d in "$WORKSPACE_ROOT"/*; do
   should_include "$repo_name" || continue
 
   echo "workspace-install: repo=$repo_name"
-  (cd "$d" && "$installer" --kit-repo "$KIT_REPO" --kit-ref "$KIT_REF" "${SETUP_ARGS[@]}" $( $NO_RUN && echo "--no-run" ) $( $FORCE && echo "--force" ))
+  install_args=(--kit-repo "$KIT_REPO" --kit-ref "$KIT_REF")
+  [ -n "$PROJECT" ] && install_args+=(--project "$PROJECT")
+  install_args+=("${SETUP_ARGS[@]}")
+  $NO_RUN && install_args+=(--no-run)
+  $FORCE && install_args+=(--force)
+  (cd "$d" && "$installer" "${install_args[@]}")
 done
 
 if $WRITE_RUNNER; then
@@ -144,22 +160,28 @@ set -euo pipefail
 #   ./workspace-ai.sh --all --codex
 #   ./workspace-ai.sh --repos dispersion,pagos --claude
 #   ./workspace-ai.sh --all --setup-all
+#   ./workspace-ai.sh --init-agents --project smartpay --codex
 
 WORKSPACE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 repos_filter="__ALL__"
 SETUP_ARGS=()
 NO_SETUP=false
+INIT_AGENTS=false
+PROJECT=""
 
 show_help() {
   echo "Usage:"
   echo "  $0 --all|--repos <a,b,c> [--codex|--claude|--gemini|--copilot|--setup-all|--no-setup]"
+  echo "  $0 --init-agents [--project <asulado|smartpay>] [--codex|--claude|--gemini|--copilot|--setup-all|--no-setup]"
 }
 
 while [[ $# -gt 0 ]]; do
   case $1 in
     --all) repos_filter="__ALL__"; shift ;;
     --repos) repos_filter="$2"; shift 2 ;;
+    --init-agents) INIT_AGENTS=true; shift ;;
+    --project) PROJECT="$2"; shift 2 ;;
     --setup-all) SETUP_ARGS=(--all); shift ;;
     --no-setup) NO_SETUP=true; shift ;;
     --claude) SETUP_ARGS+=("--claude"); shift ;;
@@ -197,6 +219,67 @@ default_setup_args() {
 }
 
 default_setup_args
+
+infer_project_from_any_repo() {
+  [ -n "$PROJECT" ] && return 0
+  lockfile="$(find "$WORKSPACE_ROOT" -maxdepth 3 -name ai-kit.lock -print -quit 2>/dev/null || true)"
+  if [ -n "${lockfile:-}" ] && [ -f "$lockfile" ]; then
+    PROJECT="$(sed -n 's/^AI_SKILLS_PROJECT=//p' "$lockfile" | head -n 1 || true)"
+  fi
+  [ -z "$PROJECT" ] && PROJECT="asulado"
+}
+
+bootstrap_workspace_kit() {
+  local kit_repo_default="https://github.com/manuelcelyng/prueba-skills-codex.git"
+  local kit_ref_default="main"
+  local kit_repo="$kit_repo_default"
+  local kit_ref="$kit_ref_default"
+
+  lockfile="$(find "$WORKSPACE_ROOT" -maxdepth 3 -name ai-kit.lock -print -quit 2>/dev/null || true)"
+  if [ -n "${lockfile:-}" ] && [ -f "$lockfile" ]; then
+    v="$(sed -n 's/^AI_KIT_REPO=//p' "$lockfile" | head -n 1 || true)"
+    [ -n "$v" ] && kit_repo="$v"
+    v="$(sed -n 's/^AI_KIT_REF=//p' "$lockfile" | head -n 1 || true)"
+    [ -n "$v" ] && kit_ref="$v"
+  fi
+
+  if [ -d "$WORKSPACE_ROOT/.ai-kit/.git" ]; then
+    git -C "$WORKSPACE_ROOT/.ai-kit" remote set-url origin "$kit_repo" >/dev/null 2>&1 || true
+  else
+    rm -rf "$WORKSPACE_ROOT/.ai-kit"
+    git clone "$kit_repo" "$WORKSPACE_ROOT/.ai-kit" >/dev/null
+  fi
+
+  git -C "$WORKSPACE_ROOT/.ai-kit" fetch --all --tags >/dev/null 2>&1 || true
+  git -C "$WORKSPACE_ROOT/.ai-kit" checkout -q "$kit_ref"
+  git -C "$WORKSPACE_ROOT/.ai-kit" pull --ff-only origin "$kit_ref" >/dev/null 2>&1 || true
+}
+
+init_workspace_agents() {
+  infer_project_from_any_repo
+  bootstrap_workspace_kit
+
+  echo "Workspace: init AGENTS.md (project=$PROJECT)"
+
+  export REPO_ROOT="$WORKSPACE_ROOT"
+  export AI_SKILLS_PROJECT="$PROJECT"
+  export AI_SKILLS_WORKSPACE=true
+
+  "$WORKSPACE_ROOT/.ai-kit/tools/build-skills.sh" >/dev/null
+  if ! $NO_SETUP; then
+    "$WORKSPACE_ROOT/.ai-kit/tools/setup.sh" "${SETUP_ARGS[@]}"
+  fi
+  "$WORKSPACE_ROOT/.ai-kit/tools/init-workspace-agents.sh" --project "$PROJECT" >/dev/null
+  "$WORKSPACE_ROOT/.ai-kit/tools/sync.sh" >/dev/null
+
+  echo "OK: $WORKSPACE_ROOT/AGENTS.md"
+}
+
+if $INIT_AGENTS; then
+  default_setup_args
+  init_workspace_agents
+  exit 0
+fi
 
 find "$WORKSPACE_ROOT" -maxdepth 3 -name ai-kit.lock -print 2>/dev/null | LC_ALL=C sort | while IFS= read -r lockfile; do
   repo_root="$(cd "$(dirname "$lockfile")" && pwd)"

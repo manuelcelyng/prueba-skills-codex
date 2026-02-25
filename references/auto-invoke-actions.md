@@ -40,6 +40,8 @@ Usa estas acciones tal cual para evitar drift:
 - `Revisar cambios` → `review`
 - `Crear skills nuevas` → `skill-creator`
 - `Generar/actualizar AGENTS.md` → `ai-init-agents`
+- `Iniciar SDD (SmartPay)` → `smartpay-sdd-orchestrator`
+- `Enrutar cambios multi-micro (SmartPay)` → `smartpay-workspace-router` (workspace root)
 - `Configurar herramientas IA` → `ai-setup`
 - `Regenerar auto-invoke (sync)` → `skill-sync`
 - `Después de crear/modificar un skill` → `skill-sync`

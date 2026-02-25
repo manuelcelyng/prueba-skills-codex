@@ -36,19 +36,65 @@ Crear o actualizar `AGENTS.md` para que sea **útil y específico** al repo, min
 2. **Si `AGENTS.md` es un stub**, reemplazarlo completamente:
    - Borrar la sección “Regla única (obligatoria)” del stub (era solo onboarding inicial).
    - Mantener una guía permanente en el `AGENTS.md` final (ver punto 3).
-3. **Generar/actualizar `AGENTS.md`** con secciones mínimas (ajustar al repo real):
-   - Project Structure
-   - Build/Test/Run
-   - Coding rules (las que el repo realmente aplica)
-   - Convenciones de HU/contratos (si el repo las usa)
-   - AI kit: ubicación de skills y cómo mantener `Auto-invoke`
-   - **Mantenimiento de `AGENTS.md` (obligatorio)**:
-     - Si detectas señales fuertes de desactualización (nuevo stack/módulos, cambios de build/test, nuevas reglas relevantes, cambios grandes de arquitectura), **sugiere** ejecutar `ai-init-agents`.
-     - Solo ejecuta `ai-init-agents` si el usuario lo pide o lo aprueba explícitamente.
-4. **No modificar** manualmente la sección `### Auto-invoke Skills`:
+3. **Generar/actualizar `AGENTS.md` (token-optimized)**:
+   - Mantén el documento **corto y escaneable**: tablas + comandos + reglas clave.
+   - Evita pegar reglas extensas: enlaza a skills/references cuando aplique.
+
+### 3.1 Estructura objetivo (estilo Prowler)
+
+El `AGENTS.md` final debe tener, como mínimo:
+
+1) `## Available Skills` con **tablas** (no párrafos largos):
+
+**Tabla 1: Generic Skills (SDD + utilidades)**
+- Incluye: `sdd-*`, `ai-init-agents`, `skill-sync`, `skill-creator`, `review`, `ai-setup` (y `agent-unit-tests` si aplica).
+
+**Tabla 2: Project-Specific Skills**
+- Si `ai-kit.lock` tiene `AI_SKILLS_PROJECT=smartpay`, incluye `smartpay-*`.
+- Si es `asulado` (o vacío), incluye `asulado-router` y coordinadores (`dev`, `planning`) si están proyectados.
+
+**Tabla 3: Service Skills (overlay local)**
+- Skills bajo `./skills/*` del repo (prefijo recomendado: `<servicio>-<tema>`).
+
+Cada fila debe tener: `Skill | Description | Source`.
+El `Source` debe ser un path clickeable dentro del repo, preferiblemente:
+- `./.ai/skills/<skill>/SKILL.md`
+
+2) `### Auto-invoke Skills`
+- No escribir contenido manualmente; se llena con `./scripts/ai/sync.sh`.
+
+3) Secciones del repo (solo lo que exista / sea real):
+- `## Project Structure` (3–8 bullets)
+- `## Build / Test / Run` (comandos reales)
+- `## Coding Rules` (10–20 bullets máx; lo verdaderamente “no negociable”)
+- `## HU / Contracts` (si el repo lo usa)
+- `## Maintenance` (reglas para mantener AGENTS actualizado)
+
+### 3.2 Cómo construir las tablas (fuente de verdad)
+
+Regla: construye las tablas desde lo **realmente disponible** en este repo, no desde suposiciones.
+
+Orden recomendado:
+1) Si existe `.ai/skills/`: listar skills desde ahí (es la “proyección efectiva”).
+2) Si no existe `.ai/skills/`, sugerir correr `./scripts/ai/setup.sh --codex` (o el subset) y luego continuar.
+3) Para cada skill, leer solo el frontmatter (name/description) de `SKILL.md` para poblar las tablas.
+
+Clasificación recomendada:
+- `Generic`: `sdd-*` + utilidades comunes (`ai-*`, `skill-*`, `review`, `agent-unit-tests`).
+- `Project-Specific`: skills con prefijo del proyecto (ej. `smartpay-*`, `asulado-router`).
+- `Service overlay`: skills cuya carpeta fuente resuelve bajo `./skills/`.
+
+### 3.3 “Async” vs “Auto-invoke” (aclaración obligatoria en el AGENTS final)
+
+Incluye una nota breve:
+- `auto_invoke` **no** es un watcher ni ejecución en background.
+- Es una regla: “para esta acción, invoca primero este skill”.
+- “Delegate-only orchestrator” significa que el orquestador **solo coordina** y delega fases a subagents.
+
+4. **No modificar** manualmente `### Auto-invoke Skills`:
    - esa sección la gestiona `./scripts/ai/sync.sh` de forma determinística.
-5. Indicar los comandos a ejecutar tras actualizar `AGENTS.md`:
-   - `./scripts/ai/setup.sh --codex` (o el subset que use el developer)
+5. Tras actualizar `AGENTS.md`, indicar comandos:
+   - `./scripts/ai/setup.sh <flags>` (según el asistente)
    - `./scripts/ai/sync.sh`
 
 ## Limits

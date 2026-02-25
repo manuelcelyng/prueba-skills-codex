@@ -60,64 +60,48 @@ ensure_skills_source() {
 
 show_menu() {
   echo -e "${BOLD}Which AI assistants do you use?${NC}"
-  echo -e "${CYAN}(Use numbers to toggle, Enter to confirm)${NC}"
-  echo -e "${CYAN}(If you press Enter immediately, it defaults to Codex only)${NC}"
+  echo -e "${CYAN}(Press Enter with no selection to default to Codex only)${NC}"
   echo ""
+  echo "  1) Claude Code"
+  echo "  2) Gemini CLI"
+  echo "  3) Codex (OpenAI)"
+  echo "  4) GitHub Copilot"
+  echo "  a) All"
+  echo "  n) None"
+  echo ""
+  echo -n "Select (e.g. 1 3 4) or 'a' or 'n': "
 
-  local options=("Claude Code" "Gemini CLI" "Codex (OpenAI)" "GitHub Copilot")
-  local selected=(false false false false)
-  local touched=false
-
-  while true; do
-    for i in "${!options[@]}"; do
-      if [ "${selected[$i]}" = true ]; then
-        echo -e "  ${GREEN}[x]${NC} $((i+1)). ${options[$i]}"
-      else
-        echo -e "  [ ] $((i+1)). ${options[$i]}"
-      fi
-    done
-    echo ""
-    echo -e "  ${YELLOW}a${NC}. Select all"
-    echo -e "  ${YELLOW}n${NC}. Select none"
-    echo ""
-    echo -n "Toggle (1-4, a, n) or Enter to confirm: "
-    choice=""
-    # Prefer /dev/tty so this works even when stdin is piped (curl | bash).
-    # Only fall back to stdin if stdin is a TTY (avoid consuming piped script contents).
-    if ! read -r choice < /dev/tty 2>/dev/null; then
-      if [ -t 0 ]; then
-        read -r choice || choice=""
-      else
-        choice=""
-      fi
+  choice=""
+  # Prefer /dev/tty so this works even when stdin is piped (curl | bash).
+  # Only fall back to stdin if stdin is a TTY (avoid consuming piped script contents).
+  if ! read -r choice < /dev/tty 2>/dev/null; then
+    if [ -t 0 ]; then
+      read -r choice || choice=""
+    else
+      choice=""
     fi
+  fi
 
-    case $choice in
-      1) touched=true; selected[0]=$([ "${selected[0]}" = true ] && echo false || echo true) ;;
-      2) touched=true; selected[1]=$([ "${selected[1]}" = true ] && echo false || echo true) ;;
-      3) touched=true; selected[2]=$([ "${selected[2]}" = true ] && echo false || echo true) ;;
-      4) touched=true; selected[3]=$([ "${selected[3]}" = true ] && echo false || echo true) ;;
-      a|A) touched=true; selected=(true true true true) ;;
-      n|N) touched=true; selected=(false false false false) ;;
-      "")
-        # Default behavior:
-        # - If user didn't toggle anything and just pressed Enter, configure Codex only.
-        # - If user toggled and ended up selecting none, keep none (no setup).
-        if [ "$touched" = false ] && [ "${selected[0]}" = false ] && [ "${selected[1]}" = false ] && [ "${selected[2]}" = false ] && [ "${selected[3]}" = false ]; then
-          selected=(false false true false)
-        fi
-        break
-        ;;
-      *) echo -e "${RED}Invalid option${NC}" ;;
-    esac
-
-    echo -en "\033[10A\033[J"
-  done
-
-  SETUP_CLAUDE=${selected[0]}
-  SETUP_GEMINI=${selected[1]}
-  SETUP_CODEX=${selected[2]}
-  SETUP_COPILOT=${selected[3]}
+  case "$choice" in
+    "") SETUP_CODEX=true ;;
+    a|A)
+      SETUP_CLAUDE=true
+      SETUP_GEMINI=true
+      SETUP_CODEX=true
+      SETUP_COPILOT=true
+      ;;
+    n|N) ;;
+    *)
+      for c in $choice; do
+        case "$c" in
+          1) SETUP_CLAUDE=true ;;
+          2) SETUP_GEMINI=true ;;
+          3) SETUP_CODEX=true ;;
+          4) SETUP_COPILOT=true ;;
+        esac
+      done
+      ;;
+  esac
 }
 
 normalized_flags_line() {

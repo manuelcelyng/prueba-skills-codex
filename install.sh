@@ -7,6 +7,7 @@
 # Options:
 #   --kit-repo <git-url>   Override AI_KIT_REPO
 #   --kit-ref <ref>        Override AI_KIT_REF (default: main)
+#   --project <name>       Skill projection profile (e.g. asulado|smartpay)
 #   --all/--claude/...     Pass-through flags for ./scripts/ai/setup.sh
 #   --no-run               Only install files; don't bootstrap/setup/sync
 #   --no-setup             Skip setup (symlinks/copies) step
@@ -23,6 +24,7 @@ KIT_REF_DEFAULT="main"
 
 KIT_REPO="$KIT_REPO_DEFAULT"
 KIT_REF="$KIT_REF_DEFAULT"
+PROJECT=""
 NO_RUN=false
 NO_SETUP=false
 FORCE=false
@@ -31,14 +33,21 @@ SETUP_ARGS_FINAL=()
 
 usage() {
   cat <<EOF
-Usage: install.sh [--kit-repo <git-url>] [--kit-ref <ref>] [--no-run] [--force]
+Usage: install.sh [--kit-repo <git-url>] [--kit-ref <ref>] [--project <name>] [--no-run] [--force]
 EOF
 }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --kit-repo) KIT_REPO="$2"; shift 2 ;;
-    --kit-ref) KIT_REF="$2"; shift 2 ;;
+    --kit-repo)
+      [ $# -ge 2 ] || { echo "install: --kit-repo requires a value" >&2; exit 1; }
+      KIT_REPO="$2"; shift 2 ;;
+    --kit-ref)
+      [ $# -ge 2 ] || { echo "install: --kit-ref requires a value" >&2; exit 1; }
+      KIT_REF="$2"; shift 2 ;;
+    --project)
+      [ $# -ge 2 ] || { echo "install: --project requires a value" >&2; exit 1; }
+      PROJECT="$2"; shift 2 ;;
     --all|--claude|--gemini|--codex|--copilot)
       SETUP_ARGS+=("$1"); shift ;;
     --no-run) NO_RUN=true; shift ;;
@@ -106,7 +115,8 @@ EOF
 
 write_file "$REPO_ROOT/ai-kit.lock" \
 "AI_KIT_REPO=$KIT_REPO
-AI_KIT_REF=$KIT_REF"
+AI_KIT_REF=$KIT_REF
+$( [ -n "$PROJECT" ] && echo "AI_SKILLS_PROJECT=$PROJECT" )"
 
 write_file "$REPO_ROOT/scripts/ai/bootstrap.sh" \
 '#!/usr/bin/env bash

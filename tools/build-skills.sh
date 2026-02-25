@@ -27,6 +27,7 @@ mkdir -p "$OUT_DIR"
 
 is_java=false
 is_python=false
+is_workspace=false
 
 if [ -f "$REPO_ROOT/gradlew" ] || [ -f "$REPO_ROOT/build.gradle" ] || [ -f "$REPO_ROOT/build.gradle.kts" ] || [ -f "$REPO_ROOT/settings.gradle" ] || [ -f "$REPO_ROOT/settings.gradle.kts" ]; then
   is_java=true
@@ -35,17 +36,48 @@ if [ -f "$REPO_ROOT/pyproject.toml" ] || [ -f "$REPO_ROOT/requirements.txt" ] ||
   is_python=true
 fi
 
+# Workspace heuristic (non-git folder that contains multiple git repos).
+# Used to avoid projecting workspace-only skills into individual service repos.
+if [ "${AI_SKILLS_WORKSPACE:-}" = "1" ] || [ "${AI_SKILLS_WORKSPACE:-}" = "true" ]; then
+  is_workspace=true
+elif [ ! -d "$REPO_ROOT/.git" ]; then
+  if find "$REPO_ROOT" -maxdepth 2 -mindepth 2 -name .git -type d -print -quit 2>/dev/null | grep -q .; then
+    is_workspace=true
+  fi
+fi
+
 # Allow manual override (useful in mixed repos / repos without manifests yet)
 #   AI_SKILLS_STACK=java|python|all
 stack="${AI_SKILLS_STACK:-}"
+
+# Allow project-level filtering to avoid polluting unrelated repos with project-specific skills.
+#   AI_SKILLS_PROJECT=asulado|smartpay
+project="${AI_SKILLS_PROJECT:-asulado}"
 
 should_link_core_skill() {
   local skill="$1"
 
   # Always include orchestration + utilities
   case "$skill" in
-    asulado-router|ai-init-agents|review|skill-sync|skill-creator|dev|planning|ai-setup) return 0 ;;
+    ai-init-agents|review|skill-sync|skill-creator|ai-setup) return 0 ;;
   esac
+
+  # Always include SDD generic skills (project-agnostic)
+  case "$skill" in
+    sdd-*) return 0 ;;
+  esac
+
+  # Project-specific always-included skills
+  if [ "$project" = "asulado" ]; then
+    case "$skill" in
+      asulado-router|dev|planning) return 0 ;;
+    esac
+  elif [ "$project" = "smartpay" ]; then
+    case "$skill" in
+      smartpay-sdd-orchestrator) return 0 ;;
+      smartpay-workspace-router) $is_workspace && return 0 || return 1 ;;
+    esac
+  fi
 
   if [ "$stack" = "all" ]; then
     return 0

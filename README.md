@@ -1,6 +1,16 @@
-# AI Kit (ASULADO) — Install & Usage
+# AI Kit — Install & Usage (ASULADO / SmartPay)
 
 Este repo contiene el **AI Kit** (skills + tools + references) para integrarlo en repos de servicios (microservicios) y/o en workspaces con múltiples repos.
+
+## Project profiles (`--project`)
+
+El kit soporta “perfiles” para proyectar skills específicas sin contaminar otros proyectos:
+
+- `--project asulado` (default): skills `asulado-*`, `dev*`, `planning*`, etc.
+- `--project smartpay`: skills SmartPay + SDD:
+  - `smartpay-sdd-orchestrator` (entrypoint SDD por micro)
+  - `sdd-*` (sub-agents de fases)
+  - `smartpay-workspace-router` (solo en **workspace root**, no en repos individuales)
 
 ## Quick start (1 repo / 1 microservicio)
 
@@ -14,6 +24,12 @@ curl -fsSL https://raw.githubusercontent.com/manuelcelyng/prueba-skills-codex/ma
 
 Durante la instalación podrás elegir qué asistentes configurar (Claude/Gemini/Codex/Copilot).
 Por defecto verás todo deseleccionado; si presionas Enter sin seleccionar nada, se configura **Codex**.
+
+### Instalación para SmartPay (SDD)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/manuelcelyng/prueba-skills-codex/main/install.sh | bash -s -- --project smartpay
+```
 
 ### Instalación no interactiva (sin preguntas)
 
@@ -55,6 +71,12 @@ Desde el root de una carpeta que contenga múltiples repos (subcarpetas con `.gi
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/manuelcelyng/prueba-skills-codex/main/workspace-install.sh | bash
+```
+
+### Instalar en todos para SmartPay (SDD)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/manuelcelyng/prueba-skills-codex/main/workspace-install.sh | bash -s -- --project smartpay
 ```
 
 ### Elegir asistentes una vez y aplicar a todos
@@ -142,6 +164,21 @@ En el repo del micro (se instalan en `scripts/ai/`):
 ./workspace-ai.sh --repos dispersion,pagos --claude
 ```
 
+### Workspace router (`AGENTS.md` en el workspace root)
+
+Si abres Codex/Claude/Gemini en el workspace root (carpeta contenedora), puede ser útil tener un `AGENTS.md` “router” ahí:
+
+```bash
+./workspace-ai.sh --init-agents --project smartpay --codex
+```
+
+Esto:
+- clona el kit en `./.ai-kit/` (solo en el workspace root),
+- proyecta skills en `./.ai/skills/`,
+- configura el asistente elegido (symlinks/copies),
+- crea `./AGENTS.md` router,
+- y genera `### Auto-invoke Skills`.
+
 ### Directorios clave en el repo del micro
 
 - `.ai-kit/`: clone del AI Kit (vendor).
@@ -167,3 +204,9 @@ Ejemplo:
 ./scripts/ai/setup.sh --all
 ./scripts/ai/sync.sh
 ```
+
+## SmartPay SDD (resumen)
+
+- Persistencia default por micro: `openspec/` dentro del repo del micro.
+- Entry point: `smartpay-sdd-orchestrator` (delegate-only, con gates).
+- “Async” aquí significa paralelizar fases que escriben artefactos distintos (ej. `sdd-spec` ∥ `sdd-design`), no watchers.

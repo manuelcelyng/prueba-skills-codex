@@ -21,6 +21,15 @@ NC='\033[0m'
 
 DRY_RUN=false
 FILTER_SCOPE=""
+PROJECT="${AI_SKILLS_PROJECT:-}"
+
+LOCK_FILE="$REPO_ROOT/ai-kit.lock"
+if [ -f "$LOCK_FILE" ]; then
+  # Optional: project-level filtering (e.g., smartpay vs asulado).
+  # shellcheck disable=SC1090
+  source "$LOCK_FILE"
+  PROJECT="${AI_SKILLS_PROJECT:-$PROJECT}"
+fi
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -116,7 +125,9 @@ extract_metadata() {
 }
 
 if [ ! -d "$SKILLS_DIR" ]; then
-  echo -e "${RED}Missing $SKILLS_DIR. Run ./scripts/ai/setup.sh --all first.${NC}"
+  echo -e "${RED}Missing $SKILLS_DIR.${NC}"
+  echo -e "${YELLOW}Service repo:${NC} run ./scripts/ai/setup.sh --codex (or --all) then retry."
+  echo -e "${YELLOW}Workspace root:${NC} run ./workspace-ai.sh --init-agents --codex (or --all) then retry."
   exit 1
 fi
 
@@ -134,7 +145,23 @@ while IFS= read -r skill_file; do
     skill_name="$(basename "$(dirname "$skill_file")")"
   fi
 
-  if [ -z "$scope_raw" ] || [ -z "$auto_raw" ]; then
+  # Keep the auto-invoke table intentionally small for SmartPay.
+  # Sub-agents (`sdd-*`) are invoked by the orchestrator and should not flood the table.
+  if [ "$PROJECT" = "smartpay" ]; then
+    case "$skill_name" in
+      ai-init-agents|skill-sync|ai-setup|smartpay-sdd-orchestrator|smartpay-workspace-router) ;;
+      *) continue ;;
+    esac
+  fi
+
+  # Only skills with metadata.auto_invoke participate in sync output.
+  # Skills without auto_invoke are intentionally ignored (e.g., sub-agents invoked by an orchestrator).
+  if [ -z "$auto_raw" ]; then
+    continue
+  fi
+
+  # auto_invoke without scope is a configuration error (we don't know which AGENTS.md to update).
+  if [ -z "$scope_raw" ]; then
     echo "$skill_name" >> "$missing_file"
     continue
   fi
