@@ -83,8 +83,12 @@ tmpdir="$(mktemp -d)"
 cleanup() { rm -rf "$tmpdir"; }
 trap cleanup EXIT
 
-installer="$tmpdir/install.sh"
-curl -fsSL "https://raw.githubusercontent.com/manuelcelyng/prueba-skills-codex/${KIT_REF}/install.sh" -o "$installer"
+kitdir="$tmpdir/ai-kit"
+git clone "$KIT_REPO" "$kitdir" >/dev/null
+git -C "$kitdir" fetch --all --tags >/dev/null 2>&1 || true
+git -C "$kitdir" checkout -q "$KIT_REF"
+
+installer="$kitdir/install.sh"
 chmod +x "$installer"
 
 if [ "$SETUP_MODE" = "none" ]; then
