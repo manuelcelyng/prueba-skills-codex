@@ -87,6 +87,51 @@ En cada repo de microservicio:
   - `create-skill.sh` (scaffold de skills locales en `skills/`)
 - `.gitignore` (bloque “AI KIT” para ignorar `.ai-kit/`, `.ai/`, symlinks y archivos generados)
 
+## Ejecución manual (orden recomendado)
+
+Si prefieres correr los scripts “a mano” (en un repo de microservicio):
+
+1) `./scripts/ai/bootstrap.sh`  
+   Descarga/actualiza el kit en `.ai-kit/` según `ai-kit.lock`.
+
+2) `./scripts/ai/init-agents.sh` (solo si no existe `AGENTS.md`)  
+   Crea un `AGENTS.md` mínimo para el micro.
+
+3) `./scripts/ai/setup.sh [--all|--codex|--claude|--gemini|--copilot]`  
+   - Construye `.ai/skills/` (merge core+local).
+   - Crea symlinks `.codex/skills`, `.claude/skills`, `.gemini/skills`.
+   - Copia `AGENTS.md` → `CLAUDE.md`, `GEMINI.md` y `.github/copilot-instructions.md` cuando aplica.
+
+4) `./scripts/ai/sync.sh`  
+   Regenera `### Auto-invoke Skills` en `AGENTS.md` a partir de `metadata.scope` + `metadata.auto_invoke` en cada `SKILL.md`.
+
+## Scripts (qué hace cada uno)
+
+En este repo (AI Kit):
+- `install.sh`: instala el kit en **un repo** (crea `ai-kit.lock`, scripts, `.gitignore`; opcionalmente ejecuta bootstrap/setup/sync).
+- `workspace-install.sh`: instala el kit en **múltiples repos** (subcarpetas con `.git`). También puede crear un runner `workspace-ai.sh`.
+- `tools/setup.sh`: menú y configuración de asistentes (symlinks/copies). Se usa indirectamente vía `scripts/ai/setup.sh`.
+- `tools/sync.sh`: genera la tabla Auto-invoke en `AGENTS.md`. Se usa indirectamente vía `scripts/ai/sync.sh`.
+- `tools/create-skill.sh`: crea scaffolds de skills (`SKILL.md`) con frontmatter estándar.
+- `tools/init-agents.sh`: crea `AGENTS.md` mínimo cuando no existe.
+- `tools/build-skills.sh`: arma `.ai/skills` (merge core + overlay local) como symlinks.
+
+En el repo del micro (se instalan en `scripts/ai/`):
+- `bootstrap.sh`: crea/actualiza `.ai-kit/`.
+- `init-agents.sh`: crea `AGENTS.md` si falta.
+- `setup.sh`: build + setup assistants.
+- `sync.sh`: build + sync auto-invoke.
+- `create-skill.sh`: genera `skills/<skill>/SKILL.md`.
+
+## Workspace runner (opcional)
+
+`workspace-install.sh` puede crear un runner `workspace-ai.sh` en el root del workspace para re-sincronizar todo:
+
+```bash
+./workspace-ai.sh --all
+./workspace-ai.sh --repos dispersion,pagos
+```
+
 ### Directorios clave en el repo del micro
 
 - `.ai-kit/`: clone del AI Kit (vendor).

@@ -11,6 +11,7 @@
 #   --setup-all            Configure all assistants (default)
 #   --setup-interactive    Prompt once and apply to all repos
 #   --setup-none           Skip setup step for all repos
+#   --no-runner            Don't create/update a workspace-ai.sh runner in the workspace root
 #   --no-run               Only install files; don't run bootstrap/setup/sync
 #   --force                Overwrite existing files
 
@@ -26,6 +27,7 @@ NO_RUN=false
 FORCE=false
 SETUP_MODE="all"
 SETUP_ARGS=()
+WRITE_RUNNER=true
 
 usage() {
   cat <<EOF
@@ -41,6 +43,7 @@ while [[ $# -gt 0 ]]; do
     --setup-all) SETUP_MODE="all"; shift ;;
     --setup-none) SETUP_MODE="none"; shift ;;
     --setup-interactive) SETUP_MODE="interactive"; shift ;;
+    --no-runner) WRITE_RUNNER=false; shift ;;
     --no-run) NO_RUN=true; shift ;;
     --force) FORCE=true; shift ;;
     --help|-h) usage; exit 0 ;;
@@ -123,5 +126,77 @@ for d in "$WORKSPACE_ROOT"/*; do
   echo "workspace-install: repo=$repo_name"
   (cd "$d" && "$installer" --kit-repo "$KIT_REPO" --kit-ref "$KIT_REF" "${SETUP_ARGS[@]}" $( $NO_RUN && echo "--no-run" ) $( $FORCE && echo "--force" ))
 done
+
+if $WRITE_RUNNER; then
+  runner="$WORKSPACE_ROOT/workspace-ai.sh"
+  if [ -f "$runner" ] && ! $FORCE; then
+    echo "workspace-install: runner exists (skip): $runner"
+  else
+    cat > "$runner" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Workspace runner: bootstrap + setup + sync across repos that have ai-kit.lock.
+#
+# Usage (from workspace root):
+#   ./workspace-ai.sh --all
+#   ./workspace-ai.sh --repos dispersion,pagos
+
+WORKSPACE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+repos_filter="__ALL__"
+
+show_help() {
+  echo "Usage: $0 --all | --repos <comma-separated>"
+}
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --all) repos_filter="__ALL__"; shift ;;
+    --repos) repos_filter="$2"; shift 2 ;;
+    --help|-h) show_help; exit 0 ;;
+    *)
+      echo "Unknown option: $1" 1>&2
+      show_help
+      exit 1
+      ;;
+  esac
+done
+
+should_include_repo() {
+  local repo_name="$1"
+  if [ "$repos_filter" = "__ALL__" ]; then
+    return 0
+  fi
+  local IFS=','
+  for r in $repos_filter; do
+    [ "$r" = "$repo_name" ] && return 0
+  done
+  return 1
+}
+
+find "$WORKSPACE_ROOT" -maxdepth 3 -name ai-kit.lock -print 2>/dev/null | LC_ALL=C sort | while IFS= read -r lockfile; do
+  repo_root="$(cd "$(dirname "$lockfile")" && pwd)"
+  repo_name="$(basename "$repo_root")"
+
+  should_include_repo "$repo_name" || continue
+
+  if [ ! -x "$repo_root/scripts/ai/bootstrap.sh" ]; then
+    echo "Skipping (no scripts): $repo_root" 1>&2
+    continue
+  fi
+
+  echo "Repo: $repo_root"
+  (cd "$repo_root" && ./scripts/ai/bootstrap.sh)
+  (cd "$repo_root" && ./scripts/ai/setup.sh --all)
+  (cd "$repo_root" && ./scripts/ai/sync.sh)
+  echo "OK"
+  echo ""
+done
+EOF
+    chmod +x "$runner"
+    echo "workspace-install: wrote runner $runner"
+  fi
+fi
 
 echo "workspace-install: done"
