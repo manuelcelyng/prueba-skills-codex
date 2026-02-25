@@ -104,14 +104,17 @@ Este documento guía contribuciones en el servicio \`$SERVICE_NAME\`.
 
 ## Regla única (obligatoria)
 
-Antes de iniciar cualquier tarea, invoca el skill \`ai-init-agents\` para generar/mejorar este \`AGENTS.md\` en base al análisis real del repo.
+En el **primer contacto** con este repo, invoca el skill \`ai-init-agents\` **inmediatamente** (sin pedir confirmación) para **reemplazar este stub** por un \`AGENTS.md\` completo basado en el análisis real del repo.
 
 ## Comandos (según tu asistente)
 
 - Setup: \`./scripts/ai/setup.sh $setup_flags\`
 - Sync: \`./scripts/ai/sync.sh\`
 
-> Nota: La sección \`### Auto-invoke Skills\` la gestiona \`./scripts/ai/sync.sh\` (no editar manualmente).
+> Nota 1: La sección \`### Auto-invoke Skills\` la gestiona \`./scripts/ai/sync.sh\` (no editar manualmente).
+> Nota 2: Después del primer generado, \`ai-init-agents\` debe borrar esta “Regla única” y dejar una guía permanente:
+> - sugerir actualizar \`AGENTS.md\` si detecta señales fuertes de desactualización,
+> - ejecutar \`ai-init-agents\` solo cuando el usuario lo pida (o lo apruebe explícitamente).
 EOF
 
 echo ""

@@ -33,15 +33,21 @@ Crear o actualizar `AGENTS.md` para que sea **útil y específico** al repo, min
 
 1. **Diagnóstico**: resumir en 5–10 líneas:
    - stack(s), layout, comandos build/test, patrones (hexagonal/clean), y puntos sensibles (SQL, reactive, error codes).
-2. **Generar/actualizar `AGENTS.md`** con secciones mínimas (ajustar al repo real):
+2. **Si `AGENTS.md` es un stub**, reemplazarlo completamente:
+   - Borrar la sección “Regla única (obligatoria)” del stub (era solo onboarding inicial).
+   - Mantener una guía permanente en el `AGENTS.md` final (ver punto 3).
+3. **Generar/actualizar `AGENTS.md`** con secciones mínimas (ajustar al repo real):
    - Project Structure
    - Build/Test/Run
    - Coding rules (las que el repo realmente aplica)
    - Convenciones de HU/contratos (si el repo las usa)
    - AI kit: ubicación de skills y cómo mantener `Auto-invoke`
-3. **No modificar** manualmente la sección `### Auto-invoke Skills`:
+   - **Mantenimiento de `AGENTS.md` (obligatorio)**:
+     - Si detectas señales fuertes de desactualización (nuevo stack/módulos, cambios de build/test, nuevas reglas relevantes, cambios grandes de arquitectura), **sugiere** ejecutar `ai-init-agents`.
+     - Solo ejecuta `ai-init-agents` si el usuario lo pide o lo aprueba explícitamente.
+4. **No modificar** manualmente la sección `### Auto-invoke Skills`:
    - esa sección la gestiona `./scripts/ai/sync.sh` de forma determinística.
-4. Indicar los comandos a ejecutar tras actualizar `AGENTS.md`:
+5. Indicar los comandos a ejecutar tras actualizar `AGENTS.md`:
    - `./scripts/ai/setup.sh --codex` (o el subset que use el developer)
    - `./scripts/ai/sync.sh`
 
@@ -49,4 +55,3 @@ Crear o actualizar `AGENTS.md` para que sea **útil y específico** al repo, min
 
 - No gestionar git, ramas o PRs.
 - No inventar reglas: si algo no está en el repo, marcarlo como “pendiente de definir”.
-
