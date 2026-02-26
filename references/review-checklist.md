@@ -1,19 +1,18 @@
 # Review Checklist (ASULADO)
 
 ## Java (WebFlux/R2DBC)
-- Reactivo end-to-end (sin `.block()`, sin `Thread.sleep`, sin JDBC).
-- Reactor: evitar `collectList()` + `Flux::fromIterable` solo para reemitir; preferir streaming (`concatMap` si secuencial/ordenado).
-- Batch: en flujos por lote, manejar errores por elemento (`onErrorResume` por item/lote) para que un fallo no aborte el proceso completo.
-- Hexagonal: dominio sin dependencias infra/Spring; UseCase sin DTOs de API.
-- SQL providers con parámetros nombrados (no concatenación).
-- Queries simples: preferir derived queries por nombre en repos R2DBC (`findAllBy...`) antes de `@Query`/`DatabaseClient`.
-- UseCases: evitar métodos genéricos como `execute`; usar nombres descriptivos de intención.
-- Literales (logs/headers/columnas/estados) en `Constants`.
-- Errores: `BusinessException` + `ErrorCode` del micro; sin stacktrace al cliente.
-- OpenAPI completo (códigos + ejemplos) y textos en español.
-- Tests mínimos: UseCase, SQL Provider, Adapter, Handler/Router.
-- Tests: evitar data hardcodeada (ej. estados) y centralizar constantes/fixtures en `*TestData`.
-- LocalStack E2E: el cliente SQS debe apuntar al endpoint correcto; aislar cambios “solo local” para no contaminar prod.
+Fuente de verdad: `java-rules.md` (IDs `R-JAVA-001` a `R-JAVA-019`).
+
+Checklist rápido (sin duplicar reglas):
+- Arquitectura/capas: `R-JAVA-001`
+- Reactividad/streaming/batch: `R-JAVA-002`..`R-JAVA-005`
+- Persistencia/SQL: `R-JAVA-006`..`R-JAVA-007`, `R-JAVA-018`
+- Errores/logging/constantes: `R-JAVA-008`..`R-JAVA-010`
+- Contratos: `R-JAVA-011`
+- Naming UseCases: `R-JAVA-012`
+- Tests/TestData: `R-JAVA-013`..`R-JAVA-015`
+- Clean code: `R-JAVA-016`
+- E2E LocalStack: `R-JAVA-017`
 
 ## Python (FastAPI/Lambda)
 - Tipado y validación (Pydantic) coherentes con contrato.

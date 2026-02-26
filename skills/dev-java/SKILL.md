@@ -25,7 +25,7 @@ Implementar cambios en Java cumpliendo reglas del repo (hexagonal/reactivo, no b
 5. Si aplica HU, revisar `.ai-kit/references/hu-prompts-and-template-usage.md`.
 6. Si hay HU, leer `context/hu/<HU_ID>/` y todos los contratos/planes existentes.
 7. Si existe un skill local de error codes (ej. `skills/*error-codes*/SKILL.md`), leerlo.
-8. Si necesitas ejemplos o checklist: cargar `.ai-kit/references/java-api-examples.md` y `.ai-kit/references/java-code-quality.md`.
+8. Si necesitas ejemplos o checklist: cargar `.ai-kit/references/java-api-examples.md` y `.ai-kit/references/java-rules.md` (IDs `R-JAVA-*` + ejemplos).
 
 ## Gate (mandatory)
 Verificar que existan:
@@ -51,5 +51,5 @@ Si falta alguno, solicitar primero `planning-java` y detener implementacion.
 
 ## Resources
 - `.ai-kit/references/java-playbook.md`
-- `.ai-kit/references/java-code-quality.md`
+- `.ai-kit/references/java-rules.md`
 - `.ai-kit/references/java-api-examples.md`

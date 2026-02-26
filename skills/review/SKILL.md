@@ -33,21 +33,17 @@ Usa este skill para code review y validacion de cumplimiento.
 - Cerrar con un resumen corto si es necesario.
 
 ## Checks (mínimo)
-- Naming queries:
-  - Si el query es simple, preferir derived query en `ReactiveCrudRepository`/`CrudRepository` (por nombre).
-  - Si el query es complejo, permitir `DatabaseClient`/SQL Providers; si es intermedio y legible, `@Query`.
-- Naming de UseCases:
-  - Evitar métodos llamados `execute` en UseCases; el nombre debe describir claramente la funcionalidad.
-- Reactor:
-  - Evitar `collectList()` + `Flux::fromIterable` solo para reemitir; preferir streaming (`concatMap` si secuencial/ordenado).
-- Batch:
-  - En flujos por lote, manejar errores por elemento (`onErrorResume` por item/lote) para que un fallo no aborte el proceso completo.
-- Tests:
-  - Evitar data hardcodeada de negocio (ej. estados como `NUEVO`) directamente en los tests.
-  - Centralizar constantes/objetos/fixtures en clases `*TestData` del módulo (siguiendo la estructura existente).
-  - `*TestData` como utility consistente (ej. `@UtilityClass` si el repo usa Lombok) y nombres descriptivos (evitar `b1`, `b2`).
-- E2E (LocalStack):
-  - Verificar que el cliente SQS apunte al endpoint correcto; aislar cambios “solo local” para no contaminar prod.
+- Aplicar reglas por ID (fuente de verdad): `.ai-kit/references/java-rules.md`
+  - Arquitectura/capas: `R-JAVA-001`
+  - Reactividad/streaming/batch: `R-JAVA-002`..`R-JAVA-005`
+  - Persistencia/SQL: `R-JAVA-006`..`R-JAVA-007`, `R-JAVA-018`
+  - Errores/logging/constantes: `R-JAVA-008`..`R-JAVA-010`
+  - Contrato API: `R-JAVA-011`
+  - Naming UseCases: `R-JAVA-012`
+  - Tests/TestData: `R-JAVA-013`..`R-JAVA-015`
+  - Clean code: `R-JAVA-016`
+  - E2E LocalStack: `R-JAVA-017`
 
 ## Resources
+- `.ai-kit/references/java-rules.md`
 - `.ai-kit/references/review-checklist.md`

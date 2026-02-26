@@ -4,13 +4,17 @@
 Guía operativa para ejecutar HUs en servicios Java con arquitectura Hexagonal/Clean y stack reactivo (WebFlux/R2DBC).
 
 ## Reglas no negociables (resumen)
-- Hexagonal: **dominio primero**; dependencias apuntan al dominio.
-- Reactivo end-to-end: prohibido bloquear (`.block()`, `Thread.sleep`, JDBC).
-- Código en inglés; logs/mensajes Swagger/respuestas en español.
-- Literales (logs, headers, columnas, estados) en `Constants` del dominio.
-- Errores hacia arriba como `BusinessException` + `ErrorCode` del micro (prefijo del servicio).
-- SQL parametrizado con parámetros nombrados; nunca concatenar input.
-- Tests mínimos por HU: UseCase, SQL Provider (estructura), Adapter, Handler/Router.
+Fuente de verdad: `.ai-kit/references/java-rules.md` (IDs `R-JAVA-*`).
+
+- Arquitectura/capas: `R-JAVA-001`
+- Reactividad/streaming/batch: `R-JAVA-002`..`R-JAVA-005`
+- Persistencia/SQL: `R-JAVA-006`..`R-JAVA-007`, `R-JAVA-018`
+- Errores/logging/constantes: `R-JAVA-008`..`R-JAVA-010`
+- Contrato API: `R-JAVA-011`
+- Naming UseCases: `R-JAVA-012`
+- Tests/TestData: `R-JAVA-013`..`R-JAVA-015`
+- Clean code: `R-JAVA-016`
+- E2E LocalStack: `R-JAVA-017`
 
 ## Arquitectura por capas
 - **Domain**: modelos + puertos + `BusinessException/ErrorCode`. Sin Spring.
@@ -42,6 +46,4 @@ Guía operativa para ejecutar HUs en servicios Java con arquitectura Hexagonal/C
 
 ## Referencias
 - `.ai-kit/references/java-rules.md`
-- `.ai-kit/references/java-code-quality.md`
 - `.ai-kit/references/java-api-examples.md`
-
