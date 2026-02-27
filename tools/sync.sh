@@ -158,7 +158,7 @@ while IFS= read -r skill_file; do
 
     if [ "$local_overlay" = false ]; then
       case "$skill_name" in
-        ai-init-agents|skill-sync|ai-setup|smartpay-sdd-orchestrator|smartpay-workspace-router|smartpay-*) ;;
+        ai-init-agents|skill-sync|ai-setup|azuredevops|smartpay-sdd-orchestrator|smartpay-workspace-router|smartpay-*) ;;
         *) continue ;;
       esac
     fi

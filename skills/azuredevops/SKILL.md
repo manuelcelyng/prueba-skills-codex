@@ -6,6 +6,11 @@ description: >-
   bajar anexos (AttachedFile) y generar un `context.md` en el repo (por defecto
   `context/hu-{id}/context.md`). Si existe el MCP `azuredevops`, úsalo primero;
   si no, usa el script Python (fallback).
+metadata:
+  scope: root
+  auto_invoke:
+    - "Traer tareas/HUs/Bugs desde Azure DevOps (sprint actual)"
+    - "Descargar contexto de un work item (Azure DevOps)"
 ---
 
 # azuredevops

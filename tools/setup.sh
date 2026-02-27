@@ -58,6 +58,116 @@ ensure_skills_source() {
   fi
 }
 
+setup_codex_mcp_azuredevops() {
+  # Best-effort: configure Codex MCP server pointing to this repo's vendored ai-kit path.
+  # No-op if not using Codex or if node/npm aren't present.
+  local codex_home="${CODEX_HOME:-$HOME/.codex}"
+  local codex_config="$codex_home/config.toml"
+
+  local server_path=""
+  if [ -f "$REPO_ROOT/.ai-kit/mcp/azuredevops/server.js" ]; then
+    server_path="$REPO_ROOT/.ai-kit/mcp/azuredevops/server.js"
+  elif [ -f "$REPO_ROOT/mcp/azuredevops/server.js" ]; then
+    # When running inside the ai-kit repo itself.
+    server_path="$REPO_ROOT/mcp/azuredevops/server.js"
+  else
+    echo -e "${YELLOW}Codex MCP(azuredevops): server.js not found. Skipping.${NC}"
+    return 0
+  fi
+
+  if ! command -v node >/dev/null 2>&1; then
+    echo -e "${YELLOW}Codex MCP(azuredevops): node not found. Skipping.${NC}"
+    return 0
+  fi
+  if ! command -v npm >/dev/null 2>&1; then
+    echo -e "${YELLOW}Codex MCP(azuredevops): npm not found. Skipping dependency install.${NC}"
+  else
+    local pkg_dir
+    pkg_dir="$(cd "$(dirname "$server_path")" && pwd)"
+    # Install deps only if node_modules is missing (fast path).
+    if [ ! -d "$pkg_dir/node_modules" ]; then
+      echo -e "${BLUE}Codex MCP(azuredevops): installing npm deps...${NC}"
+      npm --prefix "$pkg_dir" install --silent || {
+        echo -e "${YELLOW}Codex MCP(azuredevops): npm install failed (continuing).${NC}"
+      }
+    fi
+  fi
+
+  mkdir -p "$codex_home"
+  if [ ! -f "$codex_config" ]; then
+    touch "$codex_config"
+  fi
+
+  # Update/insert the TOML section [mcp_servers.azuredevops] idempotently.
+  python3 - "$codex_config" "$server_path" <<'PY'
+import sys
+from pathlib import Path
+
+config_path = Path(sys.argv[1])
+server_path = sys.argv[2]
+
+lines = config_path.read_text(encoding="utf-8", errors="replace").splitlines(True)
+
+header = "[mcp_servers.azuredevops]\n"
+command_line = 'command = "node"\n'
+args_line = f'args = ["{server_path}"]\n'
+
+def is_section_start(l: str) -> bool:
+    return l.startswith("[") and l.rstrip().endswith("]")
+
+out = []
+i = 0
+found = False
+while i < len(lines):
+    l = lines[i]
+    if l.strip() == "[mcp_servers.azuredevops]":
+        found = True
+        out.append(header)
+        i += 1
+        # Copy/override until next section.
+        has_command = False
+        has_args = False
+        while i < len(lines) and not is_section_start(lines[i].lstrip()):
+            cur = lines[i]
+            if cur.strip().startswith("command"):
+                if not has_command:
+                    out.append(command_line)
+                    has_command = True
+                i += 1
+                continue
+            if cur.strip().startswith("args"):
+                if not has_args:
+                    out.append(args_line)
+                    has_args = True
+                i += 1
+                continue
+            out.append(cur)
+            i += 1
+        if not has_command:
+            out.append(command_line)
+        if not has_args:
+            out.append(args_line)
+        continue
+    out.append(l)
+    i += 1
+
+if not found:
+    # Ensure file ends with newline before appending.
+    if out and not out[-1].endswith("\n"):
+        out[-1] = out[-1] + "\n"
+    if out and out[-1].strip() != "":
+        out.append("\n")
+    out.append(header)
+    out.append(command_line)
+    out.append(args_line)
+
+config_path.write_text("".join(out), encoding="utf-8")
+print(str(config_path))
+PY
+
+  echo -e "${GREEN}Codex MCP(azuredevops): configured in $codex_config${NC}"
+}
+
 show_menu() {
   echo -e "${BOLD}Which AI assistants do you use?${NC}"
   echo -e "${CYAN}(Press Enter with no selection to default to Codex only)${NC}"
@@ -122,6 +232,13 @@ normalized_flags_line() {
   $SETUP_CODEX && out="$out --codex"
   $SETUP_COPILOT && out="$out --copilot"
   echo "$out" | sed 's/^[[:space:]]*//'
+}
+
+post_setup() {
+  # Hook for assistant-specific extras.
+  if $SETUP_CODEX; then
+    setup_codex_mcp_azuredevops
+  fi
 }
 
 symlink_dir() {
@@ -235,6 +352,9 @@ $SETUP_CLAUDE && setup_claude
 $SETUP_GEMINI && setup_gemini
 $SETUP_CODEX && setup_codex
 $SETUP_COPILOT && setup_copilot
+
+echo ""
+post_setup
 
 echo ""
 echo -e "${GREEN}Done.${NC}"

@@ -59,7 +59,7 @@ should_link_core_skill() {
 
   # Always include orchestration + utilities
   case "$skill" in
-    ai-init-agents|review|skill-sync|skill-creator|ai-setup) return 0 ;;
+    ai-init-agents|review|skill-sync|skill-creator|ai-setup|azuredevops) return 0 ;;
   esac
 
   # Always include SDD generic skills (project-agnostic)
