@@ -1,19 +1,21 @@
 ---
-name: azdo-hu-context
+name: azuredevops
 description: >-
-  Descarga y consolida el contexto de un work item de Azure DevOps Boards (User
-  Story/HU/Task/Bug) a partir de un link o ID. Úsalo cuando el usuario pida
-  "trae/baja la HU", "descarga la tarea", "trae anexos" o "arma un context", o
-  necesites: (1) bajar el work item en JSON, (2) descargar anexos (AttachedFile),
-  (3) traer work items relacionados (parent/child/related), y (4) generar un
-  `context.md` en el repo (por defecto `context/hu-{id}/context.md`).
+  Ayuda a iniciar trabajo desde Azure DevOps Boards: listar y priorizar work
+  items (Task/Bug/HU), descargar el detalle por ID/link, traer relacionados,
+  bajar anexos (AttachedFile) y generar un `context.md` en el repo (por defecto
+  `context/hu-{id}/context.md`). Si existe el MCP `azuredevops`, úsalo primero;
+  si no, usa el script Python (fallback).
 ---
 
-# azdo-hu-context
+# azuredevops
 
 ## Objetivo
 
-Automatizar la descarga de una HU/tarea de Azure DevOps (incluyendo anexos y work items relacionados) y dejar un “paquete de contexto” en el repo para implementación/QA.
+Mejorar el flujo de “arrancar una tarea”:
+1) ver qué work items tengo asignados (o buscar por WIQL),
+2) decidir por cuál iniciar,
+3) bajar el contexto (detalle + relacionados + anexos) y dejarlo listo en el repo.
 
 ## Pre-requisitos (una vez por máquina)
 
@@ -23,7 +25,17 @@ Automatizar la descarga de una HU/tarea de Azure DevOps (incluyendo anexos y wor
   - **AAD/MFA**: `az login --allow-no-subscriptions`
   - **PAT** (solo si no puedes usar AAD): `az devops login --organization https://dev.azure.com/<ORG>` *(el PAT se pega en la terminal, nunca en chat)*
 
-## Flujo (recomendado)
+## Flujo (recomendado) — con MCP (si está disponible)
+
+Si en tu Codex/cliente está configurado el MCP `azuredevops`, usa primero sus tools:
+
+- `azdo_list_my_work_items` (para listar tus tareas asignadas)
+- `azdo_work_item_show` (para bajar detalle por ID, con `expand=relations`)
+- `azdo_query_wiql` (para búsquedas avanzadas)
+
+Luego, si necesitas **paquete en disco** (context.md + anexos), ejecuta el script de este skill.
+
+## Flujo (fallback) — sin MCP (solo script)
 
 1) Identificar:
    - `org_url` (ej. `https://dev.azure.com/Asulado`)
@@ -34,10 +46,10 @@ Automatizar la descarga de una HU/tarea de Azure DevOps (incluyendo anexos y wor
 
 ```bash
 # Si estás en un repo que ya tiene el AI Kit instalado:
-#   python3 .ai/skills/azdo-hu-context/scripts/fetch_hu_context.py ...
+#   python3 .ai/skills/azuredevops/scripts/fetch_hu_context.py ...
 # Si estás trabajando dentro del repo del AI Kit (este repo):
-#   python3 skills/azdo-hu-context/scripts/fetch_hu_context.py ...
-python3 .ai/skills/azdo-hu-context/scripts/fetch_hu_context.py \
+#   python3 skills/azuredevops/scripts/fetch_hu_context.py ...
+python3 .ai/skills/azuredevops/scripts/fetch_hu_context.py \
   --id 25459 \
   --org-url "https://dev.azure.com/Asulado" \
   --project "Administración Ciclo de Vida Aplicaciones Asulado" \

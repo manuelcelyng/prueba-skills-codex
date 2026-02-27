@@ -1,4 +1,0 @@
-interface:
-  display_name: "Azure DevOps HU Context"
-  short_description: "Descarga HUs de Azure DevOps y genera contexto"
-  default_prompt: "Descarga el work item (HU/Task/Bug) de Azure DevOps por ID o link, baja anexos y work items relacionados, y genera un context.md consolidado dentro del repo."

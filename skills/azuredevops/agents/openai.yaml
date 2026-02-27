@@ -1,0 +1,4 @@
+interface:
+  display_name: "Azure DevOps"
+  short_description: "Lista/prioriza work items y genera contexto (con MCP o script)"
+  default_prompt: "Ayuda a iniciar una tarea desde Azure DevOps: lista work items asignados o busca por WIQL, recomienda por cuál iniciar, y cuando haya un ID elegido baja detalle/relaciones/anexos y genera un context.md consolidado en el repo."
