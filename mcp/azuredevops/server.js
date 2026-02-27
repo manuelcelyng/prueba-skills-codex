@@ -76,6 +76,10 @@ const server = new McpServer({
   version: "0.1.0",
 });
 
+// Default team for "current sprint" filters when none is provided explicitly.
+// Can be overridden with env AZDO_TEAM or tool arg `team`.
+const DEFAULT_TEAM = "(Asulado) SmartPay";
+
 server.tool(
   "azdo_work_item_show",
   {
@@ -139,7 +143,7 @@ server.tool(
     const _types = workItemTypes ?? ["Task", "Bug", "User Story"];
     const _onlyCurrentSprint = onlyCurrentSprint ?? true;
 
-    const effectiveTeam = team ?? process.env.AZDO_TEAM ?? null;
+    const effectiveTeam = team ?? process.env.AZDO_TEAM ?? DEFAULT_TEAM;
     let iterationPath = null;
     if (_onlyCurrentSprint && effectiveTeam) {
       iterationPath = await azdoCurrentIterationPath({ orgUrl, project, team: effectiveTeam });
@@ -174,7 +178,7 @@ server.tool(
     team: z.string().optional().describe("Nombre o id del team (si no se pasa, usa env AZDO_TEAM)."),
   },
   async ({ orgUrl, project, team }) => {
-    const effectiveTeam = team ?? process.env.AZDO_TEAM ?? null;
+    const effectiveTeam = team ?? process.env.AZDO_TEAM ?? DEFAULT_TEAM;
     if (!effectiveTeam) {
       return {
         content: [
