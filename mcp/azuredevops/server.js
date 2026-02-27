@@ -18,6 +18,10 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
+function wiqlEscape(s) {
+  return String(s ?? "").replaceAll("'", "''");
+}
+
 function runAz(args, { env } = {}) {
   return new Promise((resolve, reject) => {
     const p = spawn("az", args, {
@@ -52,6 +56,19 @@ function asJson(text) {
   const t = (text ?? "").trim();
   if (!t) return null;
   return JSON.parse(t);
+}
+
+async function azdoCurrentIterationPath({ orgUrl, project, team }) {
+  if (!team) return null;
+  const { stdout } = await runAz(
+    ["boards", "iteration", "team", "list", "--team", team, "--timeframe", "Current", "-o", "json"],
+    { env: azEnv({ orgUrl, project }) },
+  );
+  const arr = asJson(stdout);
+  if (!Array.isArray(arr) || arr.length === 0) return null;
+  // Prefer an explicit path field when present.
+  const first = arr[0] ?? {};
+  return first.path ?? first.name ?? null;
 }
 
 const server = new McpServer({
@@ -101,6 +118,14 @@ server.tool(
   {
     orgUrl: z.string().optional().describe("Ej: https://dev.azure.com/Asulado"),
     project: z.string().optional().describe("Nombre exacto del proyecto"),
+    team: z
+      .string()
+      .optional()
+      .describe("Nombre o id del team (necesario para filtrar por sprint/iteración actual)."),
+    onlyCurrentSprint: z
+      .boolean()
+      .optional()
+      .describe("Si true, filtra por la iteración actual del team (default: true)."),
     top: z.number().int().positive().max(200).optional().describe("Máximo de resultados (default: 50)."),
     statesNotIn: z.array(z.string()).optional().describe("Estados a excluir (default: ['Done', 'Closed', 'Removed'])."),
     workItemTypes: z
@@ -108,13 +133,20 @@ server.tool(
       .optional()
       .describe("Tipos a incluir (default: ['Task','Bug','User Story'])."),
   },
-  async ({ orgUrl, project, top, statesNotIn, workItemTypes }) => {
+  async ({ orgUrl, project, team, onlyCurrentSprint, top, statesNotIn, workItemTypes }) => {
     const _top = top ?? 50;
     const _statesNotIn = statesNotIn ?? ["Done", "Closed", "Removed"];
     const _types = workItemTypes ?? ["Task", "Bug", "User Story"];
+    const _onlyCurrentSprint = onlyCurrentSprint ?? true;
 
-    const notInStates = _statesNotIn.map((s) => `'${s.replaceAll("'", "''")}'`).join(", ");
-    const inTypes = _types.map((t) => `'${t.replaceAll("'", "''")}'`).join(", ");
+    const effectiveTeam = team ?? process.env.AZDO_TEAM ?? null;
+    let iterationPath = null;
+    if (_onlyCurrentSprint && effectiveTeam) {
+      iterationPath = await azdoCurrentIterationPath({ orgUrl, project, team: effectiveTeam });
+    }
+
+    const notInStates = _statesNotIn.map((s) => `'${wiqlEscape(s)}'`).join(", ");
+    const inTypes = _types.map((t) => `'${wiqlEscape(t)}'`).join(", ");
 
     const wiql =
       "SELECT [System.Id], [System.WorkItemType], [System.Title], [System.State], [System.ChangedDate] " +
@@ -122,11 +154,40 @@ server.tool(
       "WHERE [System.AssignedTo] = @Me " +
       `AND [System.State] NOT IN (${notInStates}) ` +
       `AND [System.WorkItemType] IN (${inTypes}) ` +
+      (iterationPath ? `AND [System.IterationPath] = '${wiqlEscape(iterationPath)}' ` : "") +
       "ORDER BY [System.ChangedDate] DESC";
 
     const { stdout } = await runAz(["boards", "query", "--wiql", wiql, "--top", String(_top), "-o", "json"], {
       env: azEnv({ orgUrl, project }),
     });
+    const obj = asJson(stdout);
+    return { content: [{ type: "text", text: JSON.stringify(obj, null, 2) }] };
+  },
+);
+
+server.tool(
+  "azdo_current_iteration",
+  {
+    orgUrl: z.string().optional().describe("Ej: https://dev.azure.com/Asulado"),
+    project: z.string().optional().describe("Nombre exacto del proyecto"),
+    team: z.string().optional().describe("Nombre o id del team (si no se pasa, usa env AZDO_TEAM)."),
+  },
+  async ({ orgUrl, project, team }) => {
+    const effectiveTeam = team ?? process.env.AZDO_TEAM ?? null;
+    if (!effectiveTeam) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({ error: "Missing team. Pass `team` or set env AZDO_TEAM." }, null, 2),
+          },
+        ],
+      };
+    }
+    const { stdout } = await runAz(
+      ["boards", "iteration", "team", "list", "--team", effectiveTeam, "--timeframe", "Current", "-o", "json"],
+      { env: azEnv({ orgUrl, project }) },
+    );
     const obj = asJson(stdout);
     return { content: [{ type: "text", text: JSON.stringify(obj, null, 2) }] };
   },
@@ -144,4 +205,3 @@ async function main() {
 }
 
 await main();
-

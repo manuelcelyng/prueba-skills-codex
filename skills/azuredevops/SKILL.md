@@ -29,9 +29,10 @@ Mejorar el flujo de “arrancar una tarea”:
 
 Si en tu Codex/cliente está configurado el MCP `azuredevops`, usa primero sus tools:
 
-- `azdo_list_my_work_items` (para listar tus tareas asignadas)
+- `azdo_list_my_work_items` (para listar tus tareas asignadas; **por defecto filtra al sprint actual si pasas `team`**)
 - `azdo_work_item_show` (para bajar detalle por ID, con `expand=relations`)
 - `azdo_query_wiql` (para búsquedas avanzadas)
+- `azdo_current_iteration` (para ver cuál iteración está marcada como Current para tu team)
 
 Luego, si necesitas **paquete en disco** (context.md + anexos), ejecuta el script de este skill.
 
