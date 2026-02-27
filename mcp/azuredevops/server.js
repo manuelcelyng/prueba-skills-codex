@@ -22,6 +22,14 @@ function wiqlEscape(s) {
   return String(s ?? "").replaceAll("'", "''");
 }
 
+function cliFieldValue(v) {
+  // `az boards work-item update --fields` expects strings; keep JSON-y values compact.
+  if (v === null || v === undefined) return "";
+  if (typeof v === "string") return v;
+  if (typeof v === "number" || typeof v === "boolean") return String(v);
+  return JSON.stringify(v);
+}
+
 function runAz(args, { env } = {}) {
   return new Promise((resolve, reject) => {
     const p = spawn("az", args, {
@@ -56,6 +64,66 @@ function asJson(text) {
   const t = (text ?? "").trim();
   if (!t) return null;
   return JSON.parse(t);
+}
+
+async function azAccountUser() {
+  const { stdout } = await runAz(["account", "show", "--query", "user.name", "-o", "tsv"]);
+  return String(stdout ?? "").trim() || null;
+}
+
+async function azdoWorkItemShowFields({ id, orgUrl, project, fields }) {
+  const env = azEnv({ orgUrl, project });
+  const args = ["boards", "work-item", "show", "--id", String(id), "--expand", "none", "-o", "json"];
+  if (fields && fields.length > 0) {
+    args.push("--fields", fields.join(","));
+  }
+  const { stdout } = await runAz(args, { env });
+  return asJson(stdout);
+}
+
+function getAssignedUniqueName(workItem) {
+  const f = workItem?.fields ?? {};
+  const a = f["System.AssignedTo"];
+  if (!a) return null;
+  if (typeof a === "string") return a; // sometimes displayName only
+  // Azure DevOps often returns identity object.
+  return a.uniqueName ?? a.mail ?? a.email ?? a.displayName ?? null;
+}
+
+async function ensureAssignedToMe({ id, orgUrl, project }) {
+  const me = await azAccountUser();
+  const wi = await azdoWorkItemShowFields({
+    id,
+    orgUrl,
+    project,
+    fields: ["System.AssignedTo", "System.Title", "System.WorkItemType", "System.State"],
+  });
+  const assigned = getAssignedUniqueName(wi);
+
+  // Best-effort match:
+  // - if we have an email, match by inclusion/equals ignoring case
+  // - else allow (cannot safely verify)
+  if (me && assigned) {
+    const a = String(assigned).toLowerCase();
+    const m = String(me).toLowerCase();
+    if (!(a === m || a.includes(m) || m.includes(a))) {
+      const title = wi?.fields?.["System.Title"];
+      const type = wi?.fields?.["System.WorkItemType"];
+      const state = wi?.fields?.["System.State"];
+      const msg =
+        `Work item #${id} no está asignado a @Me.\n` +
+        `- AssignedTo: ${assigned}\n` +
+        `- Me: ${me}\n` +
+        (type || title || state
+          ? `- Work item: ${type ?? "?"} — ${title ?? "?"} (${state ?? "?"})\n`
+          : "");
+      const err = new Error(msg.trim());
+      err.code = "NOT_ASSIGNED_TO_ME";
+      throw err;
+    }
+  }
+
+  return { me, workItem: wi };
 }
 
 async function azdoCurrentIterationPath({ orgUrl, project, team }) {
@@ -96,6 +164,167 @@ server.tool(
       ["boards", "work-item", "show", "--id", String(id), "--expand", expand ?? "relations", "-o", "json"],
       { env: azEnv({ orgUrl, project }) },
     );
+    const obj = asJson(stdout);
+    return { content: [{ type: "text", text: JSON.stringify(obj, null, 2) }] };
+  },
+);
+
+server.tool(
+  "azdo_work_item_update",
+  {
+    id: z.number().int().positive().describe("Work item ID (numérico)."),
+    orgUrl: z.string().optional().describe("Ej: https://dev.azure.com/Asulado"),
+    project: z.string().optional().describe("Nombre exacto del proyecto"),
+    // Safety rails
+    confirm: z
+      .boolean()
+      .optional()
+      .describe("Debe ser true para ejecutar la actualización (default: false)."),
+    onlyIfAssignedToMe: z
+      .boolean()
+      .optional()
+      .describe("Si true, solo actualiza si el work item está asignado a @Me (default: true)."),
+    // Updates
+    state: z.string().optional().describe("Nuevo estado (ej: Active, En Desarrollo, Closed)."),
+    title: z.string().optional().describe("Nuevo título."),
+    iteration: z.string().optional().describe("Nuevo IterationPath."),
+    reason: z.string().optional().describe("Reason del cambio de estado (si aplica)."),
+    discussion: z.string().optional().describe("Comentario para Discussion."),
+    description: z.string().optional().describe("Descripción (HTML o texto)."),
+    fields: z
+      .array(
+        z.object({
+          name: z.string().min(1),
+          value: z.any(),
+        }),
+      )
+      .optional()
+      .describe(
+        "Campos adicionales (ej: Microsoft.VSTS.Scheduling.RemainingWork, OriginalEstimate, CompletedWork, etc.).",
+      ),
+  },
+  async ({ id, orgUrl, project, confirm, onlyIfAssignedToMe, state, title, iteration, reason, discussion, description, fields }) => {
+    const _confirm = confirm ?? false;
+    const _onlyIfAssignedToMe = onlyIfAssignedToMe ?? true;
+    if (!_confirm) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(
+              { error: "Confirmation required. Re-run with confirm=true to update the work item." },
+              null,
+              2,
+            ),
+          },
+        ],
+      };
+    }
+
+    if (_onlyIfAssignedToMe) {
+      await ensureAssignedToMe({ id, orgUrl, project });
+    }
+
+    const args = ["boards", "work-item", "update", "--id", String(id)];
+    if (state) args.push("--state", state);
+    if (title) args.push("--title", title);
+    if (iteration) args.push("--iteration", iteration);
+    if (reason) args.push("--reason", reason);
+    if (discussion) args.push("--discussion", discussion);
+    if (description) args.push("--description", description);
+
+    if (fields && Array.isArray(fields) && fields.length > 0) {
+      args.push("--fields");
+      for (const f of fields) {
+        if (!f?.name) continue;
+        args.push(`${f.name}=${cliFieldValue(f.value)}`);
+      }
+    }
+
+    const { stdout } = await runAz(args.concat(["-o", "json"]), { env: azEnv({ orgUrl, project }) });
+    const obj = asJson(stdout);
+    return { content: [{ type: "text", text: JSON.stringify(obj, null, 2) }] };
+  },
+);
+
+server.tool(
+  "azdo_work_item_create",
+  {
+    orgUrl: z.string().optional().describe("Ej: https://dev.azure.com/Asulado"),
+    project: z.string().optional().describe("Nombre exacto del proyecto"),
+    confirm: z
+      .boolean()
+      .optional()
+      .describe("Debe ser true para ejecutar la creación (default: false)."),
+    onlyAssignToMe: z
+      .boolean()
+      .optional()
+      .describe("Si true, fuerza assignedTo=@Me (default: true)."),
+    type: z
+      .enum(["Task", "User Story"])
+      .optional()
+      .describe("Tipo de work item (default: Task)."),
+    title: z.string().min(1).describe("Título."),
+    description: z.string().optional().describe("Descripción (HTML o texto)."),
+    discussion: z.string().optional().describe("Comentario para Discussion."),
+    iteration: z.string().optional().describe("IterationPath (si no se pasa, usa sprint actual del team default)."),
+    team: z.string().optional().describe("Team para resolver sprint actual si iteration no se pasa."),
+    fields: z
+      .array(
+        z.object({
+          name: z.string().min(1),
+          value: z.any(),
+        }),
+      )
+      .optional()
+      .describe("Campos adicionales (field=value)."),
+  },
+  async ({ orgUrl, project, confirm, onlyAssignToMe, type, title, description, discussion, iteration, team, fields }) => {
+    const _confirm = confirm ?? false;
+    if (!_confirm) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(
+              { error: "Confirmation required. Re-run with confirm=true to create the work item." },
+              null,
+              2,
+            ),
+          },
+        ],
+      };
+    }
+
+    const _onlyAssignToMe = onlyAssignToMe ?? true;
+    const _type = type ?? "Task";
+
+    const args = ["boards", "work-item", "create", "--type", _type, "--title", title];
+    if (description) args.push("--description", description);
+    if (discussion) args.push("--discussion", discussion);
+
+    let iterationPath = iteration ?? null;
+    if (!iterationPath) {
+      const effectiveTeam = team ?? process.env.AZDO_TEAM ?? DEFAULT_TEAM;
+      iterationPath = await azdoCurrentIterationPath({ orgUrl, project, team: effectiveTeam });
+    }
+    if (iterationPath) args.push("--iteration", iterationPath);
+
+    if (_onlyAssignToMe) {
+      // Azure DevOps CLI supports --assigned-to; using @Me isn't always accepted here, so use email.
+      const me = await azAccountUser();
+      if (me) args.push("--assigned-to", me);
+    }
+
+    if (fields && Array.isArray(fields) && fields.length > 0) {
+      args.push("--fields");
+      for (const f of fields) {
+        if (!f?.name) continue;
+        args.push(`${f.name}=${cliFieldValue(f.value)}`);
+      }
+    }
+
+    const { stdout } = await runAz(args.concat(["-o", "json"]), { env: azEnv({ orgUrl, project }) });
     const obj = asJson(stdout);
     return { content: [{ type: "text", text: JSON.stringify(obj, null, 2) }] };
   },

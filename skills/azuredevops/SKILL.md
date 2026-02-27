@@ -38,6 +38,8 @@ Si en tu Codex/cliente está configurado el MCP `azuredevops`, usa primero sus t
 - `azdo_work_item_show` (para bajar detalle por ID, con `expand=relations`)
 - `azdo_query_wiql` (para búsquedas avanzadas)
 - `azdo_current_iteration` (para ver cuál iteración está marcada como Current para tu team)
+- `azdo_work_item_update` (**write**) para actualizar estado/campos/agregar comentario (requiere `confirm=true` y por defecto solo si está asignado a @Me)
+- `azdo_work_item_create` (**write**) para crear Task/User Story asignada a @Me (requiere `confirm=true`)
 
 Luego, si necesitas **paquete en disco** (context.md + anexos), ejecuta el script de este skill.
 
