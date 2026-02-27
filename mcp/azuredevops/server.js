@@ -157,11 +157,12 @@ server.tool(
       (iterationPath ? `AND [System.IterationPath] = '${wiqlEscape(iterationPath)}' ` : "") +
       "ORDER BY [System.ChangedDate] DESC";
 
-    const { stdout } = await runAz(["boards", "query", "--wiql", wiql, "--top", String(_top), "-o", "json"], {
+    const { stdout } = await runAz(["boards", "query", "--wiql", wiql, "-o", "json"], {
       env: azEnv({ orgUrl, project }),
     });
     const obj = asJson(stdout);
-    return { content: [{ type: "text", text: JSON.stringify(obj, null, 2) }] };
+    const sliced = Array.isArray(obj) ? obj.slice(0, _top) : obj;
+    return { content: [{ type: "text", text: JSON.stringify(sliced, null, 2) }] };
   },
 );
 
