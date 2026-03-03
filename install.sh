@@ -196,8 +196,11 @@ install_from_github_tarball() {
     return 1
   fi
   local owner repo
-  owner="$(echo "$parsed" | awk '{print $1}')"
-  repo="$(echo "$parsed" | awk '{print $2}')"
+  IFS=' ' read -r owner repo <<<"$parsed"
+  if [ -z "${owner:-}" ] || [ -z "${repo:-}" ]; then
+    echo "bootstrap: failed to parse owner/repo from: $parsed" 1>&2
+    return 1
+  fi
 
   local tmp
   tmp="$(mktemp -d)"
