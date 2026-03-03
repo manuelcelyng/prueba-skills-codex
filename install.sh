@@ -169,16 +169,115 @@ if [ "$AI_KIT_MODE" = "workdir" ]; then
   exit 0
 fi
 
-if [ -d "$dest/.git" ]; then
+parse_github_owner_repo() {
+  # Supports:
+  # - https://github.com/<owner>/<repo>.git
+  # - git@github.com:<owner>/<repo>.git
+  local s="$1"
+  s="${s%.git}"
+  if [[ "$s" =~ ^https?://github\.com/([^/]+)/([^/]+)$ ]]; then
+    echo "${BASH_REMATCH[1]} ${BASH_REMATCH[2]}"
+    return 0
+  fi
+  if [[ "$s" =~ ^git@github\.com:([^/]+)/([^/]+)$ ]]; then
+    echo "${BASH_REMATCH[1]} ${BASH_REMATCH[2]}"
+    return 0
+  fi
+  return 1
+}
+
+install_from_github_tarball() {
+  local src_url="$1"
+  local ref="$2"
+
+  local parsed
+  if ! parsed="$(parse_github_owner_repo "$src_url")"; then
+    echo "bootstrap: tarball fallback only supports github.com urls (got $src_url)" 1>&2
+    return 1
+  fi
+  local owner repo
+  owner="$(echo "$parsed" | awk '{print $1}')"
+  repo="$(echo "$parsed" | awk '{print $2}')"
+
+  local tmp
+  tmp="$(mktemp -d)"
+  local tgz="$tmp/ai-kit.tgz"
+  local url="https://codeload.github.com/${owner}/${repo}/tar.gz/${ref}"
+
+  echo "bootstrap: git clone failed; trying tarball fallback..." 1>&2
+  echo "bootstrap: downloading $url" 1>&2
+
+  # Retry tarball download (transient 5xx / network hiccups)
+  local ok=false
+  for i in 1 2 3; do
+    if curl -fsSL -o "$tgz" "$url" >/dev/null 2>&1; then
+      ok=true
+      break
+    fi
+    sleep "$i"
+  done
+  if [ "$ok" != "true" ]; then
+    echo "bootstrap: tarball download failed ($url)" 1>&2
+    rm -rf "$tmp"
+    return 1
+  fi
+
+  tar -xzf "$tgz" -C "$tmp"
+  local extracted
+  extracted="$(find "$tmp" -maxdepth 1 -type d -name "${repo}-*" -print | head -n 1)"
+  if [ -z "$extracted" ] || [ ! -d "$extracted" ]; then
+    echo "bootstrap: tarball extraction failed" 1>&2
+    rm -rf "$tmp"
+    return 1
+  fi
+
+  rm -rf "$dest"
+  mv "$extracted" "$dest"
+  echo "tarball:${owner}/${repo}@${ref}" > "$dest/.ai-kit-tarball"
+  rm -rf "$tmp"
+  return 0
+}
+
+git_clone_with_retries() {
+  local url="$1"
+  local out="$2"
+
+  # Retry clone (GitHub can intermittently return 5xx; some proxies also flake).
+  for i in 1 2 3; do
+    rm -rf "$out"
+    if git clone "$url" "$out" >/dev/null 2>&1; then
+      return 0
+    fi
+    # Try HTTP/1.1 on second attempt (some corporate proxies break HTTP/2)
+    if [ "$i" -eq 2 ]; then
+      rm -rf "$out"
+      if git -c http.version=HTTP/1.1 clone "$url" "$out" >/dev/null 2>&1; then
+        return 0
+      fi
+    fi
+    sleep "$i"
+  done
+  return 1
+}
+
+tarball_marker="$dest/.ai-kit-tarball"
+
+if [ -f "$tarball_marker" ] && [ ! -d "$dest/.git" ]; then
+  # If previous install used tarball, keep updating via tarball (no git required).
+  install_from_github_tarball "$src" "$AI_KIT_REF"
+elif [ -d "$dest/.git" ]; then
   git -C "$dest" remote set-url origin "$src" >/dev/null 2>&1 || true
 else
-  rm -rf "$dest"
-  git clone "$src" "$dest" >/dev/null
+  if ! git_clone_with_retries "$src" "$dest"; then
+    install_from_github_tarball "$src" "$AI_KIT_REF"
+  fi
 fi
 
-git -C "$dest" fetch --all --tags >/dev/null 2>&1 || true
-git -C "$dest" checkout -q "$AI_KIT_REF"
-git -C "$dest" pull --ff-only origin "$AI_KIT_REF" >/dev/null 2>&1 || true
+if [ -d "$dest/.git" ]; then
+  git -C "$dest" fetch --all --tags >/dev/null 2>&1 || true
+  git -C "$dest" checkout -q "$AI_KIT_REF"
+  git -C "$dest" pull --ff-only origin "$AI_KIT_REF" >/dev/null 2>&1 || true
+fi
 
 echo "bootstrap: .ai-kit ready ($AI_KIT_REF)"'
 
