@@ -1,0 +1,4 @@
+interface:
+  display_name: "Postgres QA Backup/Restore"
+  short_description: "Backup/restore QA PostgreSQL"
+  default_prompt: "Haz backup de una BD QA PostgreSQL (full + data-only) por schema. No ejecutes acciones destructivas sin confirmación explícita. Cuando el usuario lo indique: opcionalmente elimina tablas/dropea el schema, aplica migraciones, restaura data y configura defaults/backfill en columnas indicadas."
