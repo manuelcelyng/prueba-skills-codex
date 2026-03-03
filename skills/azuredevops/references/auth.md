@@ -15,4 +15,18 @@ az account get-access-token \
 
 ## PAT (alternativa)
 
-Si no puedes usar AAD, usa `az devops login --organization ...` y pega el PAT *solo en terminal*.
+Si no puedes usar AAD, usa un **PAT (Personal Access Token)**.
+
+Opciones:
+
+1) **No interactivo (recomendado)**: exportar el PAT como variable de entorno para Azure DevOps CLI:
+
+```bash
+export AZURE_DEVOPS_EXT_PAT="<tu_pat>"
+```
+
+Recomendación: guardarlo en un `.env` local (del workspace o del proyecto) **ignorado por git**, y cargarlo en tu shell antes de correr el skill.
+
+2) **Interactivo**: `az devops login --organization ...` y pega el PAT *solo en terminal*.
+
+Regla: **nunca** pegar el PAT en chat ni dejarlo hardcodeado en archivos versionados.

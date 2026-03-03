@@ -28,7 +28,12 @@ Mejorar el flujo de “arrancar una tarea”:
 - Extensión: `az extension add --name azure-devops`
 - Autenticación (elige 1):
   - **AAD/MFA**: `az login --allow-no-subscriptions`
-  - **PAT** (solo si no puedes usar AAD): `az devops login --organization https://dev.azure.com/<ORG>` *(el PAT se pega en la terminal, nunca en chat)*
+  - **PAT** (solo si no puedes usar AAD):
+    - Recomendado (no interactivo): exportar el PAT vía variable de entorno `AZURE_DEVOPS_EXT_PAT` (idealmente cargada desde un `.env` local **ignorado por git**).
+    - Alternativa (interactivo): `az devops login --organization https://dev.azure.com/<ORG>` *(el PAT se pega en la terminal, nunca en chat)*.
+
+> Regla: los tokens (PAT) son **personales**. No deben quedar hardcodeados en skills, código, commits o chats.
+> Si la IA no detecta `AZURE_DEVOPS_EXT_PAT` (o un `.env` local que lo setee), debe pedírtelo/solicitarte que lo exportes en tu terminal.
 
 ## Flujo (recomendado) — con MCP (si está disponible)
 
