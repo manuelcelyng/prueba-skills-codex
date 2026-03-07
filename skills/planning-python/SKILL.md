@@ -6,26 +6,22 @@ description: >
 license: Internal
 metadata:
   author: pragma-smartpay
-  version: "0.2"
+  version: "0.3"
   scope: [root]
   auto_invoke:
     - "Planificar HU / contrato"
 allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 ---
 
-## Purpose
+# Planning Python
 
 Planear cambios Python y dejar el material listo para que `dev-python` implemente y `review` audite sin ambigüedad.
 
-## Required Context (load order)
+## Shared Operating Model
 
-1. Leer `AGENTS.md`, `README.md` y `context/` relevante del servicio.
-2. Leer `./.ai/skills/dev-python/SKILL.md` y `./.ai/skills/review/SKILL.md` como reglas canónicas.
-3. Si existe `openspec/changes/<change-name>/`, alinear la HU con `proposal/spec/design/tasks`.
-4. Si hay HU, leer `context/hu/<HU_ID>/` y artefactos existentes.
-5. Revisar `pyproject.toml`, `requirements*.txt`, `template.yaml` y manifests relevantes.
+Leer `.ai-kit/references/delivery-flow.md` antes de producir artefactos. Ese documento define contexto mínimo, gates HU/SDD, write locations y evidencia esperada para pasar a implementación y review.
 
-## Output Order (mandatory)
+## Deliverables (mandatory order)
 
 1. Contexto, alcance, supuestos y fuera de alcance.
 2. **Contrato de interfaz/evento** completo.
@@ -34,7 +30,7 @@ Planear cambios Python y dejar el material listo para que `dev-python` implement
 
 ## Contract Requirements
 
-El contrato debe incluir:
+El contrato debe dejar explícito:
 - tipo de interfaz (HTTP, evento, batch/ETL);
 - payloads/request/response con validaciones;
 - códigos de respuesta o estados lógicos, con ejemplos JSON cuando aplique;
@@ -44,24 +40,23 @@ El contrato debe incluir:
 ## Implementation Plan Requirements
 
 El plan debe dejar explícito:
-- módulos/capas afectados (`domain`, `application`, `infrastructure`, ETL, routers, handlers, etc.);
+- módulos o capas afectados (`domain`, `application`, `infrastructure`, ETL, routers, handlers, etc.);
 - persistencia/consultas y estrategia segura de acceso a datos;
 - logging, validaciones, env vars y secretos;
 - impacto en `pyproject.toml`, `template.yaml`, SAM/K8s o manifests;
 - estrategia de pruebas y cobertura esperada.
 
-## Where to Write
+## Handoff to Implementation
 
-- Contrato: `context/hu/<HU_ID>/contrato.md` (o archivo equivalente existente).
-- Plan: `context/hu/<HU_ID>/plan-implementacion.md` (o archivo equivalente existente).
-- Si el cambio ya usa SDD, reflejar el mismo alcance en `openspec/changes/<change-name>/`.
+No marques el planning como listo si falta alguno de estos puntos:
+- contrato con payloads y errores suficientes;
+- plan técnico por componentes;
+- tratamiento de trazabilidad/configuración;
+- estrategia de persistencia segura;
+- estrategia de pruebas verificable.
 
 ## References
-
-- `.ai-kit/references/contract-template-python.md`
-- `.ai-kit/references/plan-template-python.md`
+- `.ai-kit/references/delivery-flow.md`
+- `.ai-kit/references/python-smartpay-reference.md`
 - `.ai-kit/references/sdd/sdd-playbook.md`
 
-## Limits
-
-- No gestionar git, ramas o PRs.

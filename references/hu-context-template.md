@@ -4,9 +4,11 @@ Copia este contenido en:
 - `context/hu/<HU_ID>/contrato.md`
 
 Referencias:
+- Baseline operativo: `.ai-kit/references/delivery-flow.md`
 - Reglas del repo: `AGENTS.md`
 - Reglas canónicas de implementación: `./.ai/skills/dev-java/SKILL.md` o `./.ai/skills/dev-python/SKILL.md`
 - Reglas canónicas de review: `./.ai/skills/review/SKILL.md`
+- Referencia stack específica: `.ai-kit/references/java-smartpay-reference.md` o `.ai-kit/references/python-smartpay-reference.md`
 - Guía SDD: `.ai-kit/references/sdd/sdd-playbook.md`
 
 ---
@@ -65,3 +67,4 @@ Referencias:
 - Riesgos técnicos
 - Preguntas abiertas
 - Decisiones (ADR si aplica)
+

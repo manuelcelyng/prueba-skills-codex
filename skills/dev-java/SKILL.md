@@ -6,122 +6,111 @@ description: >
 license: Internal
 metadata:
   author: pragma-smartpay
-  version: "0.2"
+  version: "0.3"
   scope: [root]
   auto_invoke:
     - "Implementar cambios"
 allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 ---
 
-## Purpose
+# Desarrollo Java (canónico)
 
-Este skill es la **fuente canónica** para implementación Java en el kit. Las reglas aquí definen cómo debe escribir código la IA para servicios Spring Boot WebFlux + R2DBC dentro de SmartPay/ASULADO.
+Este skill es la **fuente normativa** para implementación Java del kit. Si `review` detecta una desviación contra estas reglas, la implementación debe corregirse.
 
-## Source of truth (precedencia)
+## Shared Operating Model
 
-1. `AGENTS.md` del repo y contexto local del servicio.
-2. Skills overlay del micro (`./skills/*`) cuando apliquen.
-3. Artefactos funcionales aprobados: `openspec/changes/<change>/...` o `context/hu/<HU_ID>/...`.
-4. Este skill.
+Antes de codificar, leer `.ai-kit/references/delivery-flow.md` para:
+- precedencia de reglas;
+- contexto mínimo a cargar;
+- gate obligatorio entre planning ↔ implementación ↔ review;
+- ubicación de artefactos HU/SDD y evidencia esperada al cierre.
 
-Si el repo tiene una regla más estricta, gana el repo.
+## Mandatory Reroute
 
-## Required Context (load order)
-
-1. Leer `AGENTS.md` y `context/` relevante del repo.
-2. Si existe `openspec/changes/<change-name>/`, leer `proposal.md`, specs, `design.md` y `tasks.md`.
-3. Si no existe `openspec/`, leer la HU y sus artefactos (`contrato.md`, `plan-implementacion.md`).
-4. Cargar skills locales relevantes (error codes, SQL providers, etc.).
-5. Revisar código y tests similares en el módulo/capa afectada antes de escribir código nuevo.
-
-## Mandatory Gate
-
-No implementes cambios no triviales sin uno de estos dos insumos:
-
-- **SDD activo**: `proposal/spec/design/tasks` suficientemente definidos en `openspec/changes/<change-name>/`.
-- **HU tradicional**: contrato + plan de implementación aprobados en `context/hu/<HU_ID>/`.
-
-Si faltan esos artefactos:
-- usar `smartpay-sdd-orchestrator` si el usuario quiere flujo SDD completo, o
-- usar `planning-java` si el cambio se está trabajando por HU/contrato.
+Detén la implementación y redirige cuando aplique:
+- si el cambio es no trivial y faltan `proposal/spec/design/tasks` o `contrato + plan`, usar `smartpay-sdd-orchestrator` o `planning-java`;
+- si el cambio toca varios micros, coordinar también con `smartpay-workspace-router` o con el flow multi-micro del workspace;
+- si el repo tiene reglas locales más estrictas, esas reglas ganan.
 
 ## Implementation Workflow
 
-1. Confirmar alcance, criterios de aceptación y capa(s) afectadas.
-2. Implementar por lotes pequeños siguiendo `tasks.md` o el plan de la HU.
-3. Actualizar tests en paralelo al código (no dejar testing para el final).
-4. Verificar contrato, error codes, logs, constantes y cleanup antes de cerrar.
-5. Ejecutar pruebas reales (`./gradlew test` o el comando equivalente del repo) y reportar evidencia.
+1. Confirmar alcance, criterios de aceptación, capa(s) afectadas y artefacto funcional vigente.
+2. Implementar por lotes pequeños siguiendo `tasks.md` o `plan-implementacion.md`.
+3. Actualizar tests en paralelo; no dejar testing para el final.
+4. Autoverificar el batch contra las secciones 1-8 de este skill antes de seguir.
+5. Ejecutar pruebas reales (`./gradlew test`, slices o comando equivalente del repo) y reportar evidencia.
 
-## Reglas Java no negociables
+## Canonical Java Rulebook
 
-### 1) Arquitectura y capas
+### 1) Arquitectura y ownership de capas
 - Mantener arquitectura hexagonal/clean: **Domain → UseCase → Infrastructure → Entry Points**.
 - El dominio no depende de Spring ni de infraestructura.
-- Los UseCases orquestan puertos; no deben depender de DTOs de API ni de adapters concretos.
-- Los adapters implementan puertos y hacen mapeos; no contienen reglas de negocio.
-- Routers/handlers validan/adaptan entrada/salida; no resuelven negocio.
+- Los UseCases orquestan puertos; no dependen de DTOs API ni de adapters concretos.
+- Los adapters implementan puertos, hacen mapeos y acceso técnico; no contienen reglas de negocio.
+- Routers/handlers validan/adaptan entrada-salida, manejan `traceId` y delegan el negocio al UseCase.
 
-### 2) Naming y estructura
-- Código en inglés; logs, mensajes y Swagger en español.
-- Puertos del dominio con sufijo `Port` o `Gateway`; evita `*Repository` para puertos.
-- En HU nuevas evita nombres genéricos como `execute`, `Get*` o `Query*`; el nombre del UseCase debe reflejar intención.
-- Para adapters evita nombres mezclados tipo `RepositoryAdapter`; usa nombres concretos como `ParticipantAdapter`.
+### 2) Naming, lenguaje y estructura
+- Código, clases, métodos y nombres internos en inglés.
+- Logs, mensajes funcionales y Swagger/OpenAPI en español.
+- Puertos del dominio con sufijo `Port` o `Gateway`; evitar `*Repository` para puertos de dominio.
+- En HUs nuevas evita nombres genéricos como `execute`, `Get*` o `Query*`; el nombre del UseCase debe reflejar intención.
+- Para adapters evita nombres mezclados como `RepositoryAdapter`; usa nombres concretos al dominio.
 - Evita FQCN inline dentro del código; importa al inicio.
 
-### 3) Reactividad (Reactor/WebFlux)
+### 3) Modelo reactivo (Reactor/WebFlux)
 - Prohibido `.block()`, `Thread.sleep`, JDBC, I/O bloqueante o `subscribe()` manual en lógica de negocio.
-- No anidar suscripciones ni meter side-effects en `map`.
-- Evita `collectList()` + `Flux::fromIterable` cuando el objetivo es seguir procesando; prefiere streaming con `concatMap`/`flatMap` controlado.
-- En lotes, maneja errores por elemento cuando el caso lo requiera; un fallo puntual no debe abortar todo el proceso sin justificación.
+- No anidar suscripciones ni esconder side-effects dentro de `map`.
+- Evita `collectList()` + `Flux::fromIterable` cuando el objetivo es seguir procesando; prefiere streaming con `concatMap` o `flatMap` controlado.
+- En procesos por lote, define explícitamente si un error por elemento aborta todo o se gestiona por item; no lo dejes implícito.
 
 ### 4) Persistencia, queries y SQL
 - Si la consulta es simple, prefiere derived query en `ReactiveCrudRepository`/`CrudRepository`.
 - Si es intermedia y legible, `@Query` es aceptable.
-- Si es compleja, usa `DatabaseClient`/`SQLProvider`.
+- Si es compleja, usa `DatabaseClient` y/o `SQLProvider`.
 - SQL siempre con parámetros nombrados; nunca concatenes input del usuario.
 - En SQL Providers usa una query base clara y agrega filtros opcionales con `append` controlado.
-- Usa alias explícitos y legibles en `SELECT`; para columnas derivadas/mapeadas prefiere alias en `snake_case`.
-- No disperses strings técnicos repetidos (bind names, columnas, headers, estados, claves); centralízalos en constantes cuando se reutilicen.
+- Usa alias explícitos y legibles en `SELECT`; para columnas derivadas o calculadas prefiere alias en `snake_case`.
+- Centraliza strings técnicos reutilizados (bind names, columnas, headers, estados, claves) en constantes cuando aparezcan en más de un punto.
 
-### 5) Mappers, modelos y validación
-- MapStruct/mappers solo mapean; no llevan lógica de negocio.
+### 5) Mapping, modelos y validación
+- MapStruct o mappers solo mapean; no llevan lógica de negocio.
 - En adapters R2DBC, el mapeo `row -> modelo` debe delegarse en `*RowMapper` cuando el repo siga ese patrón.
 - Los modelos de dominio no deben usar sufijo `Row`; los modelos de lectura/mapeo viven en infraestructura.
-- Validaciones de entrada en DTOs con Bean Validation + `ValidatorEngine`/traducciones del repo.
+- Validaciones de entrada en DTOs con Bean Validation y el mecanismo del repo (`ValidatorEngine`, translators, etc.).
 - Evita validaciones manuales en handlers/usecases salvo reglas puramente de negocio.
 
-### 6) Contrato API, errores, logs y constantes
-- Mantén alineados router/handler/OpenAPI/DTO/tests con el contrato aprobado.
+### 6) Contrato, errores, logs y constantes
+- Mantén alineados router, handler, OpenAPI, DTOs y tests con el contrato aprobado.
 - Toda respuesta esperada debe tener código y ejemplo JSON en el contrato/HU o en el spec activo.
-- Los errores funcionales deben modelarse con `BusinessException` + `ErrorCode` del micro.
-- Los logs van en español, sin PII, con `traceId` como primer dato de correlación.
+- Los errores funcionales se modelan con `BusinessException` + `ErrorCode` del micro.
+- Si se agrega o cambia un error funcional, actualiza también el catálogo/documentación del micro cuando exista (por ejemplo `error-codes.md`).
+- Logs en español, sin PII, con `traceId` como primer dato de correlación.
 - No concatenes strings con `+` en logs; usa placeholders.
 - Literales repetidos o de negocio deben vivir en `Constants` o clases equivalentes.
 
-### 7) Testing obligatorio
-- Por HU o task relevante, cubrir como mínimo: UseCase + SQL Provider + Adapter + Handler/Router (según aplique).
-- En unit tests, SUT con `@InjectMocks` y dependencias con `@Mock`; evita `@Spy` salvo necesidad técnica real.
-- Centraliza datos en `*TestData`/Object Mother del módulo; no hardcodees estados ni valores de negocio inline.
+### 7) Testing mínimo obligatorio
+- Por HU o task relevante, cubrir como mínimo: UseCase + SQL Provider + Adapter + Handler/Router, según aplique al cambio.
+- En unit tests, el SUT debe usar `@InjectMocks` y las dependencias `@Mock`; evita `@Spy` salvo necesidad técnica real.
+- Centraliza datos en `*TestData`, Object Mother o fixtures equivalentes; no hardcodees estados ni valores de negocio inestables inline.
 - Para Reactor usa `StepVerifier`; para API reactiva usa `WebTestClient` si el repo lo usa.
 - En tests de SQL valida cláusulas críticas y mapa de parámetros, no el SQL completo literal.
 
-### 8) Cleanup y calidad
-- Elimina código muerto, DTOs/mappers/rutas/tests/constantes sin uso después del refactor.
+### 8) Cleanup y mantenibilidad
+- Elimina código muerto, DTOs, mappers, rutas, tests, constantes y helpers sin uso después del refactor.
 - No dejes código comentado ni `@SuppressWarnings` sin justificación técnica acotada.
-- Evita duplicación, magic numbers, métodos gigantes y imports wildcard.
+- Evita duplicación, magic numbers, imports wildcard, métodos gigantes y métodos con demasiados parámetros cuando la estructura pida extraer objetos.
+- No dejes deuda invisible: si la implementación requiere ADR o ajuste documental, déjalo explícito en los artefactos del cambio.
 
 ## Done Criteria
 
 Antes de cerrar el cambio confirma:
 - contrato/specs siguen alineados con la implementación;
-- tests relevantes pasan con evidencia real;
+- pruebas relevantes pasan con evidencia real;
 - no quedan strings técnicos regados, código muerto ni atajos reactivos incorrectos;
 - reportas archivos tocados, pruebas ejecutadas y cualquier desviación del plan.
 
-## Optional References
-
-- `.ai-kit/references/java-api-examples.md`
-- `.ai-kit/references/contract-template-java.md`
-- `.ai-kit/references/plan-template-java.md`
+## References
+- `.ai-kit/references/delivery-flow.md`
+- `.ai-kit/references/java-smartpay-reference.md`
 - `.ai-kit/references/sdd/sdd-playbook.md`
+

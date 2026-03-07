@@ -6,66 +6,59 @@ description: >
 license: Internal
 metadata:
   author: pragma-smartpay
-  version: "0.2"
+  version: "0.3"
   scope: [root]
   auto_invoke:
     - "Planificar HU / contrato"
 allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 ---
 
-## Purpose
+# Planning Java
 
 Planear cambios Java y dejar listo el material para que `dev-java` implemente y `review` audite sin ambigüedad.
 
-## Required Context (load order)
+## Shared Operating Model
 
-1. Leer `AGENTS.md` y `context/` relevante del repo.
-2. Leer `./.ai/skills/dev-java/SKILL.md` y `./.ai/skills/review/SKILL.md` como reglas canónicas.
-3. Si existe `openspec/changes/<change-name>/`, alinear la HU con `proposal/spec/design/tasks`.
-4. Si hay HU, leer `context/hu/<HU_ID>/` y artefactos existentes.
-5. Cargar skills locales relevantes (error codes, SQL providers, etc.).
-6. Si aplica, consultar ADR/dependencias/ejemplos.
+Leer `.ai-kit/references/delivery-flow.md` antes de producir artefactos. Ese documento define contexto mínimo, gates HU/SDD, write locations y evidencia esperada para pasar a implementación y review.
 
-## Output Order (mandatory)
+## Deliverables (mandatory order)
 
 1. Contexto, alcance, supuestos y fuera de alcance.
 2. **Contrato API/interfaz** completo.
-3. **Plan de implementación** por capas con SQL borrador (o razón explícita si no aplica).
+3. **Plan de implementación** por capas con borrador SQL o razón explícita de por qué no aplica.
 4. Checklist final de “listo para implementar con `dev-java`”.
 
 ## Contract Requirements
 
-El contrato debe incluir:
-- endpoint/interfaz afectada;
+El contrato debe dejar explícito:
+- endpoint o interfaz afectada;
+- headers/correlación (`traceId` si aplica);
 - request/response con validaciones;
 - códigos de respuesta y ejemplos JSON para **todas** las respuestas esperadas;
-- `ErrorCode`/mensajes si aplica;
-- impacto en observabilidad (logs/traceId).
+- `ErrorCode`, mensajes y observabilidad relevante.
 
 ## Implementation Plan Requirements
 
-El plan debe dejar explícito:
-- capas afectadas (dominio, use case, adapters, entry points, DTOs, mappers);
-- tablas/repositorios/queries involucrados;
+El plan debe anticipar la taxonomía que `dev-java` y `review` van a exigir:
+- capas afectadas: Domain, UseCase, Infrastructure, Entry Points, DTOs, mappers;
+- puertos nuevos o extendidos y su intención;
+- estrategia de persistencia/query (`derived query`, `@Query`, `DatabaseClient`/`SQLProvider`) con justificación;
 - borrador SQL con parámetros nombrados o explicación explícita si no hay SQL;
-- constantes, logs, errores y validaciones a tocar;
-- estrategia de pruebas por capa.
+- constantes, logs, catálogo de errores y validaciones a tocar;
+- estrategia de pruebas por capa: UseCase, SQL Provider, Adapter, Handler/Router;
+- impacto en dependencias o ADRs cuando aplique.
 
-## Where to Write
+## Handoff to Implementation
 
-- Contrato: `context/hu/<HU_ID>/contrato.md` (o archivo equivalente existente).
-- Plan: `context/hu/<HU_ID>/plan-implementacion.md` (o archivo equivalente existente).
-- Si el cambio ya usa SDD, reflejar el mismo alcance en `openspec/changes/<change-name>/`.
+No marques el planning como listo si falta alguno de estos puntos:
+- contrato con ejemplos JSON suficientes;
+- plan técnico por capas;
+- tratamiento de errores y trazabilidad;
+- borrador SQL o justificación de ausencia;
+- estrategia de pruebas verificable.
 
 ## References
-
-- `.ai-kit/references/contract-template-java.md`
-- `.ai-kit/references/plan-template-java.md`
-- `.ai-kit/references/java-api-examples.md`
-- `.ai-kit/references/adr-guide.md`
-- `.ai-kit/references/dependencies-guide.md`
+- `.ai-kit/references/delivery-flow.md`
+- `.ai-kit/references/java-smartpay-reference.md`
 - `.ai-kit/references/sdd/sdd-playbook.md`
 
-## Limits
-
-- No gestionar git, ramas o PRs.

@@ -6,52 +6,37 @@ description: >
 license: Internal
 metadata:
   author: pragma-smartpay
-  version: "0.2"
+  version: "0.3"
   scope: [root]
   auto_invoke:
     - "Implementar cambios"
 allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 ---
 
-## Purpose
+# Desarrollo Python (canónico)
 
-Este skill es la **fuente canónica** para implementación Python en el kit. Define cómo debe escribir código la IA en Lambdas, ETLs y servicios FastAPI del ecosistema SmartPay/ASULADO.
+Este skill es la **fuente normativa** para implementación Python del kit. `review` debe auditar cualquier cambio Python contra este baseline y contra las reglas locales del repo.
 
-## Source of truth (precedencia)
+## Shared Operating Model
 
-1. `AGENTS.md` del repo y contexto local del servicio.
-2. Skills overlay del micro (`./skills/*`) cuando apliquen.
-3. Artefactos funcionales aprobados: `openspec/changes/<change>/...` o `context/hu/<HU_ID>/...`.
-4. Este skill.
+Antes de codificar, leer `.ai-kit/references/delivery-flow.md` para precedencia, contexto mínimo, gates HU/SDD, write locations y evidencia de cierre.
 
-## Required Context (load order)
+## Mandatory Reroute
 
-1. Leer `AGENTS.md`, `README.md` y `context/` relevante del servicio.
-2. Si existe `openspec/changes/<change-name>/`, leer `proposal.md`, specs, `design.md` y `tasks.md`.
-3. Si no existe `openspec/`, leer HU, contrato y plan de implementación disponibles.
-4. Leer `pyproject.toml`, `requirements*.txt`, `template.yaml` o manifests equivalentes.
-5. Revisar código y tests similares en el servicio antes de crear archivos nuevos.
-
-## Mandatory Gate
-
-No implementes cambios no triviales sin uno de estos dos insumos:
-
-- **SDD activo**: `proposal/spec/design/tasks` definidos en `openspec/changes/<change-name>/`.
-- **HU tradicional**: contrato + plan de implementación aprobados en `context/hu/<HU_ID>/`.
-
-Si faltan esos artefactos:
-- usar `smartpay-sdd-orchestrator` si el usuario quiere flujo SDD completo, o
-- usar `planning-python` si el trabajo viene por HU/contrato.
+Detén la implementación y redirige cuando aplique:
+- si el cambio es no trivial y faltan `proposal/spec/design/tasks` o `contrato + plan`, usar `smartpay-sdd-orchestrator` o `planning-python`;
+- si el cambio toca varios micros o mezcla stacks, coordinar con `dev` y/o `smartpay-workspace-router`;
+- si el repo tiene reglas locales más estrictas, esas reglas ganan.
 
 ## Implementation Workflow
 
-1. Confirmar alcance, interfaz afectada y dependencias externas.
-2. Implementar por lotes pequeños alineados con `tasks.md` o el plan de la HU.
+1. Confirmar alcance, interfaz afectada, runtime y dependencias externas.
+2. Implementar por lotes pequeños alineados con `tasks.md` o `plan-implementacion.md`.
 3. Actualizar pruebas en paralelo.
-4. Validar contrato, logging, configuración, runtime y cleanup.
-5. Ejecutar pruebas reales (`pytest`, `black`, `isort`, `mypy` o las del repo) y reportar evidencia.
+4. Autoverificar el batch contra las secciones 1-8 de este skill antes de seguir.
+5. Ejecutar pruebas reales (`pytest`, `black`, `isort`, `mypy`, `ruff` o las del repo) y reportar evidencia.
 
-## Reglas Python no negociables
+## Canonical Python Rulebook
 
 ### 1) Arquitectura y estructura
 - Respeta la arquitectura definida por el servicio; si el repo separa `domain/application/infrastructure`, no mezcles capas.
@@ -81,14 +66,14 @@ Si faltan esos artefactos:
 - No concatenes input del usuario en queries ni paths de acceso a datos.
 - Mantén el mecanismo de persistencia coherente con el repo (ORM, client, repository, raw SQL, etc.).
 
-### 6) Estilo y tipado
+### 6) Estilo, tipado y mantenibilidad
 - Código y nombres internos en inglés salvo que el repo use otra convención.
 - Mantén type hints en funciones públicas y capas de aplicación/dominio cuando el servicio ya lo haga.
 - Respeta formato/herramientas del repo: `black`, `isort`, `mypy`, `ruff`, etc.
 - Usa la versión de Python definida por el servicio.
 
-### 7) Testing obligatorio
-- Añade/actualiza tests `pytest` para happy path y al menos un error path relevante.
+### 7) Testing mínimo obligatorio
+- Añade o actualiza tests `pytest` para happy path y al menos un error path relevante.
 - Replica la estructura del código bajo `tests/` cuando el repo siga ese patrón.
 - Usa fixtures/builders reutilizables; evita hardcodear datos de negocio inestables.
 - Si hay cobertura objetivo del repo, respétala; como baseline del kit apunta a >80% cuando aplique.
@@ -97,17 +82,18 @@ Si faltan esos artefactos:
 - Elimina código muerto, imports no usados y helpers temporales.
 - No dejes comentarios obsoletos ni configuraciones duplicadas.
 - Evita funciones gigantes, duplicación y lógica transversal copiada entre handlers.
+- Si la solución introduce decisiones operativas o dependencias relevantes, deja el rastro documental que exija el repo.
 
 ## Done Criteria
 
 Antes de cerrar el cambio confirma:
 - contrato/specs siguen alineados con la implementación;
-- configuración/runtime/documentación quedaron consistentes;
+- configuración, runtime y documentación quedaron consistentes;
 - pruebas y checks reales fueron ejecutados;
 - reportas archivos tocados, pruebas ejecutadas y cualquier desviación del plan.
 
-## Optional References
-
-- `.ai-kit/references/contract-template-python.md`
-- `.ai-kit/references/plan-template-python.md`
+## References
+- `.ai-kit/references/delivery-flow.md`
+- `.ai-kit/references/python-smartpay-reference.md`
 - `.ai-kit/references/sdd/sdd-playbook.md`
+
