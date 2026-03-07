@@ -317,3 +317,6 @@ EOF
 fi
 
 echo "workspace-install: done"
+if $WRITE_RUNNER; then
+  echo "workspace-install: tip -> to work from the workspace root run ./workspace-ai.sh --init-agents --project ${PROJECT:-smartpay} --codex"
+fi

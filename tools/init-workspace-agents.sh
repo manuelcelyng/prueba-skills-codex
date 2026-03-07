@@ -14,7 +14,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="${REPO_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 
 FORCE=false
-PROJECT="${AI_SKILLS_PROJECT:-asulado}"
+PROJECT="${AI_SKILLS_PROJECT:-smartpay}"
 
 show_help() {
   cat <<EOF
@@ -50,14 +50,16 @@ find "$REPO_ROOT" -maxdepth 2 -name .git -type d -print 2>/dev/null | \
   awk -v root="$REPO_ROOT" '{ sub("^" root "/?", "", $0); print }' | \
   LC_ALL=C sort > "$repos_tmp"
 
+newline='
+'
 repos_list=""
 if [ -s "$repos_tmp" ]; then
   while IFS= read -r repo; do
     [ -z "$repo" ] && continue
-    repos_list="${repos_list}\n- \`${repo}\`"
+    repos_list="${repos_list}${newline}- \`${repo}\`"
   done < "$repos_tmp"
 else
-  repos_list="\n- (no repos detectados aún; clona micros dentro de esta carpeta)"
+  repos_list="${newline}- (no repos detectados aún; clona micros dentro de esta carpeta)"
 fi
 
 rm -f "$repos_tmp"
@@ -68,13 +70,20 @@ cat > "$agents_file" <<EOF
 Este \`AGENTS.md\` es un **router** para trabajar con múltiples microservicios dentro de este workspace.
 
 ## Repos detectados
-${repos_list#\\n}
+${repos_list#$newline}
 
 ## Cómo trabajar en multi-micro
 
 1) Define qué microservicios participan (lista explícita).
-2) Ejecuta el flujo por repo (uno a la vez o por fases paralelizables).
-3) Mantén consistencia de contrato/spec entre micros (mismo \`change-name\` si aplica).
+2) Si trabajas desde este root, usa primero \`smartpay-workspace-router\`.
+3) Ejecuta el flujo SDD por repo (uno a la vez o por fases paralelizables).
+4) Mantén consistencia de contrato/spec entre micros (mismo \`change-name\` si aplica).
+
+## Quick start
+
+- Inicializa este router con \`./workspace-ai.sh --init-agents --project smartpay --codex\`.
+- Para cambios multi-micro usa \`smartpay-workspace-router\`.
+- Para cambios de un solo micro entra al repo y usa \`smartpay-sdd-orchestrator\`.
 
 ## Available Skills
 

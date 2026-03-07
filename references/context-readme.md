@@ -1,14 +1,15 @@
 # Contexto General (multi-proyecto)
 
-Este directorio consolida las reglas comunes que se repiten en los servicios Java y Python.
-Si un servicio tiene `context/` propio, esas reglas tienen prioridad para ese modulo.
+Este directorio conserva solo referencias que realmente agregan valor al kit: plantillas, ejemplos puntuales y playbooks SDD.
 
-## Como usar este contexto
-- Para una HU: leer `context/hu/<id>/` del servicio afectado y complementar con estas reglas globales.
-- Para cambios en varios servicios: aplicar reglas comunes aqui + reglas especificas del servicio.
-- La IA no gestiona git/ramas/PRs; eso se coordina manualmente.
+## Source of truth
 
-## Contenido
-- `java-rules.md`: arquitectura, clean code y reglas reactivas para servicios Java.
-- `python-rules.md`: reglas de ETL/Lambda y estilo para servicios Python.
+- Reglas del repo: `AGENTS.md` + `context/` local.
+- Reglas canónicas de implementación: `./.ai/skills/dev-java/SKILL.md` o `./.ai/skills/dev-python/SKILL.md`.
+- Reglas canónicas de review: `./.ai/skills/review/SKILL.md`.
+- Flujo SDD: `.ai-kit/references/sdd/sdd-playbook.md`.
 
+## Cómo usar estas referencias
+
+- Para una HU o change SDD: cargar primero `AGENTS.md`, luego el skill correspondiente y después solo la referencia puntual que haga falta.
+- Evitar duplicar reglas en varias referencias: si una regla es transversal, debe vivir en el skill y no en varios `.md`.

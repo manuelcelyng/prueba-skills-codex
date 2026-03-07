@@ -58,6 +58,12 @@ Artefactos SDD (por micro) se escriben en:
 - `openspec/config.yaml`
 - `openspec/changes/<change-name>/...`
 
+Guía canónica del flujo:
+- `references/sdd/sdd-playbook.md`
+
+Regla práctica:
+- no arrancar implementación hasta tener `proposal/spec/design/tasks` o, como mínimo, contrato + plan de la HU.
+
 ### Flujo SDD (DAG + gates)
 
 ```mermaid
@@ -271,3 +277,13 @@ Ejemplo:
 - Persistencia default por micro: `openspec/` dentro del repo del micro.
 - Entry point: `smartpay-sdd-orchestrator` (delegate-only, con gates).
 - “Async” aquí significa paralelizar fases que escriben artefactos distintos (ej. `sdd-spec` ∥ `sdd-design`), no watchers.
+
+## Fuentes canónicas del kit
+
+Para reducir ruido y evitar reglas duplicadas:
+
+- Reglas de implementación Java: `skills/dev-java/SKILL.md`
+- Reglas de implementación Python: `skills/dev-python/SKILL.md`
+- Reglas de review/auditoría: `skills/review/SKILL.md`
+- Flujo SDD: `references/sdd/sdd-playbook.md`
+- References: solo plantillas, ejemplos puntuales y playbooks; no deben duplicar rulebooks completos.

@@ -3,7 +3,7 @@
 Este documento define cómo usar `metadata.scope` y `metadata.auto_invoke` en `SKILL.md` para que:
 
 - `./scripts/ai/sync.sh` genere la tabla `### Auto-invoke Skills` en `AGENTS.md`.
-- La IA (router) tenga señales claras y consistentes para cargar skills con menos tokens.
+- La IA tenga señales claras y consistentes para cargar skills con menos ruido.
 
 ## Qué es `metadata.scope`
 
@@ -12,7 +12,7 @@ Este documento define cómo usar `metadata.scope` y `metadata.auto_invoke` en `S
 Reglas (según `ai-kit/tools/sync.sh`):
 - `scope: [root]` actualiza `./AGENTS.md` (en el root del repo del servicio).
 - `scope: [<path>]` actualiza `./<path>/AGENTS.md` (solo si existe ese archivo).
-- Se permiten múltiples scopes: `scope: [root, api]` (monorepos).
+- Se permiten múltiples scopes: `scope: [root, api]`.
 
 En SmartPay (modelo multi-repo), casi siempre es:
 - `scope: [root]`
@@ -27,7 +27,7 @@ En SmartPay (modelo multi-repo), casi siempre es:
 
 No es “ejecución automática” del runtime: es una **regla declarativa** que ayuda a la IA a:
 - detectar rápidamente qué skill cargar según la tarea,
-- y mantener consistencia entre herramientas (Codex/Claude/Gemini/Copilot).
+- y mantener consistencia entre herramientas.
 
 ## Catálogo recomendado de Actions (estables)
 
@@ -39,17 +39,17 @@ Usa estas acciones tal cual para evitar drift:
 - `Crear skills nuevas` → `skill-creator`
 - `Generar/actualizar AGENTS.md` → `ai-init-agents`
 - `Iniciar SDD (SmartPay)` → `smartpay-sdd-orchestrator`
-- `Enrutar cambios multi-micro (SmartPay)` → `smartpay-workspace-router` (workspace root)
+- `Enrutar cambios multi-micro (SmartPay)` → `smartpay-workspace-router`
 - `Configurar herramientas IA` → `ai-setup`
 - `Regenerar auto-invoke (sync)` → `skill-sync`
 - `Después de crear/modificar un skill` → `skill-sync`
 - `Coordinar planning multi-stack` → `planning`
 - `Coordinar implementación multi-stack` → `dev`
-- `Definir / actualizar error codes` → `<servicio>-error-codes` (skills locales)
+- `Definir / actualizar error codes` → `<servicio>-error-codes`
 
-## Dónde vive la guía HU
+## Dónde vive la guía SDD
 
-- `.ai-kit/references/hu-prompts-and-template-usage.md`
+- `.ai-kit/references/sdd/sdd-playbook.md`
 - `.ai-kit/references/hu-context-template.md`
 
 ## Convenciones
@@ -62,62 +62,6 @@ Usa estas acciones tal cual para evitar drift:
 - Los coordinadores (`dev`, `planning`) deben tener acciones distintas (multi-stack).
 
 3) **Skills específicas de un micro (SmartPay)**
-- Nombre recomendado: `smartpay-<micro>-<tema>` (ej. `smartpay-dispersion-sql-providers`).
-- `scope: [root]` (porque el repo del micro tiene su `AGENTS.md` en root).
-- `auto_invoke`: usar acción específica y estable (ej. `Modificar SQL Providers`), pero primero valida si ya existe una acción genérica que cubra el caso.
-
-## Ejemplos
-
-### Skill core (reusable)
-```yaml
----
-name: dev-java
-description: >
-  Implementa cambios en servicios Java (Spring Boot WebFlux/R2DBC).
-  Trigger: Cuando el usuario pida implementar/fix/refactor o agregar endpoints en un servicio Java.
-license: Internal
-metadata:
-  author: pragma-smartpay
-  version: "0.1"
-  scope: [root]
-  auto_invoke:
-    - "Implementar cambios"
-allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
----
-```
-
-### Skill de catálogo de error codes (micro)
-```yaml
----
-name: dispersion-error-codes
-description: >
-  Catálogo y reglas de ErrorCodes del micro Dispersión.
-  Trigger: Cuando se cree/edite un ErrorCode o se defina el mapeo HTTP/mensaje del contrato.
-license: Internal
-metadata:
-  author: pragma-smartpay
-  version: "0.1"
-  scope: [root]
-  auto_invoke:
-    - "Definir / actualizar error codes"
-allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
----
-```
-
-### Skill exclusiva de `dispersion`
-```yaml
----
-name: smartpay-dispersion-sql-providers
-description: >
-  Reglas y patrones específicos para SQL Providers en Dispersión.
-  Trigger: Cuando se modifique/cree un SQL Provider en Dispersión.
-license: Internal
-metadata:
-  author: pragma-smartpay
-  version: "0.1"
-  scope: [root]
-  auto_invoke:
-    - "Modificar SQL Providers"
-allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
----
-```
+- Nombre recomendado: `smartpay-<micro>-<tema>`.
+- `scope: [root]`.
+- `auto_invoke`: usar acción específica y estable.

@@ -6,7 +6,7 @@ description: >
 license: Internal
 metadata:
   author: pragma-smartpay
-  version: "0.1"
+  version: "0.2"
   scope: [root]
   auto_invoke:
     - "Generar/actualizar AGENTS.md"
@@ -34,11 +34,11 @@ Crear o actualizar `AGENTS.md` para que sea **útil y específico** al repo, min
 1. **Diagnóstico**: resumir en 5–10 líneas:
    - stack(s), layout, comandos build/test, patrones (hexagonal/clean), y puntos sensibles (SQL, reactive, error codes).
 2. **Si `AGENTS.md` es un stub**, reemplazarlo completamente:
-   - Borrar la sección “Regla única (obligatoria)” del stub (era solo onboarding inicial).
-   - Mantener una guía permanente en el `AGENTS.md` final (ver punto 3).
+   - Borrar la sección “Regla única (obligatoria)” del stub.
+   - Mantener una guía permanente en el `AGENTS.md` final.
 3. **Generar/actualizar `AGENTS.md` (token-optimized)**:
    - Mantén el documento **corto y escaneable**: tablas + comandos + reglas clave.
-   - Evita pegar reglas extensas: enlaza a skills/references cuando aplique.
+   - Evita pegar rulebooks completos: apunta las reglas canónicas al skill de implementación (`dev-java` o `dev-python`) y al skill `review`.
 
 ### 3.1 Estructura objetivo (estilo Prowler)
 
@@ -53,7 +53,7 @@ El `AGENTS.md` final debe tener, como mínimo:
 - Si `ai-kit.lock` tiene `AI_SKILLS_PROJECT=smartpay`, incluye `smartpay-*`.
 
 **Tabla 3: Service Skills (overlay local)**
-- Skills bajo `./skills/*` del repo (prefijo recomendado: `smartpay-<micro>-<tema>`).
+- Skills bajo `./skills/*` del repo.
 
 Cada fila debe tener: `Skill | Description | Source`.
 El `Source` debe ser un path clickeable dentro del repo, preferiblemente:
@@ -83,17 +83,18 @@ Clasificación recomendada:
 - `Project-Specific`: skills con prefijo del proyecto (ej. `smartpay-*`).
 - `Service overlay`: skills cuya carpeta fuente resuelve bajo `./skills/`.
 
-### 3.3 “Async” vs “Auto-invoke” (aclaración obligatoria en el AGENTS final)
+### 3.3 Nota obligatoria sobre las reglas canónicas
 
-Incluye una nota breve:
+Incluye una nota breve en `AGENTS.md` final:
+- Las reglas de implementación viven en `./.ai/skills/dev-java/SKILL.md` o `./.ai/skills/dev-python/SKILL.md`.
+- Las reglas de auditoría viven en `./.ai/skills/review/SKILL.md`.
 - `auto_invoke` **no** es un watcher ni ejecución en background.
-- Es una regla: “para esta acción, invoca primero este skill”.
 - “Delegate-only orchestrator” significa que el orquestador **solo coordina** y delega fases a subagents.
 
 4. **No modificar** manualmente `### Auto-invoke Skills`:
    - esa sección la gestiona `./scripts/ai/sync.sh` de forma determinística.
 5. Tras actualizar `AGENTS.md`, indicar comandos:
-   - `./scripts/ai/setup.sh <flags>` (según el asistente)
+   - `./scripts/ai/setup.sh <flags>`
    - `./scripts/ai/sync.sh`
 
 ## Limits

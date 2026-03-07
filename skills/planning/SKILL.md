@@ -6,26 +6,25 @@ description: >
 license: Internal
 metadata:
   author: pragma-smartpay
-  version: "0.1"
+  version: "0.2"
   scope: [root]
   auto_invoke:
     - "Coordinar planning multi-stack"
 allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 ---
 
-# Planificacion (coordinador)
+# Planificación (coordinador)
 
-Usa este skill cuando la tarea combine Java y Python o el lenguaje no este claro.
+Usa este skill cuando la tarea combine Java y Python o el lenguaje no esté claro.
 
-## Seleccion de skill
+## Selección de skill
 - Si el cambio es solo Java, usar `planning-java`.
 - Si el cambio es solo Python, usar `planning-python`.
-- Si el cambio mezcla servicios Java y Python, aplicar ambos flujos y coordinar dependencias.
+- Si el cambio mezcla servicios Java y Python, aplicar ambos flujos y coordinar dependencias y contratos.
 
-## Reglas minimas
-- Cargar contextos raiz y de servicio antes de planear.
-- Entregar primero contrato y luego plan de implementacion.
+## Reglas mínimas
+- Cargar contexto raíz y de servicio antes de planear.
+- Entregar primero contrato y luego plan de implementación.
+- Alinear el planning con el flujo SDD si el repo ya trabaja con `openspec/`.
+- `planning-java` y `planning-python` son las fuentes canónicas del planning; este skill solo enruta.
 - No gestionar git, ramas o PRs.
-
-## Referencias
-- `.ai-kit/references/skill-routing.md`

@@ -6,7 +6,7 @@ description: >
 license: Internal
 metadata:
   author: pragma-smartpay
-  version: "0.1"
+  version: "0.2"
   scope: [root]
   auto_invoke:
     - "Coordinar implementación multi-stack"
@@ -15,18 +15,16 @@ allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 
 # Desarrollo (coordinador)
 
-Usa este skill cuando la tarea combine Java y Python o el lenguaje no este claro.
+Usa este skill cuando la tarea combine Java y Python o el lenguaje no esté claro.
 
-## Seleccion de skill
+## Selección de skill
 - Si el cambio es solo Java, usar `dev-java`.
 - Si el cambio es solo Python, usar `dev-python`.
-- Si el cambio mezcla servicios Java y Python, aplicar ambos flujos y coordinar dependencias.
+- Si el cambio mezcla servicios Java y Python, aplicar ambos flujos y coordinar dependencias/contratos.
 
-## Reglas minimas
-- Cargar contextos raiz y de servicio antes de implementar.
-- Verificar contrato y plan antes de codificar.
-- En integraciones entre microservicios, definir endpoints consumidos por configuracion y reflejarlos en `application-*.yml` y `deployment/k8s/configsecret.yaml`.
+## Reglas mínimas
+- Cargar contexto raíz y del servicio antes de implementar.
+- No codificar sin contrato + plan o sin artefactos SDD aprobados.
+- Tomar `dev-java` y `dev-python` como fuentes canónicas de reglas de implementación; este skill solo enruta.
+- En integraciones entre microservicios, alinear contratos y configuración en ambos lados.
 - No gestionar git, ramas o PRs.
-
-## Referencias
-- `.ai-kit/references/skill-routing.md`

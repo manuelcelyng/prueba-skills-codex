@@ -5,8 +5,9 @@ Copia este contenido en:
 
 Referencias:
 - Reglas del repo: `AGENTS.md`
-- Reglas comunes: `.ai-kit/references/java-rules.md` o `.ai-kit/references/python-rules.md`
-- Guía SDD y prompts: `.ai-kit/references/hu-prompts-and-template-usage.md`
+- Reglas canónicas de implementación: `./.ai/skills/dev-java/SKILL.md` o `./.ai/skills/dev-python/SKILL.md`
+- Reglas canónicas de review: `./.ai/skills/review/SKILL.md`
+- Guía SDD: `.ai-kit/references/sdd/sdd-playbook.md`
 
 ---
 
@@ -30,37 +31,37 @@ Referencias:
 - Reglas clave (criterios, fórmulas, estados, transiciones):
 - Definiciones importantes (glosario breve):
 
-## 5. Impacto arquitectónico (Hexagonal)
-- Capas afectadas: Dominio | UseCase | Infraestructura (Adapters, SQL, Mappers) | Entry Points (Router/Handler)
+## 5. Impacto arquitectónico
+- Capas afectadas: Dominio | UseCase | Infraestructura | Entry Points
 - Nuevos/modificados:
   - Modelos de dominio:
-  - Puertos (interfaces):
+  - Puertos/interfaces:
   - Adapters/SQL Providers:
   - Routers/Handlers/DTOs:
 
 ## 6. Contrato (API / interfaz)
 - Método y ruta (si aplica)
-- Headers (traceId)
+- Headers / correlación (`traceId` o equivalente)
 - Request DTO + validaciones
 - Responses: códigos y ejemplos JSON (incluye errores)
 - Mapeo `ErrorCode` ↔ HTTP ↔ mensaje
 
-## 7. SQL (si aplica)
-- Borrador SQL con named params
-- Tablas/índices relevantes
+## 7. SQL o persistencia (si aplica)
+- Borrador SQL con named params o estrategia equivalente segura
+- Tablas/índices/repositorios relevantes
 
-## 8. Logs y constantes
+## 8. Logs, constantes y observabilidad
 - Mensajes de log (español)
-- Literales a centralizar (headers, columnas, estados)
+- Literales a centralizar (headers, columnas, estados, claves)
+- Métricas / trazabilidad adicional
 
 ## 9. Plan de pruebas
 - Casos felices
 - Errores/validaciones
 - Bordes (paginación, nulos, límites)
-- Por capa: UseCase, SQLProvider, Adapter, Handler/Router
+- Por capa/componente: UseCase, SQLProvider, Adapter, Handler/Router o equivalentes
 
 ## 10. Riesgos y decisiones
 - Riesgos técnicos
 - Preguntas abiertas
 - Decisiones (ADR si aplica)
-
