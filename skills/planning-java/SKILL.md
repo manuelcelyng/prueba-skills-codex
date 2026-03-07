@@ -6,7 +6,7 @@ description: >
 license: Internal
 metadata:
   author: pragma-smartpay
-  version: "0.4"
+  version: "0.5"
   scope: [root]
   auto_invoke:
     - "Planificar HU / contrato"
@@ -44,13 +44,13 @@ El contrato debe dejar explícito:
 
 El plan debe anticipar el rulebook Java:
 - `J-ARC-*`: capas afectadas, ownership y puertos `Port`;
-- `J-NAM-*`: nombres de UseCase/modelos consistentes con la capacidad, no con verbos genéricos, y utilitarios/`*TestData` declarados como `@UtilityClass`;
+- `J-NAM-*`: nombres de UseCase/modelos/`Port` consistentes con la capacidad, no con verbos genéricos, y utilitarios/`*TestData` declarados como `@UtilityClass`;
 - `J-API-*`: auditoría de responses, validaciones con campo, traceabilidad y contrato real;
 - `J-MAP-*`: mappers MapStruct y lugares donde no se debe construir objetos cross-layer inline;
 - `J-SQL-*`: estrategia de persistencia/query y borrador SQL parametrizado;
 - `J-ERR-*`: constantes, logs y catálogo de errores a tocar;
-- `J-TST-*`: estrategia de pruebas por capa y baseline TDD;
-- `J-QLT-*`: riesgos de smells, comments y cleanup a evitar desde el diseño.
+- `J-TST-*`: estrategia de pruebas por capa, baseline TDD y convención método inglés + `@DisplayName` en español;
+- `J-QLT-*`: riesgos de smells, comments, wrappers artificiales y configuración/beans sin consumidor a evitar desde el diseño.
 
 ## Handoff to Implementation
 

@@ -6,7 +6,7 @@ description: >
 license: Internal
 metadata:
   author: pragma-smartpay
-  version: "0.4"
+  version: "0.5"
   scope: [root]
   auto_invoke:
     - "Implementar cambios"
@@ -38,6 +38,7 @@ Detén la implementación y redirige cuando aplique:
 ## Critical Non-Negotiables
 
 - `J-ARC-002`: los puertos del dominio usan siempre sufijo `Port`; `Gateway` no se usa.
+- `J-NAM-006`: los `Port` también se nombran por entidad/capacidad, no por verbo o proceso.
 - `J-NAM-002`: el nombre del `UseCase` debe describir modelo/capacidad, no un verbo imperativo.
 - `J-NAM-003`: el método público del UseCase no se llama `execute`.
 - `J-NAM-005`: clases utilitarias y `*TestData` deben usar `@UtilityClass`.
@@ -47,7 +48,9 @@ Detén la implementación y redirige cuando aplique:
 - `J-REA-002`: prohibido bloquear flujos reactivos.
 - `J-ERR-001`: errores funcionales con `BusinessException` + `ErrorCode`.
 - `J-QLT-002`: no dejar comentarios/código comentado como soporte de claridad.
+- `J-QLT-006` y `J-QLT-007`: evitar wrappers sin comportamiento y configuración/beans sin consumidor real.
 - `J-TST-001`: trabajar con baseline TDD.
+- `J-TST-003`: método de test en inglés; `@DisplayName` en español.
 
 ## Done Criteria
 

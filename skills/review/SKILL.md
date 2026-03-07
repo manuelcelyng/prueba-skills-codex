@@ -6,7 +6,7 @@ description: >
 license: Internal
 metadata:
   author: pragma-smartpay
-  version: "0.4"
+  version: "0.5"
   scope: [root]
   auto_invoke:
     - "Revisar cambios"
@@ -53,7 +53,7 @@ Reporta hallazgo de proceso cuando aplique:
 
 ### `J-ARC-*` y `J-NAM-*`
 - Verifica hexagonal/clean, ownership de capas, puertos `Port` y naming consistente.
-- Señala cualquier `Gateway`, `Repository` de dominio o `UseCase` nombrado como verbo genérico (`Manage`, `Create`, `Process`, `Handle`, `execute`).
+- Señala cualquier `Gateway`, `Repository` de dominio, `Port` nombrado por verbo/proceso o `UseCase` nombrado como verbo genérico (`Manage`, `Create`, `Process`, `Handle`, `execute`).
 - Señala helpers, utilitarios o `*TestData` que debían ser `@UtilityClass` y quedaron como clases instanciables.
 
 ### `J-REA-*`
@@ -69,7 +69,7 @@ Reporta hallazgo de proceso cuando aplique:
 - Señala ausencia de `BusinessException` + `ErrorCode`, logs fuera de convención, PII o literales técnicos sin centralizar.
 
 ### `J-TST-*` y `J-QLT-*`
-- Verifica TDD implícito en el cambio, slices mínimas, naming `shouldXWhenY`, `*TestData`, ausencia de code smells y comentarios innecesarios/código comentado.
+- Verifica TDD implícito en el cambio, slices mínimas, métodos `shouldXWhenY`, `@DisplayName` en español, `*TestData`, ausencia de code smells, wrappers artificiales, configuración sin consumidor y comentarios innecesarios/código comentado.
 
 ### `J-DOC-*`
 - Verifica que contrato, catálogo de errores y ADRs/artefactos asociados se hayan actualizado cuando el cambio lo requiere.

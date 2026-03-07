@@ -13,14 +13,14 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 | Group | IDs | Tema |
 |---|---|---|
 | Arquitectura | `J-ARC-001` a `J-ARC-004` | Hexagonal, ownership de capas, puertos |
-| Naming | `J-NAM-001` a `J-NAM-005` | Idioma, nombres de UseCase, clases y utilitarios |
+| Naming | `J-NAM-001` a `J-NAM-006` | Idioma, nombres de UseCase, puertos, clases y utilitarios |
 | Reactividad | `J-REA-001` a `J-REA-004` | WebFlux/R2DBC, sin bloqueos, composición |
 | Contrato / auditoría / validación | `J-API-001` a `J-API-005` | Responses auditadas, validaciones, traceId |
 | Mapeo | `J-MAP-001` a `J-MAP-004` | MapStruct, mapping entre capas, builders inline |
 | Persistencia y SQL | `J-SQL-001` a `J-SQL-005` | Strategy, named params, aliases, row mapping |
 | Errores y logging | `J-ERR-001` a `J-ERR-004` | `BusinessException`, `ErrorCode`, logs, constantes |
 | Testing | `J-TST-001` a `J-TST-005` | TDD, naming, `*TestData`, slices mínimas |
-| Calidad | `J-QLT-001` a `J-QLT-005` | Clean code, smells, comentarios, duplicación |
+| Calidad | `J-QLT-001` a `J-QLT-007` | Clean code, smells, comentarios, wrappers y configuración muerta |
 | Documentación | `J-DOC-001` a `J-DOC-003` | contrato, ADRs, catálogos |
 
 ---
@@ -75,6 +75,12 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Apply in**: planning, dev, review.
 - **Avoid**: clases helper con constructor implícito/privado manual, `new TestData()`, utilitarios instanciables.
 - **Prefer**: `@UtilityClass public class DeductionTestData { ... }`.
+
+### J-NAM-006 — Los `Port` se nombran por entidad/capacidad, no por acción verbal
+- **Rule**: además de terminar en `Port`, el nombre del puerto debe representar la entidad o capacidad del dominio y evitar verbos o procesos.
+- **Apply in**: planning, dev, review.
+- **Avoid**: `DeductionRegistrationPort`, `NoveltyPublishPort`, `CalendarQueryPort`.
+- **Prefer**: `DeductionPort`, `NoveltyMessagePort`, `CalendarPort`.
 
 ---
 
@@ -199,8 +205,10 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Apply in**: planning, dev, review.
 
 ### J-TST-003 — Naming de tests
-- **Rule**: clase `XxxTest`; método `should<Expected>When<Condition>`; `@DisplayName` consistente y descriptivo.
+- **Rule**: clase `XxxTest`; método `should<Expected>When<Condition>` en camelCase inglés; `@DisplayName` en español, consistente y descriptivo.
 - **Apply in**: dev, review.
+- **Avoid**: `@DisplayName("shouldMapMetadata_WhenDtoIsValid")`, métodos en español o estilos mixtos dentro del mismo módulo.
+- **Prefer**: método `shouldMapMetadataWhenDtoIsValid()` + `@DisplayName("Debe mapear metadata cuando el DTO es válido")`.
 
 ### J-TST-004 — Datos de prueba centralizados
 - **Rule**: usar `*TestData`, fixtures u Object Mothers; evitar datos de negocio hardcodeados regados.
@@ -233,6 +241,18 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 ### J-QLT-005 — La intención se expresa con estructura, no con comentarios
 - **Rule**: preferir nombres semánticos, métodos cortos y helpers dedicados en vez de explicar código con comentarios.
 - **Apply in**: dev, review.
+
+### J-QLT-006 — No introducir wrappers/value objects artificiales sin comportamiento
+- **Rule**: evita crear objetos intermedios o wrappers de dominio que solo agrupen campos del contrato si no agregan invariantes, comportamiento o semántica real.
+- **Apply in**: planning, dev, review.
+- **Avoid**: encapsular dos strings (`periodicity`, `frequency`) en un objeto extra sin reglas propias.
+- **Prefer**: aplanar los campos o crear un value object solo si valida, protege invariantes o aporta operaciones de dominio claras.
+
+### J-QLT-007 — No agregar beans, `@Configuration` o helpers sin consumidor real
+- **Rule**: no introducir configuración, beans auxiliares o clases helper si el framework ya resuelve la dependencia o si no existe un uso real y verificable en el código.
+- **Apply in**: planning, dev, review.
+- **Avoid**: `ObjectMapperConfig`/helpers que solo envuelven una implementación default sin un consumidor explícito.
+- **Prefer**: apoyarse en autoconfiguración existente o agregar el bean solo cuando haya una necesidad real demostrable por el código y las pruebas.
 
 ---
 
