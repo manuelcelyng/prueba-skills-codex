@@ -44,7 +44,7 @@ El contrato debe dejar explícito:
 
 El plan debe anticipar el rulebook Java:
 - `J-ARC-*`: capas afectadas, ownership y puertos `Port`;
-- `J-NAM-*`: nombres de UseCase/modelos consistentes con la capacidad, no con verbos genéricos;
+- `J-NAM-*`: nombres de UseCase/modelos consistentes con la capacidad, no con verbos genéricos, y utilitarios/`*TestData` declarados como `@UtilityClass`;
 - `J-API-*`: auditoría de responses, validaciones con campo, traceabilidad y contrato real;
 - `J-MAP-*`: mappers MapStruct y lugares donde no se debe construir objetos cross-layer inline;
 - `J-SQL-*`: estrategia de persistencia/query y borrador SQL parametrizado;
@@ -66,4 +66,3 @@ No marques el planning como listo si falta alguno de estos puntos:
 - `.ai-kit/references/java-smartpay-rulebook.md`
 - `.ai-kit/references/java-smartpay-reference.md`
 - `.ai-kit/references/sdd/sdd-playbook.md`
-

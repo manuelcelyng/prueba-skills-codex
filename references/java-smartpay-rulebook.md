@@ -13,7 +13,7 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 | Group | IDs | Tema |
 |---|---|---|
 | Arquitectura | `J-ARC-001` a `J-ARC-004` | Hexagonal, ownership de capas, puertos |
-| Naming | `J-NAM-001` a `J-NAM-004` | Idioma, nombres de UseCase, clases y tests |
+| Naming | `J-NAM-001` a `J-NAM-005` | Idioma, nombres de UseCase, clases y utilitarios |
 | Reactividad | `J-REA-001` a `J-REA-004` | WebFlux/R2DBC, sin bloqueos, composición |
 | Contrato / auditoría / validación | `J-API-001` a `J-API-005` | Responses auditadas, validaciones, traceId |
 | Mapeo | `J-MAP-001` a `J-MAP-004` | MapStruct, mapping entre capas, builders inline |
@@ -69,6 +69,12 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 ### J-NAM-004 — Naming estándar de clases auxiliares y tests
 - **Rule**: usar sufijos consistentes (`Adapter`, `Mapper`, `Router`, `Handler`, `SQLProvider`, `TestData`, `*Test`).
 - **Apply in**: planning, dev, review.
+
+### J-NAM-005 — Clases utilitarias y `*TestData` se declaran con `@UtilityClass`
+- **Rule**: toda clase utilitaria sin estado compartido (incluyendo `*TestData`, helpers estáticos y clases de constantes derivadas del patrón del repo) debe declararse con `lombok.experimental.UtilityClass`.
+- **Apply in**: planning, dev, review.
+- **Avoid**: clases helper con constructor implícito/privado manual, `new TestData()`, utilitarios instanciables.
+- **Prefer**: `@UtilityClass public class DeductionTestData { ... }`.
 
 ---
 
@@ -243,4 +249,3 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 ### J-DOC-003 — Planning debe cubrir todas las familias de reglas
 - **Rule**: el contrato y plan deben anticipar arquitectura, naming, validación, auditoría, mapping, SQL, errores, tests y cleanup.
 - **Apply in**: planning, review.
-

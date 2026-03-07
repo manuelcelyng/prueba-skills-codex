@@ -40,6 +40,7 @@ Detén la implementación y redirige cuando aplique:
 - `J-ARC-002`: los puertos del dominio usan siempre sufijo `Port`; `Gateway` no se usa.
 - `J-NAM-002`: el nombre del `UseCase` debe describir modelo/capacidad, no un verbo imperativo.
 - `J-NAM-003`: el método público del UseCase no se llama `execute`.
+- `J-NAM-005`: clases utilitarias y `*TestData` deben usar `@UtilityClass`.
 - `J-API-001`: toda respuesta debe salir por un builder/utilitario auditable.
 - `J-API-003`: validaciones en español indicando el campo funcional.
 - `J-MAP-001` y `J-MAP-002`: mappings entre capas con MapStruct; no hardcodear builders cross-layer inline en el flujo.
@@ -61,4 +62,3 @@ Antes de cerrar el cambio confirma:
 - `.ai-kit/references/java-smartpay-rulebook.md`
 - `.ai-kit/references/java-smartpay-reference.md`
 - `.ai-kit/references/sdd/sdd-playbook.md`
-

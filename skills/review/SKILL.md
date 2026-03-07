@@ -54,6 +54,7 @@ Reporta hallazgo de proceso cuando aplique:
 ### `J-ARC-*` y `J-NAM-*`
 - Verifica hexagonal/clean, ownership de capas, puertos `Port` y naming consistente.
 - Señala cualquier `Gateway`, `Repository` de dominio o `UseCase` nombrado como verbo genérico (`Manage`, `Create`, `Process`, `Handle`, `execute`).
+- Señala helpers, utilitarios o `*TestData` que debían ser `@UtilityClass` y quedaron como clases instanciables.
 
 ### `J-REA-*`
 - Señala `.block()`, `Thread.sleep`, JDBC, `subscribe()` manual no justificado, materialización innecesaria o composición reactiva defectuosa.
@@ -97,4 +98,3 @@ Un review está completo cuando:
 - el cambio fue contrastado contra contrato/specs y reglas canónicas del stack;
 - los hallazgos tienen archivo, línea y severidad suficientes para actuar;
 - quedó claro qué falta para aprobar o por qué puede aprobarse.
-
