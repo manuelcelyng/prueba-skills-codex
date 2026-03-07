@@ -1,39 +1,72 @@
 # SmartPay SDD Playbook
 
-Guía mínima y canónica para arrancar y operar el flujo Spec-Driven Development (SDD) en el kit.
+Guía canónica del flujo Spec-Driven Development del kit. Está inspirada en Agent Teams Lite, pero adaptada a SmartPay y a los asistentes que usa el equipo.
 
-## Source of truth
+## Principles
 
-1. `AGENTS.md` del repo o del workspace.
-2. Skill activo (`smartpay-sdd-orchestrator`, `smartpay-workspace-router`, `dev-*`, `review`).
-3. Artefactos `openspec/` y/o `context/hu/<HU_ID>/`.
+- **Delegate-only**: el entrypoint coordina; las fases las hacen `sdd-*`.
+- **Artifacts first**: no pasar a código sin `proposal/spec/design/tasks` suficientes.
+- **Fresh context when available**: si el asistente soporta sub-agents reales, delega; si no, ejecuta inline manteniendo el mismo DAG.
+- **Persistence is explicit**: `openspec` por defecto en SmartPay; `engram` o `none` solo si aplica.
+- **Real verification**: `sdd-verify` requiere evidencia de tests/build reales.
 
-## Cuándo usar SDD
+## Entry Points
 
-Usa SDD cuando el cambio tenga cualquiera de estos rasgos:
-- toca 2 o más capas;
-- introduce/ajusta contrato, SQL o reglas de negocio;
-- impacta varios archivos/módulos;
-- afecta más de un microservicio;
-- requiere coordinación entre implementación y verificación.
+### Un micro
+- Skill: `smartpay-sdd-orchestrator`
+- Uso típico: `usa smartpay-sdd-orchestrator para el change <change-name>`
 
-## Quick start
+### Workspace multi-micro
+- Skill: `smartpay-workspace-router`
+- Uso típico: `usa smartpay-workspace-router para el change <change-name>`
 
-### Un solo micro
+## Meta-commands / Prompt Aliases
 
-1. Abre el repo del micro.
-2. Asegura AI Kit instalado y skills proyectados.
-3. Inicia el cambio con `smartpay-sdd-orchestrator`.
-4. Usa un `change-name` corto en kebab-case.
+Estos comandos deben interpretarse como atajos del flujo:
 
-### Workspace multi-repo
+- `/sdd-init`
+- `/sdd-explore <topic>`
+- `/sdd-new <change-name>`
+- `/sdd-continue [change-name]`
+- `/sdd-ff [change-name]`
+- `/sdd-apply [change-name]`
+- `/sdd-verify [change-name]`
+- `/sdd-archive [change-name]`
 
-1. Desde el workspace root ejecuta `./workspace-ai.sh --init-agents --project smartpay --codex`.
-2. Abre la sesión en el workspace root.
-3. Inicia con `smartpay-workspace-router`.
-4. Ejecuta el mismo `change-name` en cada micro involucrado.
+## Dependency Graph
 
-## Layout esperado en `openspec/`
+```text
+explore -> proposal -> (spec || design) -> tasks -> apply -> verify -> archive
+```
+
+## Approval Gates
+
+1. `proposal` → aprobación explícita
+2. `spec + design` → aprobación explícita
+3. `tasks` → aprobación explícita
+4. `apply` → aprobación por batch
+5. `verify` → aprobar solo con evidencia real
+6. `archive` → solo si no hay CRITICAL
+
+## Artifact Store Policy
+
+Ver `persistence-contract.md`.
+
+Resumen SmartPay:
+- default: `openspec`
+- repo-clean / memoria persistente: `engram`
+- efímero: `none`
+
+## Assistant Behavior
+
+| Assistant | Execution style |
+|-----------|-----------------|
+| Claude Code | Delegar con `Task` cuando convenga |
+| Codex | Ejecutar fases inline siguiendo skills + gates |
+| Gemini CLI | Ejecutar fases inline siguiendo skills + gates |
+| Copilot | Ejecutar fases inline siguiendo skills + gates |
+
+## Expected Layout
 
 ```text
 openspec/
@@ -41,50 +74,32 @@ openspec/
 ├── specs/
 └── changes/
     ├── <change-name>/
+    │   ├── state.yaml
     │   ├── proposal.md
+    │   ├── specs/
     │   ├── design.md
     │   ├── tasks.md
-    │   ├── specs/
-    │   │   └── <domain>/spec.md
-    │   └── verify-report.md   # opcional, si verify escribe al repo
+    │   └── verify-report.md
     └── archive/
 ```
 
-## DAG y gates
+## Phase Deliverables
 
-1. `sdd-init` → crea baseline si falta `openspec/config.yaml`.
-2. `sdd-explore` → investiga el estado actual.
-3. `sdd-propose` → define intención/alcance. **Gate de aprobación**.
-4. `sdd-spec` + `sdd-design` → definen WHAT y HOW. **Gate de aprobación**.
-5. `sdd-tasks` → descompone en checklist. **Gate de aprobación**.
-6. `sdd-apply` → implementa por batches. **Gate por batch**.
-7. `sdd-verify` → exige evidencia real (tests/build). **Gate de aprobación**.
-8. `sdd-archive` → consolida y archiva cuando no hay CRITICAL.
+| Phase | Deliverable | Goal |
+|------|-------------|------|
+| `sdd-init` | `config.yaml` / contexto | dejar listo el backend de persistencia |
+| `sdd-explore` | análisis | entender estado actual y riesgos |
+| `sdd-propose` | `proposal.md` | definir intent, scope y success criteria |
+| `sdd-spec` | delta specs | definir WHAT con escenarios testables |
+| `sdd-design` | `design.md` | definir HOW con decisiones y file changes |
+| `sdd-tasks` | `tasks.md` | romper el cambio en tareas pequeñas |
+| `sdd-apply` | código + tasks actualizadas | implementar por batches con TDD |
+| `sdd-verify` | `verify-report.md` | validar con tests/build reales |
+| `sdd-archive` | specs main + archive | cerrar el cambio y dejar audit trail |
 
-## Regla dura
+## SmartPay-specific Expectations
 
-No pasar a `sdd-apply` si no existen specs/design/tasks suficientes.
-
-## Relación con HUs tradicionales
-
-Si tu equipo ya trabaja con `context/hu/<HU_ID>/`:
-- el **contrato** de la HU alimenta `proposal/spec`;
-- el **plan de implementación** alimenta `design/tasks`;
-- las pruebas y hallazgos de la HU alimentan `verify`.
-
-SDD no reemplaza necesariamente la HU; puede usarla como insumo y dejar el cambio persistido en `openspec/`.
-
-## Qué debe quedar listo antes de implementar
-
-- alcance y out-of-scope explícitos;
-- contrato/interfaz clara;
-- reglas de negocio y errores relevantes definidos;
-- plan técnico por capas;
-- checklist de tareas verificables.
-
-## Qué debe quedar listo antes de cerrar
-
-- evidencia real de tests/build;
-- cambios alineados con contrato/specs;
-- tareas actualizadas;
-- artifacts archivables sin CRITICAL pendientes.
+- Integrar reglas canónicas del stack durante `sdd-apply` (`dev-java` o `dev-python`).
+- `sdd-verify` debe contrastar también con `review`.
+- Si existe `context/hu/<HU_ID>/`, úsalo como input del proposal/spec/design/tasks; SDD no compite con la HU, la formaliza.
+- Para multi-micro, usar el mismo `change-name` y mantener contratos/criterios consistentes entre repos.

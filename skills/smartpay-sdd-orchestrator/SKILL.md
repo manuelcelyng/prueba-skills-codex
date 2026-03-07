@@ -1,12 +1,12 @@
 ---
 name: smartpay-sdd-orchestrator
 description: >
-  Orquestador SDD (Agent Teams Lite) para SmartPay. Delegate-only: coordina fases `sdd-*` con gates de aprobación.
+  Orquestador SDD delegate-only para SmartPay. Coordina fases `sdd-*`, mantiene estado, pide approvals y nunca salta directo a código.
   Trigger: Usar como punto de entrada para features/refactors no triviales (contratos, SQL, 2+ capas, cambios cross-cutting).
 license: Internal
 metadata:
   author: pragma-smartpay
-  version: "0.2"
+  version: "0.3"
   scope: [root]
   auto_invoke:
     - "Iniciar SDD (SmartPay)"
@@ -15,53 +15,123 @@ allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 
 ## Purpose
 
-Ser el **orquestador delegate-only** de SDD en SmartPay:
+Ser el **orquestador delegate-only** del flujo SDD en SmartPay:
 - mantener el hilo principal pequeño (estado + resúmenes),
-- delegar TODO el trabajo de fase a subagents (`sdd-*`),
-- pedir aprobación explícita entre fases (gates),
-- asegurar que no se salte de idea a código sin specs/tasks.
-
-Persistencia por defecto en SmartPay: **`openspec/`** dentro del microservicio actual.
+- delegar el trabajo de fase a `sdd-*`,
+- aplicar gates de aprobación,
+- recuperar el cambio después de compaction o pausas,
+- evitar que la conversación derive en “vibe coding”.
 
 ## Required Context (load order)
 
-1. Leer `AGENTS.md` del repo.
-2. Confirmar si existe `openspec/config.yaml`.
-3. Confirmar stack del repo (Java/Python) para comandos de verify.
-4. Si el usuario está en un workspace multi-repo, preferir `smartpay-workspace-router` antes de arrancar el change.
-5. Si necesitas ayuda de layout/gates, usar `.ai-kit/references/sdd/sdd-playbook.md`.
+1. `AGENTS.md` del repo actual.
+2. `./.ai-kit/references/sdd/sdd-playbook.md`.
+3. `./.ai-kit/references/sdd/persistence-contract.md`.
+4. `./.ai-kit/references/sdd/openspec-convention.md` o `engram-convention.md` según el `artifact_store.mode`.
+5. `openspec/config.yaml` y `openspec/changes/<change>/state.yaml` si existen.
+6. Stack real del repo para saber qué skill cargar en `apply` y cómo verificar.
+7. Si estás en workspace multi-repo, parar y usar `smartpay-workspace-router`.
+
+## Execution Mode by Assistant
+
+- Si el asistente soporta sub-agents frescos (`Task`), delega cada fase allí.
+- Si no los soporta, ejecuta el skill de fase inline, pero mantén exactamente el mismo DAG y las mismas aprobaciones.
+- El orquestador **no hace trabajo de fase directamente**; coordina, resume y decide el siguiente paso.
+
+## Meta-commands / Prompt Aliases
+
+Interpreta estos comandos como atajos del flujo:
+
+- `/sdd-init`
+- `/sdd-explore <topic>`
+- `/sdd-new <change-name>`
+- `/sdd-continue [change-name]`
+- `/sdd-ff [change-name]`
+- `/sdd-apply [change-name]`
+- `/sdd-verify [change-name]`
+- `/sdd-archive [change-name]`
 
 ## Storage Policy
 
-Default:
+Resuelve el backend con `./.ai-kit/references/sdd/persistence-contract.md`.
+
+Default SmartPay:
 - `artifact_store.mode: openspec`
 
-Si el usuario pide “no escribir archivos”:
-- `artifact_store.mode: none` (solo inline)
+Overrides:
+- si el usuario pide repo limpio o memoria persistente → `engram`
+- si el usuario pide trabajo efímero / sin archivos → `none`
 
-## DAG (fases y gates)
+## State Recovery Rule
 
-Ejecutar este flujo (con approval gates):
+Antes de continuar un change existente o si el contexto se comprimió:
 
-1) `sdd-init` (si falta `openspec/config.yaml`)  
-2) `sdd-explore`  
-3) `sdd-propose` → **approval**  
-4) `sdd-spec` ∥ `sdd-design` → **approval**  
-5) `sdd-tasks` → **approval**  
-6) `sdd-apply` (por batches) → **approval por batch**  
-7) `sdd-verify` (evidencia real: tests/build) → **approval**  
-8) `sdd-archive` (merge specs + archive)  
+- `openspec`: leer `openspec/changes/<change-name>/state.yaml`
+- `engram`: `mem_search("sdd/<change-name>/state")` → `mem_get_observation(id)`
+- `none`: explicar que el estado no fue persistido y reconstruir con el usuario
 
-## Multi-micro (workspace)
+## DAG + Gates
 
-Si el cambio afecta 2+ micros:
-- arrancar desde el workspace root con `smartpay-workspace-router`;
-- repetir el ciclo SDD **en cada micro** (mismo `change-name` si aplica);
-- mantener consistencia de `Intent`, `Success Criteria` y contratos entre micros.
+```text
+explore -> proposal -> (spec || design) -> tasks -> apply -> verify -> archive
+```
+
+Gates obligatorios:
+1. `proposal` → aprobación explícita
+2. `spec + design` → aprobación explícita
+3. `tasks` → aprobación explícita
+4. `apply` → aprobación por batch
+5. `verify` → aprobación solo con evidencia real
+6. `archive` → solo si no hay CRITICAL
+
+## Operational Workflow
+
+### 1. `/sdd-init`
+- Ejecuta `sdd-init` si falta baseline o el usuario lo pidió.
+- No lances otras fases hasta confirmar stack y artifact store.
+
+### 2. `/sdd-new <change>`
+- Si falta baseline, corre `sdd-init`.
+- Luego corre `sdd-explore` y `sdd-propose`.
+- Resume intención, alcance, riesgos y pide aprobación antes de seguir.
+
+### 3. `/sdd-continue`
+- Recupera `state`.
+- Determina la **siguiente fase dependency-ready** faltante.
+- Si la siguiente fase requiere aprobación previa y no existe, pide aprobación en lugar de ejecutarla.
+
+### 4. `/sdd-ff`
+- Fast-forward de planning: `sdd-propose` → `sdd-spec` + `sdd-design` → `sdd-tasks`.
+- Siempre respetando gates.
+
+### 5. `/sdd-apply`
+- Ejecuta `sdd-apply` por batches.
+- Antes de codificar, exige que existan `proposal/spec/design/tasks` suficientes.
+- Durante implementación, carga `dev-java` o `dev-python` según el stack.
+
+### 6. `/sdd-verify`
+- Ejecuta `sdd-verify`.
+- Exige evidencia real de tests/build.
+- Si el cambio es Java/Python, cruza el resultado con el skill `review` cuando haga falta auditar reglas.
+
+### 7. `/sdd-archive`
+- Ejecuta `sdd-archive` solo si `verify` no reporta CRITICAL.
+- Confirmar al usuario qué se archivará y dónde.
+
+## What the Orchestrator Returns
+
+Después de cada fase devuelve solo un resumen de coordinación:
+- `status`
+- `executive_summary`
+- `artifacts`
+- `next_recommended`
+- `risks`
+- si hace falta, la pregunta de aprobación concreta
 
 ## Rules
 
-- Nunca saltarse `proposal/spec/design/tasks` para cambios no triviales.
-- No ejecutar `apply` hasta que existan `tasks.md` + specs/design suficientes.
-- `verify` debe correr tests/build reales (no solo análisis estático).
-- `archive` solo si `verify` no tiene CRITICAL.
+- Nunca saltarse `proposal/spec/design/tasks` en cambios no triviales.
+- No ejecutar `apply` sin artefactos suficientes.
+- No considerar `verify` completo sin tests/build reales.
+- No ejecutar `archive` con CRITICAL pendientes.
+- Mantener el `change-name` estable a lo largo de todo el flujo.

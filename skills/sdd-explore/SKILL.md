@@ -1,119 +1,64 @@
 ---
 name: sdd-explore
 description: >
-  Explora e investiga antes de comprometerse con un change. Produce análisis estructurado (y opcionalmente `exploration.md`).
-  Trigger: Cuando el orquestador te lanza a investigar el codebase, clarificar requisitos o comparar enfoques.
+  Explora el codebase antes de comprometer una solución. Investiga estado actual, áreas afectadas, riesgos y opciones.
+  Trigger: Cuando el orquestador necesita entendimiento real del repo antes de proponer un change.
 license: MIT
 metadata:
   author: gentleman-programming
-  version: "1.0"
+  version: "2.0"
   scope: [root]
 allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 ---
 
 ## Purpose
 
-Eres un sub-agent responsable de EXPLORACIÓN. Investigas el codebase, clarificas constraints, comparas approaches y devuelves un análisis estructurado.
+Investigar el código real y devolver análisis estructurado para que proposal/spec/design no nazcan de supuestos.
 
-Por defecto solo investigas y reportas; solo creas `exploration.md` cuando la exploración está ligada a un change con nombre.
+## Required References
 
-## What You Receive
+- `./.ai-kit/references/sdd/persistence-contract.md`
+- `AGENTS.md` del repo
+- `openspec/config.yaml` si existe
 
-Del orquestador:
-- Topic/feature a explorar
-- Contexto de `openspec/config.yaml` (si existe)
-- (Opcional) specs existentes en `openspec/specs/` relevantes
-- (Opcional) change-name si esto es parte del flujo SDD
+## Workflow
 
-## Execution and Persistence Contract
+1. Entender el request: feature, bug, refactor o exploración comparativa.
+2. Leer código real en las zonas afectadas.
+3. Identificar archivos, dominios y dependencias impactadas.
+4. Comparar enfoques si existe más de una opción razonable.
+5. Persistir `exploration.md` solo si hay `change-name` y el modo es `openspec`.
 
-Del orquestador:
-- `artifact_store.mode`: `auto | engram | openspec | none`
-- `detail_level`: `concise | standard | deep`
-
-Reglas:
-- Si mode resuelve a `none`, devuelve resultado inline.
-- Si mode resuelve a `engram`, persiste exploración en Engram y devuelve referencias.
-- Si mode resuelve a `openspec`, puedes crear `exploration.md` cuando hay `change-name`.
-
-## What to Do
-
-### Step 1: Understand the Request
-
-- ¿Feature? ¿Bug? ¿Refactor?
-- ¿Qué dominios toca?
-
-### Step 2: Investigate the Codebase
-
-Lee código real para entender:
-- Arquitectura y patrones actuales
-- Archivos/módulos afectados
-- Comportamiento existente relacionado
-- Riesgos/constraints
-
-Checklist:
-```
-INVESTIGATE:
-├── Entry points y key files
-├── Buscar funcionalidad relacionada (rg)
-├── Tests existentes (si hay)
-├── Patrones ya usados
-└── Dependencias y acoplamientos
-```
-
-### Step 3: Analyze Options
-
-Si hay múltiples enfoques, compara:
-
-| Approach | Pros | Cons | Complexity |
-|----------|------|------|------------|
-| Option A | ... | ... | Low/Med/High |
-| Option B | ... | ... | Low/Med/High |
-
-### Step 4: Optionally Save Exploration (openspec)
-
-Si el orquestador dio `change-name`, guarda en:
-
-```
-openspec/changes/{change-name}/exploration.md
-```
-
-Si no hay `change-name`, no crees archivos: devuelve el análisis.
-
-### Step 5: Return Structured Analysis
-
-Devuelve exactamente este formato (y escribe lo mismo a `exploration.md` si aplica):
+## Output Format
 
 ```markdown
-## Exploration: {topic}
+## Exploration: <topic>
 
 ### Current State
-{Cómo funciona hoy lo relevante}
+...
 
 ### Affected Areas
-- `path/to/file.ext` — {por qué}
+- `path` — razón
 
 ### Approaches
-1. **{Approach}** — {desc}
-   - Pros: {list}
-   - Cons: {list}
-   - Effort: {Low/Medium/High}
+1. **Option A**
+   - Pros:
+   - Cons:
+   - Effort:
 
 ### Recommendation
-{Recomendación y por qué}
+...
 
 ### Risks
-- {Risk 1}
-- {Risk 2}
+- ...
 
 ### Ready for Proposal
-{Yes/No — y qué falta}
+Yes/No
 ```
 
 ## Rules
 
-- El único archivo que puedes crear es `exploration.md` dentro del change folder (si hay change-name y mode=openspec).
 - No modificar código del producto.
-- Siempre leer código real (no adivinar).
-- Mantener conciso; el orquestador necesita síntesis.
-
+- El único archivo permitido aquí es `exploration.md` dentro del change folder cuando aplique.
+- Siempre leer código y tests reales, no adivinar.
+- Devuelve el envelope estructurado.

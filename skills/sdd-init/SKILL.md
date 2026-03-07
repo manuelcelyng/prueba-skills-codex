@@ -1,71 +1,73 @@
 ---
 name: sdd-init
 description: >
-  Inicializa el baseline de SDD en un repo: estructura `openspec/` y `openspec/config.yaml`.
-  Trigger: Usar al inicio de un change SDD cuando el repo no tiene `openspec/` o cuando falta `openspec/config.yaml`.
+  Inicializa el contexto Spec-Driven Development del repo: detecta stack, configura el artifact store y deja listo `openspec/` o Engram según corresponda.
+  Trigger: Usar al inicio de un change SDD cuando el repo no tiene baseline o cuando el usuario pide inicializar/rehidratar el flujo.
 license: MIT
 metadata:
   author: gentleman-programming
-  version: "1.0"
+  version: "2.0"
   scope: [root]
 allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 ---
 
 ## Purpose
 
-Eres un sub-agent responsable de inicializar Spec-Driven Development (SDD) en el repo actual. Tu objetivo es preparar una base mínima para que el resto de fases (`sdd-explore`, `sdd-propose`, etc.) puedan persistir artefactos de forma consistente.
+Preparar el baseline SDD del proyecto sin inventar contexto. Detecta stack, comandos reales y backend de persistencia.
+
+## Required References
+
+- `./.ai-kit/references/sdd/persistence-contract.md`
+- `./.ai-kit/references/sdd/openspec-convention.md`
+- `./.ai-kit/references/sdd/engram-convention.md` (solo si el modo resuelve a `engram`)
+- `AGENTS.md` del repo
 
 ## What You Receive
 
-Del orquestador:
-- Nombre del change (ej. `add-csv-export`)
-- Config deseada de persistencia (`artifact_store.mode`: `openspec | none | engram | auto`)
-- Preferencias de detalle (`detail_level`)
+- `change-name` opcional
+- `artifact_store.mode`
+- `detail_level`
 
-## Execution and Persistence Contract
+## Workflow
 
-Reglas:
-- Si el mode resuelve a `none`, NO crees archivos; devuelve instrucciones inline.
-- Si el mode resuelve a `openspec`, crea/actualiza `openspec/config.yaml` y carpetas base.
-- Si el mode resuelve a `engram`, no escribas a `openspec/` salvo instrucción explícita del orquestador.
+### 1. Detect project context
 
-Default SmartPay recomendado (si el orquestador no especifica): `openspec`.
+Lee el repo para identificar:
+- stack real (`gradlew`, `build.gradle*`, `pyproject.toml`, `requirements*`, etc.)
+- arquitectura dominante
+- comandos de test/build detectables
+- convenciones relevantes del repo
 
-## What to Do
+### 2. Initialize persistence backend
 
-### Step 1: Create `openspec/` skeleton (openspec mode)
+- `openspec`: crea `openspec/`, `openspec/specs/`, `openspec/changes/`, `openspec/changes/archive/` y `openspec/config.yaml`.
+- `engram`: persiste el contexto del proyecto con la convención `sdd-init/{project-name}`; no crees `openspec/`.
+- `none`: no escribas archivos; devuelve el contexto detectado inline.
 
-Estructura:
+### 3. Generate concise config (openspec)
 
-```
-openspec/
-├── config.yaml
-├── specs/
-└── changes/
-    └── archive/
-```
-
-### Step 2: Create/Update `openspec/config.yaml`
-
-Debe incluir:
-- `artifact_store.mode` por defecto del proyecto (SmartPay suele ser `openspec`)
-- comandos recomendados de `verify` (test/build) si son detectables
-
-Ejemplo mínimo:
+`openspec/config.yaml` debe ser breve y accionable. Incluye solo lo que detectes con confianza:
 
 ```yaml
+schema: smartpay-sdd
 artifact_store:
   mode: openspec
+context: |
+  Stack: <detectado>
+  Architecture: <detectada>
+  Tests: <detectados>
+rules:
+  apply:
+    tdd: true
+    test_command: <si es detectable>
+  verify:
+    test_command: <si es detectable>
+    build_command: <si es detectable>
 ```
-
-### Step 3: Return Summary
-
-Devuelve al orquestador:
-- qué se creó/actualizó
-- próximos pasos recomendados (`sdd-explore`)
 
 ## Rules
 
-- No inventes comandos de test/build si no se pueden detectar; marca “pendiente”.
-- Mantén `config.yaml` minimal; el orquestador puede enriquecerlo luego.
-
+- No inventes comandos de test/build si no son detectables; déjalos pendientes.
+- No crees spec placeholders vacíos.
+- Mantén el `context` corto (máximo 8–10 líneas).
+- Devuelve el envelope estructurado (`status`, `executive_summary`, `artifacts`, `next_recommended`, `risks`).

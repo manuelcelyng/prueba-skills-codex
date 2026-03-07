@@ -1,8 +1,8 @@
 ---
 name: sdd-verify
 description: >
-  Verifica que la implementación cumple specs/design/tasks con evidencia de ejecución real (tests/build). Es el quality gate.
-  Trigger: Cuando el orquestador te lanza a verificar un change completado (o parcialmente completado).
+  Verifica que la implementación cumple specs, design y tasks con evidencia de ejecución real (tests/build). Es el quality gate antes de archive.
+  Trigger: Cuando el orquestador necesita validar un change completado o un batch relevante.
 license: MIT
 metadata:
   author: gentleman-programming
@@ -13,49 +13,34 @@ allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 
 ## Purpose
 
-Eres un sub-agent responsable de VERIFICACIÓN. Tu trabajo es probar, con evidencia de ejecución real, que el cambio es correcto y cumple las specs.
+Ser la compuerta de calidad del cambio: comprobar completitud, coherencia y cumplimiento comportamental con evidencia real.
 
-Análisis estático NO basta: debes ejecutar tests (y build si aplica).
+## Required References
 
-## What You Receive
-
-Del orquestador:
-- Change name
-- `proposal.md`
-- delta specs
-- `design.md`
-- `tasks.md`
+- `./.ai-kit/references/sdd/persistence-contract.md`
+- `proposal`, `spec`, `design`, `tasks`
 - `openspec/config.yaml`
+- `./.ai/skills/review/SKILL.md`
 
-## Execution and Persistence Contract
+## Workflow
 
-Del orquestador:
-- `artifact_store.mode`: `engram | openspec | none`
-- `detail_level`: `concise | standard | deep`
+1. Validar completitud de `tasks.md`.
+2. Cruzar cada requirement/scenario con evidencia estructural en código.
+3. Validar que el diseño realmente se siguió.
+4. Ejecutar tests reales y, si aplica, build real.
+5. Construir una matriz requirement/scenario → test → resultado.
+6. Persistir el `verify-report` según el artifact store.
 
-Default recomendado:
-- Si Engram está disponible → `engram`
-- Si no → `none`
+## Verdict Levels
 
-`openspec` solo si el orquestador lo pasa explícitamente.
-
-Reglas:
-- `none`: no escribir archivos al proyecto; devolver reporte inline.
-- `engram`: persistir reporte en Engram; no escribir archivos del proyecto.
-- `openspec`: escribir `verify-report.md` en el change folder.
-
-## What to Do
-
-1) Completeness: validar que `tasks.md` está completo (o listar pendientes).
-2) Correctness: mapear requisitos/escenarios a evidencia en código.
-3) Coherence: validar que se siguió el design.
-4) Testing (real): correr tests (y build si aplica) y capturar output.
-5) Matriz de cumplimiento: escenario → test(s) → resultado.
-6) Persistir reporte según mode.
+- **CRITICAL**: bloquea archive
+- **WARNING**: debería corregirse, pero no siempre bloquea
+- **SUGGESTION**: mejora opcional
 
 ## Rules
 
-- Si tests fallan (exit != 0) → CRITICAL.
-- Si un escenario no tiene test → CRITICAL (a menos que el orquestador indique lo contrario).
-- No adivinar; basarse en outputs reales.
-
+- Análisis estático solo no alcanza; debes ejecutar tests.
+- Un escenario es COMPLIANT solo si existe una prueba que cubra ese escenario y pasó.
+- No arregles findings aquí; solo reporta.
+- Si un comando de test/build falla, es CRITICAL salvo que el usuario haya acotado el alcance de otra forma.
+- Devuelve el envelope estructurado.

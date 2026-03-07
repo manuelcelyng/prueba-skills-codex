@@ -6,7 +6,7 @@ description: >
 license: Internal
 metadata:
   author: pragma-smartpay
-  version: "0.2"
+  version: "0.3"
   scope: [root]
   auto_invoke:
     - "Generar/actualizar AGENTS.md"
@@ -31,71 +31,44 @@ Crear o actualizar `AGENTS.md` para que sea **útil y específico** al repo, min
 
 ## Workflow
 
-1. **Diagnóstico**: resumir en 5–10 líneas:
-   - stack(s), layout, comandos build/test, patrones (hexagonal/clean), y puntos sensibles (SQL, reactive, error codes).
-2. **Si `AGENTS.md` es un stub**, reemplazarlo completamente:
-   - Borrar la sección “Regla única (obligatoria)” del stub.
-   - Mantener una guía permanente en el `AGENTS.md` final.
+1. **Diagnóstico**: resumir en 5–10 líneas stack, layout, build/test, patrones y puntos sensibles.
+2. **Si `AGENTS.md` es un stub**, reemplazarlo completamente.
 3. **Generar/actualizar `AGENTS.md` (token-optimized)**:
-   - Mantén el documento **corto y escaneable**: tablas + comandos + reglas clave.
-   - Evita pegar rulebooks completos: apunta las reglas canónicas al skill de implementación (`dev-java` o `dev-python`) y al skill `review`.
+   - corto y escaneable,
+   - tablas para skills,
+   - comandos reales,
+   - reglas no negociables,
+   - quick start SDD.
 
-### 3.1 Estructura objetivo (estilo Prowler)
+### Estructura objetivo
 
-El `AGENTS.md` final debe tener, como mínimo:
-
-1) `## Available Skills` con **tablas** (no párrafos largos):
-
-**Tabla 1: Generic Skills (SDD + utilidades)**
-- Incluye: `sdd-*`, `ai-init-agents`, `skill-sync`, `skill-creator`, `review`, `ai-setup` (y `agent-unit-tests` si aplica).
-
-**Tabla 2: Project-Specific Skills**
-- Si `ai-kit.lock` tiene `AI_SKILLS_PROJECT=smartpay`, incluye `smartpay-*`.
-
-**Tabla 3: Service Skills (overlay local)**
-- Skills bajo `./skills/*` del repo.
-
-Cada fila debe tener: `Skill | Description | Source`.
-El `Source` debe ser un path clickeable dentro del repo, preferiblemente:
-- `./.ai/skills/<skill>/SKILL.md`
+1) `## Available Skills` con tablas:
+- Generic Skills (`sdd-*`, `ai-*`, `skill-*`, `review`, `agent-unit-tests` si aplica)
+- Project-Specific Skills (`smartpay-*`)
+- Service Skills (`./skills/*`)
 
 2) `### Auto-invoke Skills`
-- No escribir contenido manualmente; se llena con `./scripts/ai/sync.sh`.
+- no escribirla manualmente; la llena `./scripts/ai/sync.sh`
 
-3) Secciones del repo (solo lo que exista / sea real):
-- `## Project Structure` (3–8 bullets)
-- `## Build / Test / Run` (comandos reales)
-- `## Coding Rules` (10–20 bullets máx; lo verdaderamente “no negociable”)
-- `## HU / Contracts` (si el repo lo usa)
-- `## Maintenance` (reglas para mantener AGENTS actualizado)
+3) Secciones funcionales reales del repo:
+- `## Project Structure`
+- `## Build / Test / Run`
+- `## Coding Rules`
+- `## HU / Contracts` (si aplica)
+- `## SDD Quick Start`
+- `## Maintenance`
 
-### 3.2 Cómo construir las tablas (fuente de verdad)
+### Nota obligatoria sobre SDD
 
-Regla: construye las tablas desde lo **realmente disponible** en este repo, no desde suposiciones.
-
-Orden recomendado:
-1) Si existe `.ai/skills/`: listar skills desde ahí (es la “proyección efectiva”).
-2) Si no existe `.ai/skills/`, sugerir correr `./scripts/ai/setup.sh --codex` (o el subset) y luego continuar.
-3) Para cada skill, leer solo el frontmatter (name/description) de `SKILL.md` para poblar las tablas.
-
-Clasificación recomendada:
-- `Generic`: `sdd-*` + utilidades comunes (`ai-*`, `skill-*`, `review`, `agent-unit-tests`).
-- `Project-Specific`: skills con prefijo del proyecto (ej. `smartpay-*`).
-- `Service overlay`: skills cuya carpeta fuente resuelve bajo `./skills/`.
-
-### 3.3 Nota obligatoria sobre las reglas canónicas
-
-Incluye una nota breve en `AGENTS.md` final:
-- Las reglas de implementación viven en `./.ai/skills/dev-java/SKILL.md` o `./.ai/skills/dev-python/SKILL.md`.
-- Las reglas de auditoría viven en `./.ai/skills/review/SKILL.md`.
-- `auto_invoke` **no** es un watcher ni ejecución en background.
-- “Delegate-only orchestrator” significa que el orquestador **solo coordina** y delega fases a subagents.
-
-4. **No modificar** manualmente `### Auto-invoke Skills`:
-   - esa sección la gestiona `./scripts/ai/sync.sh` de forma determinística.
-5. Tras actualizar `AGENTS.md`, indicar comandos:
-   - `./scripts/ai/setup.sh <flags>`
-   - `./scripts/ai/sync.sh`
+El `AGENTS.md` final debe dejar explícito:
+- entrypoint por micro: `smartpay-sdd-orchestrator`
+- entrypoint por workspace: `smartpay-workspace-router`
+- aliases del flujo: `/sdd-init`, `/sdd-new <change>`, `/sdd-continue`, `/sdd-ff`, `/sdd-apply`, `/sdd-verify`, `/sdd-archive`
+- fuente de verdad del flujo: `./.ai-kit/references/sdd/sdd-playbook.md`
+- `delegate-only orchestrator` = coordina y delega fases; no hace el trabajo de fase directamente
+- las reglas de implementación viven en `dev-java` / `dev-python`
+- las reglas de auditoría viven en `review`
+- `auto_invoke` no es watcher ni ejecución en background
 
 ## Limits
 

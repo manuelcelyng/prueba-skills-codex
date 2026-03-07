@@ -45,11 +45,7 @@ if [ -f "$agents_file" ] && ! $FORCE; then
 fi
 
 repos_tmp="$(mktemp)"
-find "$REPO_ROOT" -maxdepth 2 -name .git -type d -print 2>/dev/null | \
-  sed 's/\/.git$//' | \
-  awk -v root="$REPO_ROOT" '{ sub("^" root "/?", "", $0); print }' | \
-  awk '$0 != "ai-kit" && $0 != ".ai-kit"' | \
-  LC_ALL=C sort > "$repos_tmp"
+find "$REPO_ROOT" -maxdepth 2 -name .git -type d -print 2>/dev/null |   sed 's/\/\.git$//' |   awk -v root="$REPO_ROOT" '{ sub("^" root "/?", "", $0); print }' |   awk '$0 != "ai-kit" && $0 != ".ai-kit"' |   LC_ALL=C sort > "$repos_tmp"
 
 newline='
 '
@@ -80,6 +76,13 @@ ${repos_list#$newline}
 3) Ejecuta el flujo SDD por repo (uno a la vez o por fases paralelizables).
 4) Mantén consistencia de contrato/spec entre micros (mismo \`change-name\` si aplica).
 
+## SDD Quick Start
+
+- Router multi-micro: \`smartpay-workspace-router\`
+- Meta-commands / aliases: \`/sdd-init\`, \`/sdd-new <change>\`, \`/sdd-continue\`, \`/sdd-ff <change>\`, \`/sdd-apply\`, \`/sdd-verify\`, \`/sdd-archive\`
+- Flujo canónico: \`./.ai-kit/references/sdd/sdd-playbook.md\`
+- Persistencia por micro: un \`openspec/\` por repo, nunca uno global del workspace
+
 ## Quick start
 
 - Inicializa este router con \`./workspace-ai.sh --init-agents --project smartpay --codex\`.
@@ -97,6 +100,7 @@ EOF
 if [ "$PROJECT" = "smartpay" ]; then
   cat >> "$agents_file" <<'EOF'
 | `smartpay-workspace-router` | Router SmartPay para enrutar cambios multi-micro y coordinar SDD por micro. | `.ai/skills/smartpay-workspace-router/SKILL.md` |
+| `smartpay-sdd-orchestrator` | Orquestador delegate-only del flujo SDD por micro. | `.ai/skills/smartpay-sdd-orchestrator/SKILL.md` |
 EOF
 fi
 

@@ -1,103 +1,71 @@
 ---
 name: sdd-propose
 description: >
-  Crea un change proposal con intent, scope y approach (persistido como `proposal.md` en `openspec/changes/<change>/`).
-  Trigger: Cuando el orquestador te lanza a crear o actualizar un proposal para un change.
+  Crea el change proposal con intent, scope, rollback y success criteria. Persistencia: `proposal.md` o Engram según el artifact store.
+  Trigger: Cuando el orquestador necesita formalizar el cambio antes de pasar a specs/design.
 license: MIT
 metadata:
   author: gentleman-programming
-  version: "1.0"
+  version: "2.0"
   scope: [root]
 allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 ---
 
 ## Purpose
 
-Eres un sub-agent responsable de PROPOSALS. Tomas la exploración (o la descripción del usuario) y produces un documento `proposal.md` estructurado dentro del change folder.
+Formalizar el cambio en un `proposal` corto y aprobable por el usuario antes de diseñar o implementar.
 
-## What You Receive
+## Required References
 
-Del orquestador:
-- Change name (ej. `add-dark-mode`)
-- Exploración (de `sdd-explore`) o input directo del usuario
-- Config del proyecto en `openspec/config.yaml` (si existe)
-- Specs existentes en `openspec/specs/` relevantes
+- `./.ai-kit/references/sdd/persistence-contract.md`
+- `./.ai-kit/references/sdd/openspec-convention.md`
+- specs actuales de `openspec/specs/` si existen
 
-## Execution and Persistence Contract
+## Workflow
 
-Del orquestador:
-- `artifact_store.mode`: `auto | engram | openspec | none`
-- `detail_level`: `concise | standard | deep`
+1. Tomar el output de exploración o el request del usuario.
+2. Leer specs existentes para evitar contradicciones.
+3. Crear `proposal.md` con intención, alcance, rollback y success criteria.
+4. Persistir según el artifact store.
 
-Reglas:
-- Si mode resuelve a `none`, no crear archivos; devuelve el proposal inline.
-- Si mode resuelve a `engram`, persiste el proposal en Engram y devuelve referencias.
-- Si mode resuelve a `openspec`, escribe/actualiza `openspec/changes/{change-name}/proposal.md`.
-
-## What to Do
-
-### Step 1: Create Change Directory
-
-```
-openspec/changes/{change-name}/
-└── proposal.md
-```
-
-### Step 2: Read Existing Specs
-
-Si hay specs relevantes en `openspec/specs/`, leerlas para no proponer cosas inconsistentes.
-
-### Step 3: Write proposal.md
+## Proposal Template
 
 ```markdown
-# Proposal: {Change Title}
+# Proposal: <Change Title>
 
 ## Intent
-{Qué problema resolvemos y por qué ahora}
+...
 
 ## Scope
-
 ### In Scope
-- {Deliverable 1}
-- {Deliverable 2}
-
+- ...
 ### Out of Scope
-- {No lo haremos}
+- ...
 
 ## Approach
-{Estrategia técnica high-level}
+...
 
 ## Affected Areas
 | Area | Impact | Description |
 |------|--------|-------------|
-| `path/to/area` | New/Modified/Removed | {Qué cambia} |
 
 ## Risks
 | Risk | Likelihood | Mitigation |
 |------|------------|------------|
-| {Riesgo} | Low/Med/High | {Mitigación} |
 
 ## Rollback Plan
-{Cómo revertir}
+...
 
 ## Dependencies
-- {Dependencia}
+- ...
 
 ## Success Criteria
-- [ ] {Criterio 1}
-- [ ] {Criterio 2}
+- [ ] ...
 ```
-
-### Step 4: Return Summary
-
-Devuelve al orquestador:
-- location del proposal (si aplica)
-- resumen (intent/scope/approach/risk)
-- siguiente paso recomendado (`sdd-spec` o `sdd-design`)
 
 ## Rules
 
-- Mantener el proposal conciso.
-- Siempre incluir rollback + success criteria.
-- No incluir detalle de implementación; eso es para design/tasks.
-
+- Siempre incluir `Rollback Plan` y `Success Criteria`.
+- No incluir detalle fino de implementación; eso va a `design.md` y `tasks.md`.
+- Mantenerlo corto y orientado a aprobación.
+- Devuelve el envelope estructurado.

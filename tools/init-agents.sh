@@ -71,12 +71,10 @@ if [ -f "$agents_file" ] && ! $FORCE; then
 fi
 
 normalize_setup_flags() {
-  # If user didn't touch selection, default to Codex.
   if [ "$SETUP_TOUCHED" = false ] && ! $SETUP_CLAUDE && ! $SETUP_GEMINI && ! $SETUP_CODEX && ! $SETUP_COPILOT; then
     SETUP_CODEX=true
   fi
 
-  # If all selected, use --all.
   if $SETUP_CLAUDE && $SETUP_GEMINI && $SETUP_CODEX && $SETUP_COPILOT; then
     echo "--all"
     return 0
@@ -115,6 +113,13 @@ En el **primer contacto** con este repo, invoca el skill \`ai-init-agents\` **in
 > Nota 2: Después del primer generado, \`ai-init-agents\` debe borrar esta “Regla única” y dejar una guía permanente:
 > - sugerir actualizar \`AGENTS.md\` si detecta señales fuertes de desactualización,
 > - ejecutar \`ai-init-agents\` solo cuando el usuario lo pida (o lo apruebe explícitamente).
+
+## SDD Quick Start
+
+- Para cambios no triviales en este micro usa \`smartpay-sdd-orchestrator\`.
+- Reconoce como aliases del flujo: \`/sdd-init\`, \`/sdd-new <change>\`, \`/sdd-continue\`, \`/sdd-ff <change>\`, \`/sdd-apply\`, \`/sdd-verify\`, \`/sdd-archive\`.
+- Los artefactos SDD viven en \`openspec/changes/<change-name>/\` cuando el artifact store es \`openspec\`.
+- Las reglas del flujo viven en \`./.ai-kit/references/sdd/sdd-playbook.md\`.
 EOF
 
 echo ""

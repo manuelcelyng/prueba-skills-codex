@@ -7,6 +7,7 @@
 # - .codex/skills  -> .ai/skills (symlink)
 # - AGENTS.md -> CLAUDE.md / GEMINI.md (copies next to each AGENTS.md found)
 # - AGENTS.md -> .github/copilot-instructions.md (copy)
+# - assistant-specific SDD overlays appended automatically where applicable
 #
 # Usage:
 #   .ai-kit/tools/setup.sh              # Interactive mode
@@ -19,14 +20,15 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="${REPO_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 SKILLS_SOURCE="$REPO_ROOT/.ai/skills"
+OVERLAYS_DIR="$REPO_ROOT/.ai-kit/references/sdd/assistant-overlays"
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-NC='\033[0m'
+RED='[0;31m'
+GREEN='[0;32m'
+YELLOW='[1;33m'
+BLUE='[0;34m'
+CYAN='[0;36m'
+BOLD='[1m'
+NC='[0m'
 
 SETUP_CLAUDE=false
 SETUP_GEMINI=false
@@ -59,8 +61,6 @@ ensure_skills_source() {
 }
 
 setup_codex_mcp_azuredevops() {
-  # Best-effort: configure Codex MCP server pointing to this repo's vendored ai-kit path.
-  # No-op if not using Codex or if node/npm aren't present.
   local codex_home="${CODEX_HOME:-$HOME/.codex}"
   local codex_config="$codex_home/config.toml"
 
@@ -68,7 +68,6 @@ setup_codex_mcp_azuredevops() {
   if [ -f "$REPO_ROOT/.ai-kit/mcp/azuredevops/server.js" ]; then
     server_path="$REPO_ROOT/.ai-kit/mcp/azuredevops/server.js"
   elif [ -f "$REPO_ROOT/mcp/azuredevops/server.js" ]; then
-    # When running inside the ai-kit repo itself.
     server_path="$REPO_ROOT/mcp/azuredevops/server.js"
   else
     echo -e "${YELLOW}Codex MCP(azuredevops): server.js not found. Skipping.${NC}"
@@ -84,7 +83,6 @@ setup_codex_mcp_azuredevops() {
   else
     local pkg_dir
     pkg_dir="$(cd "$(dirname "$server_path")" && pwd)"
-    # Install deps only if node_modules is missing (fast path).
     if [ ! -d "$pkg_dir/node_modules" ]; then
       echo -e "${BLUE}Codex MCP(azuredevops): installing npm deps...${NC}"
       npm --prefix "$pkg_dir" install --silent || {
@@ -98,33 +96,29 @@ setup_codex_mcp_azuredevops() {
     touch "$codex_config"
   fi
 
-  # Update/insert the TOML section [mcp_servers.azuredevops] idempotently.
-  python3 - "$codex_config" "$server_path" <<'PY'
+  python3 - "$codex_config" "$server_path" <<'PYCONF'
 import sys
 from pathlib import Path
 
 config_path = Path(sys.argv[1])
 server_path = sys.argv[2]
-
 lines = config_path.read_text(encoding="utf-8", errors="replace").splitlines(True)
+header = "[mcp_servers.azuredevops]\\n"
+command_line = 'command = "node"\\n'
+args_line = f'args = ["{server_path}"]\\n'
 
-header = "[mcp_servers.azuredevops]\n"
-command_line = 'command = "node"\n'
-args_line = f'args = ["{server_path}"]\n'
-
-def is_section_start(l: str) -> bool:
-    return l.startswith("[") and l.rstrip().endswith("]")
+def is_section_start(line: str) -> bool:
+    return line.startswith("[") and line.rstrip().endswith("]")
 
 out = []
 i = 0
 found = False
 while i < len(lines):
-    l = lines[i]
-    if l.strip() == "[mcp_servers.azuredevops]":
+    line = lines[i]
+    if line.strip() == "[mcp_servers.azuredevops]":
         found = True
         out.append(header)
         i += 1
-        # Copy/override until next section.
         has_command = False
         has_args = False
         while i < len(lines) and not is_section_start(lines[i].lstrip()):
@@ -148,22 +142,21 @@ while i < len(lines):
         if not has_args:
             out.append(args_line)
         continue
-    out.append(l)
+    out.append(line)
     i += 1
 
 if not found:
-    # Ensure file ends with newline before appending.
-    if out and not out[-1].endswith("\n"):
-        out[-1] = out[-1] + "\n"
+    if out and not out[-1].endswith("\\n"):
+        out[-1] = out[-1] + "\\n"
     if out and out[-1].strip() != "":
-        out.append("\n")
+        out.append("\\n")
     out.append(header)
     out.append(command_line)
     out.append(args_line)
 
 config_path.write_text("".join(out), encoding="utf-8")
 print(str(config_path))
-PY
+PYCONF
 
   echo -e "${GREEN}Codex MCP(azuredevops): configured in $codex_config${NC}"
 }
@@ -182,8 +175,6 @@ show_menu() {
   echo -n "Select (e.g. 1 3 4) or 'a' or 'n': "
 
   choice=""
-  # Prefer /dev/tty so this works even when stdin is piped (curl | bash).
-  # Only fall back to stdin if stdin is a TTY (avoid consuming piped script contents).
   if ! read -r choice < /dev/tty 2>/dev/null; then
     if [ -t 0 ]; then
       read -r choice || choice=""
@@ -215,7 +206,6 @@ show_menu() {
 }
 
 normalized_flags_line() {
-  # Default to Codex if nothing selected.
   if ! $SETUP_CLAUDE && ! $SETUP_GEMINI && ! $SETUP_CODEX && ! $SETUP_COPILOT; then
     echo "--codex"
     return 0
@@ -235,7 +225,6 @@ normalized_flags_line() {
 }
 
 post_setup() {
-  # Hook for assistant-specific extras.
   if $SETUP_CODEX; then
     setup_codex_mcp_azuredevops
   fi
@@ -256,22 +245,36 @@ symlink_dir() {
   ln -s "$SKILLS_SOURCE" "$link_path"
 }
 
+append_overlay() {
+  local output_file="$1"
+  local overlay_key="$2"
+  local overlay_file="$OVERLAYS_DIR/$overlay_key.md"
+
+  [ -f "$overlay_file" ] || return 0
+
+  printf '
+
+<!-- AI-KIT SDD OVERLAY (%s) -->
+
+' "$overlay_key" >> "$output_file"
+  cat "$overlay_file" >> "$output_file"
+}
+
 copy_agents_md() {
   local target_name="$1"
+  local overlay_key="$2"
   local count=0
 
-  # Avoid copying from generated/vendor dirs
   local agents_files
-  agents_files=$(find "$REPO_ROOT" -name "AGENTS.md" \
-    -not -path "*/.git/*" \
-    -not -path "*/.ai-kit/*" \
-    -not -path "*/.ai/*" \
-    -not -path "*/node_modules/*" 2>/dev/null)
+  agents_files=$(find "$REPO_ROOT" -name "AGENTS.md"     -not -path "*/.git/*"     -not -path "*/.ai-kit/*"     -not -path "*/.ai/*"     -not -path "*/node_modules/*" 2>/dev/null)
 
   for agents_file in $agents_files; do
     local agents_dir
+    local target_file
     agents_dir=$(dirname "$agents_file")
-    cp "$agents_file" "$agents_dir/$target_name"
+    target_file="$agents_dir/$target_name"
+    cp "$agents_file" "$target_file"
+    append_overlay "$target_file" "$overlay_key"
     count=$((count + 1))
   done
 
@@ -281,25 +284,29 @@ copy_agents_md() {
 setup_claude() {
   symlink_dir "$REPO_ROOT/.claude" "$REPO_ROOT/.claude/skills"
   echo -e "${GREEN}  ✓ .claude/skills -> .ai/skills${NC}"
-  copy_agents_md "CLAUDE.md"
+  copy_agents_md "CLAUDE.md" "claude"
 }
 
 setup_gemini() {
   symlink_dir "$REPO_ROOT/.gemini" "$REPO_ROOT/.gemini/skills"
   echo -e "${GREEN}  ✓ .gemini/skills -> .ai/skills${NC}"
-  copy_agents_md "GEMINI.md"
+  copy_agents_md "GEMINI.md" "gemini"
 }
 
 setup_codex() {
   symlink_dir "$REPO_ROOT/.codex" "$REPO_ROOT/.codex/skills"
   echo -e "${GREEN}  ✓ .codex/skills -> .ai/skills${NC}"
   echo -e "${GREEN}  ✓ Codex uses AGENTS.md natively${NC}"
+  if [ -f "$OVERLAYS_DIR/codex.md" ]; then
+    echo -e "${CYAN}  ↳ Codex SDD quick start: $OVERLAYS_DIR/codex.md${NC}"
+  fi
 }
 
 setup_copilot() {
   if [ -f "$REPO_ROOT/AGENTS.md" ]; then
     mkdir -p "$REPO_ROOT/.github"
     cp "$REPO_ROOT/AGENTS.md" "$REPO_ROOT/.github/copilot-instructions.md"
+    append_overlay "$REPO_ROOT/.github/copilot-instructions.md" "copilot"
     echo -e "${GREEN}  ✓ AGENTS.md -> .github/copilot-instructions.md${NC}"
   fi
 }
@@ -328,9 +335,6 @@ while [[ $# -gt 0 ]]; do
 done
 
 if $CHOOSE_FLAGS; then
-  # Interactive selection mode for installers/wrappers.
-  # Prints a single machine-parseable line at the end:
-  #   AI_KIT_FLAGS: --codex
   if ! $SETUP_CLAUDE && ! $SETUP_GEMINI && ! $SETUP_CODEX && ! $SETUP_COPILOT; then
     show_menu
   fi

@@ -1,95 +1,65 @@
 ---
 name: sdd-design
 description: >
-  Crea el diseño técnico del change (`design.md`): decisiones, data flow, cambios de archivos y estrategia de pruebas.
-  Trigger: Cuando el orquestador te lanza a escribir o actualizar el diseño técnico de un change.
+  Crea el diseño técnico del change (`design.md`): decisiones, file changes, data flow y estrategia de pruebas.
+  Trigger: Cuando el orquestador necesita fijar el HOW del cambio.
 license: MIT
 metadata:
   author: gentleman-programming
-  version: "1.0"
+  version: "2.0"
   scope: [root]
 allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 ---
 
 ## Purpose
 
-Eres un sub-agent responsable de TECHNICAL DESIGN. Tomas el proposal y specs y produces un `design.md` que captura CÓMO se implementará el cambio: decisiones, data flow, file changes y rationale.
+Traducir el proposal/spec a una estrategia técnica concreta y auditable antes de implementar.
 
-## What You Receive
+## Required References
 
-Del orquestador:
-- Change name
-- `proposal.md`
-- delta specs (si existen; si corre en paralelo con `sdd-spec`, deriva requisitos del proposal)
-- Código relevante (entry points / archivos clave)
+- `./.ai-kit/references/sdd/persistence-contract.md`
 - `openspec/config.yaml`
+- código relevante del repo
 
-## Execution and Persistence Contract
+## Workflow
 
-Del orquestador:
-- `artifact_store.mode`: `auto | engram | openspec | none`
-- `detail_level`: `concise | standard | deep`
+1. Leer código y tests reales en la zona afectada.
+2. Derivar decisiones técnicas, file changes y contratos.
+3. Documentar testing strategy alineada con los escenarios de specs.
+4. Persistir `design.md` según el artifact store.
 
-Reglas:
-- `none`: no escribir archivos
-- `engram`: persistir en Engram
-- `openspec`: escribir `openspec/changes/{change-name}/design.md`
+## Design Template
 
-## What to Do
-
-### Step 1: Read the Codebase
-
-Lee el código real afectado (patrones existentes, interfaces, tests, wiring).
-
-### Step 2: Write design.md
-
-Path:
-```
-openspec/changes/{change-name}/design.md
-```
-
-Formato:
 ```markdown
-# Design: {Change Title}
+# Design: <Change Title>
 
 ## Technical Approach
-{Estrategia técnica}
+...
 
 ## Architecture Decisions
-### Decision: {Title}
+### Decision: <title>
 **Choice**: ...
 **Alternatives considered**: ...
 **Rationale**: ...
 
 ## Data Flow
-{ASCII simple}
+...
 
 ## File Changes
 | File | Action | Description |
 |------|--------|-------------|
-| `path` | Create/Modify/Delete | ... |
 
 ## Interfaces / Contracts
-{contratos, tipos, endpoints}
+...
 
 ## Testing Strategy
 | Layer | What to Test | Approach |
-
-## Migration / Rollout
-{o "No migration required."}
-
-## Open Questions
-- [ ] ...
 ```
-
-### Step 3: Return Summary
-
-Resumen de approach, decisiones, archivos afectados y estrategia de tests.
 
 ## Rules
 
 - Siempre leer el codebase real antes de diseñar.
-- Decisiones con “why” (rationale).
-- Usar paths concretos.
-- Seguir patrones del repo salvo que el change sea justamente cambiarlos.
-
+- Justificar decisiones con rationale.
+- Referenciar paths concretos.
+- Si un patrón existente está mal pero el cambio no busca arreglarlo, seguirlo y dejar la observación explícita.
+- Devuelve el envelope estructurado.
