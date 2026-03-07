@@ -48,6 +48,7 @@ repos_tmp="$(mktemp)"
 find "$REPO_ROOT" -maxdepth 2 -name .git -type d -print 2>/dev/null | \
   sed 's/\/.git$//' | \
   awk -v root="$REPO_ROOT" '{ sub("^" root "/?", "", $0); print }' | \
+  awk '$0 != "ai-kit" && $0 != ".ai-kit"' | \
   LC_ALL=C sort > "$repos_tmp"
 
 newline='
