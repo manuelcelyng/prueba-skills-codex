@@ -6,7 +6,7 @@ description: >
 license: Internal
 metadata:
   author: pragma-smartpay
-  version: "0.3"
+  version: "0.4"
   scope: [root]
   auto_invoke:
     - "Planificar HU / contrato"
@@ -19,7 +19,10 @@ Planear cambios Java y dejar listo el material para que `dev-java` implemente y 
 
 ## Shared Operating Model
 
-Leer `.ai-kit/references/delivery-flow.md` antes de producir artefactos. Ese documento define contexto mínimo, gates HU/SDD, write locations y evidencia esperada para pasar a implementación y review.
+Leer primero:
+1. `.ai-kit/references/delivery-flow.md`
+2. `.ai-kit/references/java-smartpay-rulebook.md`
+3. `.ai-kit/references/java-smartpay-reference.md`
 
 ## Deliverables (mandatory order)
 
@@ -35,30 +38,32 @@ El contrato debe dejar explícito:
 - headers/correlación (`traceId` si aplica);
 - request/response con validaciones;
 - códigos de respuesta y ejemplos JSON para **todas** las respuestas esperadas;
-- `ErrorCode`, mensajes y observabilidad relevante.
+- `ErrorCode`, mensajes, auditoría y observabilidad relevante.
 
 ## Implementation Plan Requirements
 
-El plan debe anticipar la taxonomía que `dev-java` y `review` van a exigir:
-- capas afectadas: Domain, UseCase, Infrastructure, Entry Points, DTOs, mappers;
-- puertos nuevos o extendidos y su intención;
-- estrategia de persistencia/query (`derived query`, `@Query`, `DatabaseClient`/`SQLProvider`) con justificación;
-- borrador SQL con parámetros nombrados o explicación explícita si no hay SQL;
-- constantes, logs, catálogo de errores y validaciones a tocar;
-- estrategia de pruebas por capa: UseCase, SQL Provider, Adapter, Handler/Router;
-- impacto en dependencias o ADRs cuando aplique.
+El plan debe anticipar el rulebook Java:
+- `J-ARC-*`: capas afectadas, ownership y puertos `Port`;
+- `J-NAM-*`: nombres de UseCase/modelos consistentes con la capacidad, no con verbos genéricos;
+- `J-API-*`: auditoría de responses, validaciones con campo, traceabilidad y contrato real;
+- `J-MAP-*`: mappers MapStruct y lugares donde no se debe construir objetos cross-layer inline;
+- `J-SQL-*`: estrategia de persistencia/query y borrador SQL parametrizado;
+- `J-ERR-*`: constantes, logs y catálogo de errores a tocar;
+- `J-TST-*`: estrategia de pruebas por capa y baseline TDD;
+- `J-QLT-*`: riesgos de smells, comments y cleanup a evitar desde el diseño.
 
 ## Handoff to Implementation
 
 No marques el planning como listo si falta alguno de estos puntos:
 - contrato con ejemplos JSON suficientes;
 - plan técnico por capas;
-- tratamiento de errores y trazabilidad;
+- tratamiento de errores, auditoría y trazabilidad;
 - borrador SQL o justificación de ausencia;
-- estrategia de pruebas verificable.
+- estrategia de mapping, tests y cleanup verificable.
 
 ## References
 - `.ai-kit/references/delivery-flow.md`
+- `.ai-kit/references/java-smartpay-rulebook.md`
 - `.ai-kit/references/java-smartpay-reference.md`
 - `.ai-kit/references/sdd/sdd-playbook.md`
 

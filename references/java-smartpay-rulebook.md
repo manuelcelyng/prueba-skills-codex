@@ -1,0 +1,246 @@
+# Java SmartPay Rulebook
+
+Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de verdad de reglas técnicas durante `planning-java`, `dev-java` y `review`.
+
+## Cómo leer este documento
+- **ID**: identificador estable de la regla.
+- **Rule**: mandato concreto.
+- **Apply in**: dónde debe reflejarse (`planning`, `dev`, `review`).
+- **Avoid / Prefer**: ejemplos cortos para reducir ambigüedad.
+
+## Mapa rápido de reglas
+
+| Group | IDs | Tema |
+|---|---|---|
+| Arquitectura | `J-ARC-001` a `J-ARC-004` | Hexagonal, ownership de capas, puertos |
+| Naming | `J-NAM-001` a `J-NAM-004` | Idioma, nombres de UseCase, clases y tests |
+| Reactividad | `J-REA-001` a `J-REA-004` | WebFlux/R2DBC, sin bloqueos, composición |
+| Contrato / auditoría / validación | `J-API-001` a `J-API-005` | Responses auditadas, validaciones, traceId |
+| Mapeo | `J-MAP-001` a `J-MAP-004` | MapStruct, mapping entre capas, builders inline |
+| Persistencia y SQL | `J-SQL-001` a `J-SQL-005` | Strategy, named params, aliases, row mapping |
+| Errores y logging | `J-ERR-001` a `J-ERR-004` | `BusinessException`, `ErrorCode`, logs, constantes |
+| Testing | `J-TST-001` a `J-TST-005` | TDD, naming, `*TestData`, slices mínimas |
+| Calidad | `J-QLT-001` a `J-QLT-005` | Clean code, smells, comentarios, duplicación |
+| Documentación | `J-DOC-001` a `J-DOC-003` | contrato, ADRs, catálogos |
+
+---
+
+## Arquitectura
+
+### J-ARC-001 — Hexagonal/Clean obligatoria
+- **Rule**: mantener la dirección `Domain → UseCase → Infrastructure → Entry Points`.
+- **Apply in**: planning, dev, review.
+- **Why**: separa negocio, transporte y detalles técnicos.
+
+### J-ARC-002 — Los puertos externos del dominio usan siempre sufijo `Port`
+- **Rule**: si el dominio expone una dependencia o contrato externo, el nombre termina en `Port`.
+- **Apply in**: planning, dev, review.
+- **Avoid**: `CalendarGateway`, `AuditGateway`, `ParticipantRepository`.
+- **Prefer**: `CalendarPort`, `AuditPort`, `ParticipantPort`.
+
+### J-ARC-003 — UseCase orquesta; adapters y entry points no hacen negocio
+- **Rule**: la lógica de negocio vive en dominio/usecase; adapters, mappers, routers y handlers solo adaptan, validan, persisten o transportan.
+- **Apply in**: planning, dev, review.
+
+### J-ARC-004 — Entry points gestionan boundary concerns
+- **Rule**: routers/handlers leen `traceId`, validan input, llaman al UseCase y construyen la respuesta estándar.
+- **Apply in**: planning, dev, review.
+
+---
+
+## Naming
+
+### J-NAM-001 — Código en inglés; superficie externa en español
+- **Rule**: clases, métodos, variables y paquetes en inglés. Logs, mensajes, Swagger/OpenAPI y responses en español.
+- **Apply in**: planning, dev, review.
+
+### J-NAM-002 — El nombre del UseCase se ancla al modelo/capacidad, no a un verbo genérico
+- **Rule**: el nombre de la clase `UseCase` debe describir la capacidad o agregado del negocio, no una acción imperativa.
+- **Apply in**: planning, dev, review.
+- **Avoid**: `ManageDeductionRegistrationUseCase`, `CreateNoveltyUseCase`, `ProcessLiquidationUseCase`, `ExecuteDeductionUseCase`.
+- **Prefer**: `DeductionRegistrationUseCase`, `NoveltyRegistrationUseCase`, `LiquidationBatchUseCase`, `AuditTraceabilityUseCase`.
+
+### J-NAM-003 — Métodos públicos de UseCase con nombre semántico, nunca `execute`
+- **Rule**: el método público del UseCase debe expresar el resultado o interacción de negocio; `execute`, `process`, `manage`, `handle` no son aceptables como nombre genérico.
+- **Apply in**: planning, dev, review.
+- **Avoid**: `execute()`, `manage()`, `process()`.
+- **Prefer**: `registerDeduction()`, `publishAuditMessage()`, `loadRetainedPayments()`.
+
+### J-NAM-004 — Naming estándar de clases auxiliares y tests
+- **Rule**: usar sufijos consistentes (`Adapter`, `Mapper`, `Router`, `Handler`, `SQLProvider`, `TestData`, `*Test`).
+- **Apply in**: planning, dev, review.
+
+---
+
+## Reactividad
+
+### J-REA-001 — Flujos HTTP y de negocio reactivos end-to-end
+- **Rule**: en entry points, usecases y adapters del flujo principal usar Mono/Flux de extremo a extremo.
+- **Apply in**: planning, dev, review.
+
+### J-REA-002 — Prohibido bloquear
+- **Rule**: no usar `.block()`, `Thread.sleep`, JDBC ni I/O bloqueante dentro del flujo reactivo principal.
+- **Apply in**: dev, review.
+
+### J-REA-003 — `subscribe()` manual solo en bordes técnicos justificados
+- **Rule**: un `subscribe()` manual solo es aceptable en servicios de borde claramente aislados (fire-and-forget audit/messaging) y debe quedar encapsulado, justificado y protegido contra errores.
+- **Apply in**: planning, dev, review.
+
+### J-REA-004 — No materializar para reemitir sin justificación
+- **Rule**: evitar `collectList()` + `Flux::fromIterable` cuando el objetivo es seguir procesando; preferir composición streaming.
+- **Apply in**: dev, review.
+
+---
+
+## Contrato, auditoría y validación
+
+### J-API-001 — Toda respuesta pasa por builders/utilitarios auditables
+- **Rule**: responses exitosas y de error deben construirse vía builders o servicios centralizados que garanticen trazabilidad/auditoría.
+- **Apply in**: planning, dev, review.
+
+### J-API-002 — `traceId` obligatorio en responses y observabilidad
+- **Rule**: toda respuesta estándar expone `idTrazabilidad`/`traceId`; handlers y filtros deben leer o generar el trace cuando falte.
+- **Apply in**: planning, dev, review.
+
+### J-API-003 — Validaciones con mensajes en español y campo traducido
+- **Rule**: los errores de validación deben responder en español e indicar el campo funcional (`campo`, `mensaje`), no solo el path técnico Java.
+- **Apply in**: planning, dev, review.
+
+### J-API-004 — Validación en DTO/boundary con Bean Validation + validator centralizado
+- **Rule**: usar anotaciones de validación y/o `ValidatorEngine` del repo; evitar validaciones manuales dispersas en handlers o usecases salvo reglas de negocio.
+- **Apply in**: planning, dev, review.
+
+### J-API-005 — Contrato y OpenAPI alineados con el payload real
+- **Rule**: request, response, ejemplos JSON, códigos HTTP y `ErrorCode` deben estar alineados entre contrato, OpenAPI, handlers y tests.
+- **Apply in**: planning, dev, review.
+
+---
+
+## Mapeo
+
+### J-MAP-001 — MapStruct es el estándar para mapping entre capas
+- **Rule**: todo mapping DTO↔domain, domain↔entity, DTO↔message o entity↔domain debe vivir en mappers MapStruct salvo excepción muy justificada.
+- **Apply in**: planning, dev, review.
+
+### J-MAP-002 — No hardcodear creación de objetos cross-layer en flujos
+- **Rule**: handlers, usecases y adapters no deben construir manualmente objetos de otra capa cuando el cambio sea claramente un mapping; usar mapper o método dedicado.
+- **Apply in**: dev, review.
+- **Avoid**: builder chains inline para pasar DTO→dominio o dominio→DTO dentro del flujo.
+- **Prefer**: `DeductionRegistrationRequestMapper`, `DeductionRegisterResponseMapper`, `AuditMapper`.
+
+### J-MAP-003 — Normalizaciones repetibles viven en mapper/helper dedicado
+- **Rule**: trims, uppercase y normalizaciones sistemáticas deben quedar en `@AfterMapping`, mapper helper o método privado dedicado; no regadas por todo el flujo.
+- **Apply in**: dev, review.
+
+### J-MAP-004 — Mappers sin lógica de negocio
+- **Rule**: un mapper transforma estructura/formato; no decide reglas de negocio.
+- **Apply in**: planning, dev, review.
+
+---
+
+## Persistencia y SQL
+
+### J-SQL-001 — Strategy de query según complejidad
+- **Rule**: derived query para lo simple, `@Query` para lo intermedio legible, `DatabaseClient`/`SQLProvider` para lo complejo.
+- **Apply in**: planning, dev, review.
+
+### J-SQL-002 — SQL siempre parametrizado
+- **Rule**: usar named params/bind; nunca concatenar input del usuario.
+- **Apply in**: planning, dev, review.
+
+### J-SQL-003 — SQL Providers legibles y cohesionados
+- **Rule**: query base clara, filtros opcionales encapsulados, métodos cohesionados y sin mezclar demasiadas responsabilidades.
+- **Apply in**: planning, dev, review.
+
+### J-SQL-004 — Alias explícitos y semánticos
+- **Rule**: los alias de columnas/derivados deben ser legibles; usar `snake_case` para derivados si mejora el mapping.
+- **Apply in**: dev, review.
+
+### J-SQL-005 — Row mapping separado de la lógica del adapter
+- **Rule**: cuando el repo siga patrón `*RowMapper`, usarlo; el adapter no debe mezclar SQL, mapping complejo y negocio en un solo método.
+- **Apply in**: planning, dev, review.
+
+---
+
+## Errores, logging y constantes
+
+### J-ERR-001 — Error funcional siempre como `BusinessException` + `ErrorCode`
+- **Rule**: no propagar `RuntimeException` cruda hacia entry points; mapear las excepciones técnicas al catálogo del micro.
+- **Apply in**: planning, dev, review.
+
+### J-ERR-002 — Logs en español, sin PII, con `traceId`
+- **Rule**: logs funcionales en español, sin datos sensibles, e incluyendo `traceId` como dato principal de correlación.
+- **Apply in**: dev, review.
+
+### J-ERR-003 — Literales repetidos a `Constants`
+- **Rule**: headers, logs, columnas, estados, mensajes y códigos repetidos deben salir de `Constants` o clases equivalentes.
+- **Apply in**: planning, dev, review.
+
+### J-ERR-004 — No concatenar logs con `+`
+- **Rule**: usar placeholders del logger; no armar mensajes manualmente.
+- **Apply in**: dev, review.
+
+---
+
+## Testing
+
+### J-TST-001 — Flujo base TDD
+- **Rule**: analizar HU/change, diseñar pruebas primero, implementar por capas, refactorizar y luego validar build/tests.
+- **Apply in**: planning, dev, review.
+
+### J-TST-002 — Cobertura mínima por slice
+- **Rule**: cada cambio relevante debe cubrir al menos UseCase + SQLProvider + Adapter + Handler/Router, según aplique.
+- **Apply in**: planning, dev, review.
+
+### J-TST-003 — Naming de tests
+- **Rule**: clase `XxxTest`; método `should<Expected>When<Condition>`; `@DisplayName` consistente y descriptivo.
+- **Apply in**: dev, review.
+
+### J-TST-004 — Datos de prueba centralizados
+- **Rule**: usar `*TestData`, fixtures u Object Mothers; evitar datos de negocio hardcodeados regados.
+- **Apply in**: dev, review.
+
+### J-TST-005 — Reactor y asserts correctos
+- **Rule**: `StepVerifier` para flujos reactivos, `WebTestClient` para entry points reactivos, AssertJ encadenado cuando aplique.
+- **Apply in**: dev, review.
+
+---
+
+## Calidad
+
+### J-QLT-001 — Sin code smells evidentes
+- **Rule**: evitar métodos gigantes, parámetros >5 sin objeto, duplicación, nested logic innecesaria, imports wildcard y mutabilidad compartida en flujos.
+- **Apply in**: planning, dev, review.
+
+### J-QLT-002 — Sin código comentado ni comentarios explicativos innecesarios
+- **Rule**: no dejar código comentado ni comentarios de relleno (`Given/When/Then`, explicación obvia, TODOs genéricos). La claridad debe salir del naming y la extracción de métodos.
+- **Apply in**: dev, review.
+
+### J-QLT-003 — Sin hardcode repetido ni magic numbers
+- **Rule**: si un literal/número se repite o tiene significado de negocio, extraerlo.
+- **Apply in**: dev, review.
+
+### J-QLT-004 — Código limpio antes que parches inline
+- **Rule**: si una construcción compleja cabe mejor en un mapper, helper o value object, extraerla; no dejar builder chains opacos en el flujo principal.
+- **Apply in**: dev, review.
+
+### J-QLT-005 — La intención se expresa con estructura, no con comentarios
+- **Rule**: preferir nombres semánticos, métodos cortos y helpers dedicados en vez de explicar código con comentarios.
+- **Apply in**: dev, review.
+
+---
+
+## Documentación y mantenimiento
+
+### J-DOC-001 — Si cambias contrato o errores, actualiza artefactos
+- **Rule**: cambios en response codes, payloads o errores deben reflejarse en contrato/HU/specs y catálogos del micro.
+- **Apply in**: planning, dev, review.
+
+### J-DOC-002 — ADR para decisiones estratégicas
+- **Rule**: dependencias nuevas o decisiones de arquitectura con trade-offs deben dejar rastro documental.
+- **Apply in**: planning, review.
+
+### J-DOC-003 — Planning debe cubrir todas las familias de reglas
+- **Rule**: el contrato y plan deben anticipar arquitectura, naming, validación, auditoría, mapping, SQL, errores, tests y cleanup.
+- **Apply in**: planning, review.
+

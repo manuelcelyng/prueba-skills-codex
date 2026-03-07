@@ -1,6 +1,8 @@
 # Java SmartPay Reference
 
-Referencia consolidada para planning Java en micros SmartPay/ASULADO. Reúne plantilla de contrato, plantilla de plan, ejemplos JSON y checklist para dependencias/ADRs sin duplicar el rulebook normativo de `dev-java`.
+Referencia consolidada para planning Java en micros SmartPay/ASULADO. Reúne plantilla de contrato, plantilla de plan, ejemplos JSON y checklist para dependencias/ADRs.
+
+> Reglas normativas de implementación/review: ver `.ai-kit/references/java-smartpay-rulebook.md`.
 
 ## Tabla de contenido
 1. Cuándo cargar esta referencia

@@ -6,7 +6,7 @@ description: >
 license: Internal
 metadata:
   author: pragma-smartpay
-  version: "0.3"
+  version: "0.4"
   scope: [root]
   auto_invoke:
     - "Revisar cambios"
@@ -23,8 +23,8 @@ Leer `.ai-kit/references/delivery-flow.md` antes de revisar. Ese documento defin
 
 ## Normative Baseline
 
-- Para Java, `dev-java` es el rulebook de implementación.
-- Para Python, `dev-python` es el rulebook de implementación.
+- Para Java, el baseline obligatorio es `dev-java` + `.ai-kit/references/java-smartpay-rulebook.md`.
+- Para Python, el baseline obligatorio es `dev-python`.
 - Usa `.ai-kit/references/java-smartpay-reference.md` o `.ai-kit/references/python-smartpay-reference.md` solo cuando necesites contrastar contrato, ejemplos, plan, dependencias o ADRs.
 
 ## Review Workflow
@@ -49,31 +49,29 @@ Reporta hallazgo de proceso cuando aplique:
 - cambio que introduce error codes, dependencias o decisiones sin actualizar la evidencia documental requerida;
 - cambio “listo para merge” sin evidencia real de tests/build.
 
-## Java Audit Lens (audit against `dev-java`)
+## Java Audit Lens (audit against `dev-java` + rulebook)
 
-### 1) Arquitectura y nombres
-- Aplica las secciones 1 y 2 de `dev-java`.
-- Señala lógica de negocio en adapters, mappers, routers o handlers.
-- Señala puertos mal nombrados, UseCases genéricos o estructuras que rompan el ownership de capas.
+### `J-ARC-*` y `J-NAM-*`
+- Verifica hexagonal/clean, ownership de capas, puertos `Port` y naming consistente.
+- Señala cualquier `Gateway`, `Repository` de dominio o `UseCase` nombrado como verbo genérico (`Manage`, `Create`, `Process`, `Handle`, `execute`).
 
-### 2) Reactividad y orquestación
-- Aplica la sección 3 de `dev-java`.
-- Señala `.block()`, `Thread.sleep`, JDBC, `subscribe()` manual, side-effects en `map` o materialización innecesaria con `collectList()` + `Flux::fromIterable`.
-- Verifica que el manejo de errores por item en lotes sea explícito y coherente con el caso de negocio.
+### `J-REA-*`
+- Señala `.block()`, `Thread.sleep`, JDBC, `subscribe()` manual no justificado, materialización innecesaria o composición reactiva defectuosa.
 
-### 3) Persistencia, SQL y mapping
-- Aplica las secciones 4 y 5 de `dev-java`.
-- Verifica que la estrategia de query sea razonable, que el SQL use named params, que los alias sean legibles y que el mapping siga el patrón del repo (`*RowMapper` si corresponde).
-- Señala strings técnicos repetidos, modelos con sufijos incorrectos o validaciones manuales dispersas.
+### `J-API-*`
+- Verifica que success y error responses salgan por builders auditables, que propaguen `traceId` y que las validaciones respondan en español con campo funcional.
 
-### 4) Contrato, errores y observabilidad
-- Aplica la sección 6 de `dev-java`.
-- Verifica alineación de router, handler, DTOs, OpenAPI y tests con el contrato aprobado.
-- Señala ausencia de `BusinessException` + `ErrorCode`, catálogo de errores desactualizado, logs fuera de convención, PII o literales de negocio sin centralizar.
+### `J-MAP-*` y `J-SQL-*`
+- Verifica mappers MapStruct, ausencia de builders cross-layer inline en el flujo, estrategia SQL adecuada, named params, aliases legibles y separación de row mapping.
 
-### 5) Testing y cleanup
-- Aplica las secciones 7 y 8 de `dev-java`.
-- Verifica cobertura por capa, uso correcto de `@InjectMocks`/`@Mock`, datos reutilizables, tests SQL enfocados en cláusulas y params, y ausencia de código muerto o deuda invisible.
+### `J-ERR-*`
+- Señala ausencia de `BusinessException` + `ErrorCode`, logs fuera de convención, PII o literales técnicos sin centralizar.
+
+### `J-TST-*` y `J-QLT-*`
+- Verifica TDD implícito en el cambio, slices mínimas, naming `shouldXWhenY`, `*TestData`, ausencia de code smells y comentarios innecesarios/código comentado.
+
+### `J-DOC-*`
+- Verifica que contrato, catálogo de errores y ADRs/artefactos asociados se hayan actualizado cuando el cambio lo requiere.
 
 ## Python Audit Lens (audit against `dev-python`)
 
