@@ -81,6 +81,17 @@ También soporta:
 - `engram` → persistencia sin archivos del repo
 - `none` → flujo efímero
 
+### Engram (actualizado)
+
+Si quieres usar `artifact_store.mode=engram`, primero asegúrate de tener Engram instalado y configurado en tu asistente.
+
+Comandos actuales del repo oficial:
+- Codex: `engram setup codex`
+- Gemini CLI: `engram setup gemini-cli`
+- Claude Code: `engram setup claude-code` o plugin marketplace
+
+Si Engram no está disponible en la sesión, el flujo SDD debe caer explícitamente a `openspec` o `none`; no debe fingir que `engram` quedó activo.
+
 ## Assistant behavior
 
 | Assistant | Cómo opera el flujo |

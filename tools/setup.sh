@@ -224,10 +224,22 @@ normalized_flags_line() {
   echo "$out" | sed 's/^[[:space:]]*//'
 }
 
+print_engram_hint() {
+  echo -e "${CYAN}Optional Engram setup for persistent memory:${NC}"
+  $SETUP_CODEX && echo -e "  - Codex: ${BOLD}engram setup codex${NC}"
+  $SETUP_GEMINI && echo -e "  - Gemini CLI: ${BOLD}engram setup gemini-cli${NC}"
+  $SETUP_CLAUDE && echo -e "  - Claude Code: ${BOLD}engram setup claude-code${NC}"
+  if $SETUP_COPILOT; then
+    echo -e "  - Copilot/VS Code: add Engram MCP per the official README${NC}"
+  fi
+}
+
 post_setup() {
   if $SETUP_CODEX; then
     setup_codex_mcp_azuredevops
   fi
+  echo ""
+  print_engram_hint
 }
 
 symlink_dir() {

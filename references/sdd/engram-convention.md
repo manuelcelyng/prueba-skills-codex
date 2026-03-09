@@ -16,6 +16,8 @@ scope:     project
 
 Excepción: `sdd-init` usa `sdd-init/{project-name}` como `title` y `topic_key`.
 
+> Esto está alineado con el Engram actual: `topic_key` funciona como upsert estable y `scope` debe quedar en `project` para no mezclar memorias personales con artefactos del cambio.
+
 ## Artifact Types
 
 | Artifact type | Producido por |
@@ -47,17 +49,15 @@ mem_save(
   topic_key="sdd/{change-name}/{artifact-type}",
   type="architecture",
   project="{project}",
+  scope="project",
   content="{markdown completo}"
 )
 ```
 
 ## Update Existing Artifact
 
-Cuando ya tienes el `id` exacto del artefacto recuperado:
-
-```text
-mem_update(id=<observation-id>, content="{markdown actualizado}")
-```
+- Si ya tienes el `id` exacto del artefacto: `mem_update(id=<observation-id>, content="{markdown actualizado}")`
+- Si no tienes el `id` pero sí el `topic_key`, `mem_save` con el mismo `topic_key` actualiza el tópico existente.
 
 ## State Artifact Example
 
@@ -79,3 +79,4 @@ last_updated: 2026-03-07T12:00:00Z
 - Usa `topic_key` estable para permitir upserts sin duplicados.
 - Si una fase produce múltiples dominios, persístelos en un solo artefacto con encabezados claros por dominio.
 - El `archive-report` debe dejar lineage de observation IDs cuando sea útil para auditoría.
+- Si una decisión evoluciona fuera del flujo SDD, puedes usar `mem_suggest_topic_key` antes de guardar; para artefactos SDD, el naming determinístico de arriba sigue siendo la fuente de verdad.

@@ -21,6 +21,20 @@ Orden de precedencia:
 
 > Inspiración de Agent Teams Lite: el backend es pluggable. En SmartPay se privilegia `openspec` porque deja trazabilidad visible por microservicio y se alinea con HU/contexto del equipo.
 
+## Engram Mode Prerequisites
+
+`engram` solo es válido si las tools MCP de Engram están **realmente disponibles** en la sesión del asistente.
+
+Setup actualizado según el repo oficial de Engram:
+- Codex: `engram setup codex`
+- Gemini CLI: `engram setup gemini-cli`
+- Claude Code: `engram setup claude-code` o instalar el plugin desde marketplace
+
+Si el usuario pide `engram` pero las tools no están disponibles:
+- **no finjas** que el modo quedó activo;
+- explica el prerequisito faltante;
+- propone fallback explícito a `openspec` o `none`.
+
 ## Behavior Per Mode
 
 | Mode | Lee desde | Escribe en | Archivos del repo |

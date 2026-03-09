@@ -6,7 +6,7 @@ description: >
 license: Internal
 metadata:
   author: pragma-smartpay
-  version: "0.3"
+  version: "0.4"
   scope: [root]
   auto_invoke:
     - "Iniciar SDD (SmartPay)"
@@ -61,6 +61,15 @@ Default SmartPay:
 Overrides:
 - si el usuario pide repo limpio o memoria persistente → `engram`
 - si el usuario pide trabajo efímero / sin archivos → `none`
+
+## Engram Guardrail
+
+Si el modo resuelve a `engram`, primero confirma que las tools MCP de Engram están disponibles en la sesión.
+
+Si no lo están:
+- no declares `engram` como activo;
+- informa el prerequisito faltante (`engram setup codex`, `engram setup gemini-cli`, `engram setup claude-code`, según el asistente);
+- propone fallback explícito a `openspec` o `none`.
 
 ## State Recovery Rule
 

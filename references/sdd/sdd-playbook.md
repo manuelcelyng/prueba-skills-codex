@@ -57,6 +57,15 @@ Resumen SmartPay:
 - repo-clean / memoria persistente: `engram`
 - efímero: `none`
 
+### Si quieres usar Engram
+
+Asegura primero el setup del asistente con la versión actual de Engram:
+- Codex: `engram setup codex`
+- Gemini CLI: `engram setup gemini-cli`
+- Claude Code: `engram setup claude-code` o plugin marketplace
+
+Si Engram no está disponible en la sesión, no intentes persistir en `engram`; usa `openspec` o `none` explícitamente.
+
 ## Assistant Behavior
 
 | Assistant | Execution style |
