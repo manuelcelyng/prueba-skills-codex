@@ -6,7 +6,7 @@ description: >
 license: Internal
 metadata:
   author: pragma-smartpay
-  version: "0.5"
+  version: "0.6"
   scope: [root]
   auto_invoke:
     - "Revisar cambios"
@@ -53,8 +53,9 @@ Reporta hallazgo de proceso cuando aplique:
 
 ### `J-ARC-*` y `J-NAM-*`
 - Verifica hexagonal/clean, ownership de capas, puertos `Port` y naming consistente.
-- Señala cualquier `Gateway`, `Repository` de dominio, `Port` nombrado por verbo/proceso o `UseCase` nombrado como verbo genérico (`Manage`, `Create`, `Process`, `Handle`, `execute`).
+- Señala cualquier `Gateway`, `Repository` de dominio, `Port` nombrado por verbo/proceso, abstracción reusable atada a un contexto transitorio (`Novelty`, `Registration`) o `UseCase` nombrado como verbo genérico (`Manage`, `Create`, `Process`, `Handle`, `execute`).
 - Señala helpers, utilitarios o `*TestData` que debían ser `@UtilityClass` y quedaron como clases instanciables.
+- En `novedades`, valida también que el baseline de `reactive-web` (router path style, CORS, security headers, filters) siga el mismo patrón de `recepcion`, `liquidacion` y `dispersion`.
 
 ### `J-REA-*`
 - Señala `.block()`, `Thread.sleep`, JDBC, `subscribe()` manual no justificado, materialización innecesaria o composición reactiva defectuosa.
@@ -64,12 +65,18 @@ Reporta hallazgo de proceso cuando aplique:
 
 ### `J-MAP-*` y `J-SQL-*`
 - Verifica mappers MapStruct, ausencia de builders cross-layer inline en el flujo, estrategia SQL adecuada, named params, aliases legibles y separación de row mapping.
+- Señala uso de `INSTANCE`/`Mappers.getMapper(...)` en código productivo cuando el mapper debía ser Spring-managed.
+- Señala repositorios reactivos simples que usen extensiones extra (`ReactiveQueryByExampleExecutor`, helpers genéricos) sin necesidad real en lugar de `R2dbcRepository`.
+- `snake_case` solo es aceptable en aliases SQL dentro de providers/queries; fuera de ahí debe reportarse como desviación.
 
 ### `J-ERR-*`
 - Señala ausencia de `BusinessException` + `ErrorCode`, logs fuera de convención, PII o literales técnicos sin centralizar.
 
 ### `J-TST-*` y `J-QLT-*`
-- Verifica TDD implícito en el cambio, slices mínimas, métodos `shouldXWhenY`, `@DisplayName` en español, `*TestData`, ausencia de code smells, wrappers artificiales, configuración sin consumidor y comentarios innecesarios/código comentado.
+- Verifica TDD implícito en el cambio, slices mínimas, métodos de test en camelCase (preferiblemente `shouldXWhenY`), `@DisplayName` en español, `*TestData`, ausencia de code smells, wrappers artificiales, configuración sin consumidor y comentarios innecesarios/código comentado.
+- Señala unit tests sin `@InjectMocks`/`@Mock` cuando el patrón del repo sí aplica.
+- Señala tests de config simple, helpers sin comportamiento o mappers de infraestructura aislados cuando debían cubrirse vía adapter/usecase/entry point.
+- Cuando haya múltiples casos homogéneos con duplicación, recomienda test parametrizado y extracción de datos a `*TestData`.
 
 ### `J-DOC-*`
 - Verifica que contrato, catálogo de errores y ADRs/artefactos asociados se hayan actualizado cuando el cambio lo requiere.

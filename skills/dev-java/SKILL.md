@@ -6,7 +6,7 @@ description: >
 license: Internal
 metadata:
   author: pragma-smartpay
-  version: "0.5"
+  version: "0.6"
   scope: [root]
   auto_invoke:
     - "Implementar cambios"
@@ -39,18 +39,23 @@ Detén la implementación y redirige cuando aplique:
 
 - `J-ARC-002`: los puertos del dominio usan siempre sufijo `Port`; `Gateway` no se usa.
 - `J-NAM-006`: los `Port` también se nombran por entidad/capacidad, no por verbo o proceso.
-- `J-NAM-002`: el nombre del `UseCase` debe describir modelo/capacidad, no un verbo imperativo.
+- `J-NAM-002`: el nombre del `UseCase` debe describir modelo/capacidad, no verbos ni sufijos de flujo como `Registration`.
+- `J-NAM-007`: abstracciones reutilizables (mensajería/auditoría/publicación) se nombran por capacidad genérica, no por contextos transitorios como `Novelty`.
 - `J-NAM-003`: el método público del UseCase no se llama `execute`.
 - `J-NAM-005`: clases utilitarias y `*TestData` deben usar `@UtilityClass`.
 - `J-API-001`: toda respuesta debe salir por un builder/utilitario auditable.
 - `J-API-003`: validaciones en español indicando el campo funcional.
-- `J-MAP-001` y `J-MAP-002`: mappings entre capas con MapStruct; no hardcodear builders cross-layer inline en el flujo.
+- `J-ARC-005`: colaboradores técnicos siempre por inyección; no `INSTANCE` ni instancias manuales en flujo productivo.
+- `J-ARC-006` y `J-API-006`: en `novedades`, el baseline de `reactive-web` debe mantenerse alineado con `recepcion`, `liquidacion` y `dispersion`, incluyendo paths y artefactos asociados.
+- `J-MAP-001`, `J-MAP-002` y `J-MAP-005`: mappings entre capas con MapStruct; no hardcodear builders cross-layer inline y los mappers de infraestructura deben ser Spring-managed.
 - `J-REA-002`: prohibido bloquear flujos reactivos.
+- `J-REA-005`: la respuesta principal del endpoint sale del flujo principal; lo asíncrono queda aislado como side effect técnico.
 - `J-ERR-001`: errores funcionales con `BusinessException` + `ErrorCode`.
 - `J-QLT-002`: no dejar comentarios/código comentado como soporte de claridad.
 - `J-QLT-006` y `J-QLT-007`: evitar wrappers sin comportamiento y configuración/beans sin consumidor real.
 - `J-TST-001`: trabajar con baseline TDD.
-- `J-TST-003`: método de test en inglés; `@DisplayName` en español.
+- `J-SQL-004` y `J-SQL-006`: `snake_case` solo para aliases SQL cuando mejore el mapping; repositorios R2DBC simples permanecen delgados (`R2dbcRepository`).
+- `J-TST-003`, `J-TST-006`, `J-TST-007` y `J-TST-008`: método de test en inglés y camelCase, `@DisplayName` en español, Mockito estándar, `TestData`, parametrización cuando aplique y sin tests aislados de config/mappers sin valor funcional.
 
 ## Done Criteria
 

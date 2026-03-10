@@ -12,14 +12,14 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 
 | Group | IDs | Tema |
 |---|---|---|
-| Arquitectura | `J-ARC-001` a `J-ARC-004` | Hexagonal, ownership de capas, puertos |
-| Naming | `J-NAM-001` a `J-NAM-006` | Idioma, nombres de UseCase, puertos, clases y utilitarios |
-| Reactividad | `J-REA-001` a `J-REA-004` | WebFlux/R2DBC, sin bloqueos, composición |
-| Contrato / auditoría / validación | `J-API-001` a `J-API-005` | Responses auditadas, validaciones, traceId |
-| Mapeo | `J-MAP-001` a `J-MAP-004` | MapStruct, mapping entre capas, builders inline |
-| Persistencia y SQL | `J-SQL-001` a `J-SQL-005` | Strategy, named params, aliases, row mapping |
+| Arquitectura | `J-ARC-001` a `J-ARC-006` | Hexagonal, ownership de capas, puertos |
+| Naming | `J-NAM-001` a `J-NAM-007` | Idioma, nombres de UseCase, puertos, clases y utilitarios |
+| Reactividad | `J-REA-001` a `J-REA-005` | WebFlux/R2DBC, sin bloqueos, composición |
+| Contrato / auditoría / validación | `J-API-001` a `J-API-006` | Responses auditadas, validaciones, traceId |
+| Mapeo | `J-MAP-001` a `J-MAP-005` | MapStruct, mapping entre capas, builders inline |
+| Persistencia y SQL | `J-SQL-001` a `J-SQL-006` | Strategy, named params, aliases, row mapping |
 | Errores y logging | `J-ERR-001` a `J-ERR-004` | `BusinessException`, `ErrorCode`, logs, constantes |
-| Testing | `J-TST-001` a `J-TST-005` | TDD, naming, `*TestData`, slices mínimas |
+| Testing | `J-TST-001` a `J-TST-008` | TDD, naming, `*TestData`, slices mínimas |
 | Calidad | `J-QLT-001` a `J-QLT-007` | Clean code, smells, comentarios, wrappers y configuración muerta |
 | Documentación | `J-DOC-001` a `J-DOC-003` | contrato, ADRs, catálogos |
 
@@ -46,6 +46,16 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Rule**: routers/handlers leen `traceId`, validan input, llaman al UseCase y construyen la respuesta estándar.
 - **Apply in**: planning, dev, review.
 
+### J-ARC-005 — Dependencias técnicas siempre por inyección, nunca por instancia manual
+- **Rule**: handlers, usecases, adapters y servicios no deben instanciar colaboradores técnicos (`new`, `INSTANCE`, factories estáticas) cuando el framework o el módulo ya los expone como dependencia inyectable.
+- **Apply in**: planning, dev, review.
+- **Avoid**: `Mapper.INSTANCE`, `new ResponseBuilderService()`, `new AuditService()` dentro del flujo.
+- **Prefer**: inyección por constructor de mappers, builders, publishers y servicios.
+
+### J-ARC-006 — En `novedades`, el baseline de `reactive-web` replica a los micros de referencia
+- **Rule**: piezas transversales de `reactive-web` (router base/path style, CORS, security headers, filters y convenciones de entry point) deben alinearse con `recepcion`, `liquidacion` y `dispersion`, salvo desviación aprobada y documentada.
+- **Apply in**: planning, dev, review.
+
 ---
 
 ## Naming
@@ -54,11 +64,11 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Rule**: clases, métodos, variables y paquetes en inglés. Logs, mensajes, Swagger/OpenAPI y responses en español.
 - **Apply in**: planning, dev, review.
 
-### J-NAM-002 — El nombre del UseCase se ancla al modelo/capacidad, no a un verbo genérico
-- **Rule**: el nombre de la clase `UseCase` debe describir la capacidad o agregado del negocio, no una acción imperativa.
+### J-NAM-002 — El nombre del UseCase se ancla al modelo/capacidad, no al flujo puntual
+- **Rule**: el nombre de la clase `UseCase` debe describir el modelo o capacidad principal del negocio y evitar verbos genéricos o sufijos de flujo/operación que no agreguen semántica real.
 - **Apply in**: planning, dev, review.
-- **Avoid**: `ManageDeductionRegistrationUseCase`, `CreateNoveltyUseCase`, `ProcessLiquidationUseCase`, `ExecuteDeductionUseCase`.
-- **Prefer**: `DeductionRegistrationUseCase`, `NoveltyRegistrationUseCase`, `LiquidationBatchUseCase`, `AuditTraceabilityUseCase`.
+- **Avoid**: `ManageDeductionUseCase`, `DeductionRegistrationUseCase`, `CreateNoveltyUseCase`, `ProcessLiquidationUseCase`, `ExecuteDeductionUseCase`.
+- **Prefer**: `DeductionUseCase`, `ChangesMessageUseCase`, `LiquidationBatchUseCase`, `AuditTraceabilityUseCase`.
 
 ### J-NAM-003 — Métodos públicos de UseCase con nombre semántico, nunca `execute`
 - **Rule**: el método público del UseCase debe expresar el resultado o interacción de negocio; `execute`, `process`, `manage`, `handle` no son aceptables como nombre genérico.
@@ -80,7 +90,13 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Rule**: además de terminar en `Port`, el nombre del puerto debe representar la entidad o capacidad del dominio y evitar verbos o procesos.
 - **Apply in**: planning, dev, review.
 - **Avoid**: `DeductionRegistrationPort`, `NoveltyPublishPort`, `CalendarQueryPort`.
-- **Prefer**: `DeductionPort`, `NoveltyMessagePort`, `CalendarPort`.
+- **Prefer**: `DeductionPort`, `ChangesMessagePort`, `CalendarPort`.
+
+### J-NAM-007 — Abstracciones reutilizables se nombran por capacidad genérica
+- **Rule**: si una abstracción técnica puede reutilizarse más allá de una HU o agregado puntual (por ejemplo mensajería, auditoría o publicación de cambios), su nombre debe reflejar esa capacidad genérica y no un contexto transitorio.
+- **Apply in**: planning, dev, review.
+- **Avoid**: `NoveltyMessagePort`, `SqsNoveltyMessagePublisherAdapter`, `DeductionRegistrationPublisher`.
+- **Prefer**: `ChangesMessagePort`, `SqsChangesMessagePublisherAdapter`, `ChangesPublisher`.
 
 ---
 
@@ -101,6 +117,10 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 ### J-REA-004 — No materializar para reemitir sin justificación
 - **Rule**: evitar `collectList()` + `Flux::fromIterable` cuando el objetivo es seguir procesando; preferir composición streaming.
 - **Apply in**: dev, review.
+
+### J-REA-005 — La respuesta principal no se delega a publicación asíncrona
+- **Rule**: la respuesta HTTP del caso principal se construye y retorna dentro del flujo principal exitoso; publicaciones asíncronas (auditoría, SQS, fire-and-forget) quedan aisladas como side effect técnico y no definen el resultado base del endpoint.
+- **Apply in**: planning, dev, review.
 
 ---
 
@@ -126,6 +146,10 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Rule**: request, response, ejemplos JSON, códigos HTTP y `ErrorCode` deben estar alineados entre contrato, OpenAPI, handlers y tests.
 - **Apply in**: planning, dev, review.
 
+### J-API-006 — Paths y shape del entry point se sincronizan con el baseline del workspace
+- **Rule**: cuando el review funcional marque un path o shape de router para `novedades`, ese ajuste debe reflejarse también en tests, curls, contrato y artefactos HU/SDD del micro.
+- **Apply in**: planning, dev, review.
+
 ---
 
 ## Mapeo
@@ -148,6 +172,12 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Rule**: un mapper transforma estructura/formato; no decide reglas de negocio.
 - **Apply in**: planning, dev, review.
 
+### J-MAP-005 — Mappers de infraestructura gestionados por Spring
+- **Rule**: los mappers MapStruct consumidos por adapters, handlers o servicios deben declararse con `@Mapper(componentModel = "spring")` e inyectarse; en código productivo no se usa `INSTANCE`/`Mappers.getMapper(...)`.
+- **Apply in**: planning, dev, review.
+- **Avoid**: `ChangesRequestEntityMapper.INSTANCE.toEntity(...)`.
+- **Prefer**: `private final ChangesRequestEntityMapper changesRequestEntityMapper`.
+
 ---
 
 ## Persistencia y SQL
@@ -165,12 +195,18 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Apply in**: planning, dev, review.
 
 ### J-SQL-004 — Alias explícitos y semánticos
-- **Rule**: los alias de columnas/derivados deben ser legibles; usar `snake_case` para derivados si mejora el mapping.
+- **Rule**: los alias de columnas/derivados deben ser legibles; usar `snake_case` solo en aliases SQL cuando mejore el mapping.
 - **Apply in**: dev, review.
 
 ### J-SQL-005 — Row mapping separado de la lógica del adapter
 - **Rule**: cuando el repo siga patrón `*RowMapper`, usarlo; el adapter no debe mezclar SQL, mapping complejo y negocio en un solo método.
 - **Apply in**: planning, dev, review.
+
+### J-SQL-006 — Repositorios R2DBC simples se mantienen delgados
+- **Rule**: para persistencia reactiva simple usar `R2dbcRepository` y métodos derivados explícitos; no agregar `ReactiveQueryByExampleExecutor`, helpers genéricos o extensiones de repositorio si el flujo no las necesita.
+- **Apply in**: planning, dev, review.
+- **Avoid**: repositorios que extienden varios contratos reactivos genéricos “por si acaso”.
+- **Prefer**: `public interface DeductionRepository extends R2dbcRepository<...>`.
 
 ---
 
@@ -205,9 +241,9 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Apply in**: planning, dev, review.
 
 ### J-TST-003 — Naming de tests
-- **Rule**: clase `XxxTest`; método `should<Expected>When<Condition>` en camelCase inglés; `@DisplayName` en español, consistente y descriptivo.
+- **Rule**: clase `XxxTest`; método en camelCase inglés, sin `_` ni otros separadores; `@DisplayName` en español, consistente y descriptivo. El patrón `should<Expected>When<Condition>` es el preferido cuando aplique.
 - **Apply in**: dev, review.
-- **Avoid**: `@DisplayName("shouldMapMetadata_WhenDtoIsValid")`, métodos en español o estilos mixtos dentro del mismo módulo.
+- **Avoid**: `@DisplayName("shouldMapMetadata_WhenDtoIsValid")`, métodos `snake_case`, nombres en español o estilos mixtos dentro del mismo módulo.
 - **Prefer**: método `shouldMapMetadataWhenDtoIsValid()` + `@DisplayName("Debe mapear metadata cuando el DTO es válido")`.
 
 ### J-TST-004 — Datos de prueba centralizados
@@ -216,6 +252,18 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 
 ### J-TST-005 — Reactor y asserts correctos
 - **Rule**: `StepVerifier` para flujos reactivos, `WebTestClient` para entry points reactivos, AssertJ encadenado cuando aplique.
+- **Apply in**: dev, review.
+
+### J-TST-006 — Wiring Mockito estándar
+- **Rule**: en unit tests usar `@InjectMocks` para el SUT y `@Mock` para dependencias; nombres de variables de prueba deben ser descriptivos y evitar abreviaturas crípticas.
+- **Apply in**: dev, review.
+
+### J-TST-007 — Datos repetidos a `*TestData` y matrices a tests parametrizados
+- **Rule**: valores repetidos, payloads y expectativas reutilizables viven en `*TestData`; si un test cubre una matriz de casos homogéneos, preferir test parametrizado en vez de duplicación.
+- **Apply in**: dev, review.
+
+### J-TST-008 — No testear config simple ni mappers aislados sin valor funcional
+- **Rule**: clases `@Configuration`, beans simples, helpers sin comportamiento y mappers de infraestructura no se testean de forma aislada cuando su valor ya queda cubierto por adapters, usecases o entry points.
 - **Apply in**: dev, review.
 
 ---
