@@ -59,6 +59,7 @@ Reporta hallazgo de proceso cuando aplique:
 
 ### `J-REA-*`
 - Señala `.block()`, `Thread.sleep`, JDBC, `subscribe()` manual no justificado, materialización innecesaria o composición reactiva defectuosa.
+- Señala `try/catch` alrededor de object mappers, serialización JSON o parsing técnico que termina lanzando excepciones antes de retornar el `Mono`/`Flux`; debe pedirse `Mono.fromCallable`/`Mono.defer` + `onErrorMap` dentro del pipeline.
 
 ### `J-API-*`
 - Verifica que success y error responses salgan por builders auditables, que propaguen `traceId` y que las validaciones respondan en español con campo funcional.

@@ -14,7 +14,7 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 |---|---|---|
 | Arquitectura | `J-ARC-001` a `J-ARC-006` | Hexagonal, ownership de capas, puertos |
 | Naming | `J-NAM-001` a `J-NAM-007` | Idioma, nombres de UseCase, puertos, clases y utilitarios |
-| Reactividad | `J-REA-001` a `J-REA-005` | WebFlux/R2DBC, sin bloqueos, composición |
+| Reactividad | `J-REA-001` a `J-REA-006` | WebFlux/R2DBC, sin bloqueos, composición |
 | Contrato / auditoría / validación | `J-API-001` a `J-API-006` | Responses auditadas, validaciones, traceId |
 | Mapeo | `J-MAP-001` a `J-MAP-005` | MapStruct, mapping entre capas, builders inline |
 | Persistencia y SQL | `J-SQL-001` a `J-SQL-006` | Strategy, named params, aliases, row mapping |
@@ -121,6 +121,12 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 ### J-REA-005 — La respuesta principal no se delega a publicación asíncrona
 - **Rule**: la respuesta HTTP del caso principal se construye y retorna dentro del flujo principal exitoso; publicaciones asíncronas (auditoría, SQS, fire-and-forget) quedan aisladas como side effect técnico y no definen el resultado base del endpoint.
 - **Apply in**: planning, dev, review.
+
+### J-REA-006 — Las excepciones técnicas deben mapearse dentro del flujo reactivo
+- **Rule**: si una operación síncrona previa al `Mono`/`Flux` puede fallar (serialización JSON, object mappers, parsing, builders técnicos), no encapsularla en `try/catch` que lance la excepción fuera del pipeline. Debe envolverse con `Mono.fromCallable`, `Mono.defer` o equivalente y mapearse con `onErrorMap` / `onErrorResume` dentro del flujo.
+- **Apply in**: dev, review.
+- **Avoid**: `try/catch` alrededor de `objectMapper.writeValueAsString(...)` que termina en `throw new BusinessException(...)` antes de retornar el `Mono`.
+- **Prefer**: `Mono.fromCallable(() -> objectMapper.writeValueAsString(dto)) .onErrorMap(JsonProcessingException.class, ...) .flatMap(publisher::send)`.
 
 ---
 

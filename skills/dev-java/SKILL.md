@@ -50,6 +50,7 @@ Detén la implementación y redirige cuando aplique:
 - `J-MAP-001`, `J-MAP-002` y `J-MAP-005`: mappings entre capas con MapStruct; no hardcodear builders cross-layer inline y los mappers de infraestructura deben ser Spring-managed.
 - `J-REA-002`: prohibido bloquear flujos reactivos.
 - `J-REA-005`: la respuesta principal del endpoint sale del flujo principal; lo asíncrono queda aislado como side effect técnico.
+- `J-REA-006`: serialización/mapping/parsing que puede fallar debe quedar dentro del pipeline reactivo (`Mono.fromCallable`/`Mono.defer` + `onErrorMap`), no en `try/catch` que lance fuera del flujo.
 - `J-ERR-001`: errores funcionales con `BusinessException` + `ErrorCode`.
 - `J-QLT-002`: no dejar comentarios/código comentado como soporte de claridad.
 - `J-QLT-006` y `J-QLT-007`: evitar wrappers sin comportamiento y configuración/beans sin consumidor real.
