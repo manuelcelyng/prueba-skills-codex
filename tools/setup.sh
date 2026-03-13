@@ -102,10 +102,17 @@ from pathlib import Path
 
 config_path = Path(sys.argv[1])
 server_path = sys.argv[2]
-lines = config_path.read_text(encoding="utf-8", errors="replace").splitlines(True)
-header = "[mcp_servers.azuredevops]\\n"
-command_line = 'command = "node"\\n'
-args_line = f'args = ["{server_path}"]\\n'
+raw = config_path.read_text(encoding="utf-8", errors="replace")
+
+# Repair previous buggy writes that stored literal "\n" sequences instead of
+# real newlines in the azuredevops MCP section.
+if "[mcp_servers.azuredevops]\\n" in raw or "\\n[mcp_servers.azuredevops]" in raw:
+    raw = raw.replace("\\n", "\n")
+
+lines = raw.splitlines(True)
+header = "[mcp_servers.azuredevops]\n"
+command_line = 'command = "node"\n'
+args_line = f'args = ["{server_path}"]\n'
 
 def is_section_start(line: str) -> bool:
     return line.startswith("[") and line.rstrip().endswith("]")
@@ -146,10 +153,10 @@ while i < len(lines):
     i += 1
 
 if not found:
-    if out and not out[-1].endswith("\\n"):
-        out[-1] = out[-1] + "\\n"
+    if out and not out[-1].endswith("\n"):
+        out[-1] = out[-1] + "\n"
     if out and out[-1].strip() != "":
-        out.append("\\n")
+        out.append("\n")
     out.append(header)
     out.append(command_line)
     out.append(args_line)
