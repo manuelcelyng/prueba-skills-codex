@@ -36,6 +36,8 @@ Usa estas acciones tal cual para evitar drift:
 - `Implementar cambios` → `dev-java` / `dev-python`
 - `Escribir/actualizar unit tests` → `agent-unit-tests`
 - `Revisar cambios` → `review`
+- `Revisar MR Java en GitLab` → `gitlab-mr-review-java`
+- `Revisar MR Python en GitLab` → `gitlab-mr-review-python`
 - `Crear skills nuevas` → `skill-creator`
 - `Generar/actualizar AGENTS.md` → `ai-init-agents`
 - `Iniciar SDD (SmartPay)` → `smartpay-sdd-orchestrator`

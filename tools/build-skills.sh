@@ -81,13 +81,13 @@ should_link_core_skill() {
 
   if [ "$stack" = "java" ] || { [ -z "$stack" ] && $is_java; }; then
     case "$skill" in
-      dev-java|planning-java|agent-unit-tests) return 0 ;;
+      dev-java|planning-java|agent-unit-tests|gitlab-mr-review-java) return 0 ;;
     esac
   fi
 
   if [ "$stack" = "python" ] || { [ -z "$stack" ] && $is_python; }; then
     case "$skill" in
-      dev-python|planning-python) return 0 ;;
+      dev-python|planning-python|gitlab-mr-review-python) return 0 ;;
     esac
   fi
 

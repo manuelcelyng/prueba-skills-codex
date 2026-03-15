@@ -1,0 +1,5 @@
+interface:
+  display_name: "GitLab MR Review Java"
+  short_description: "Revisa MRs Java y comenta hallazgos inline en español"
+  default_prompt: "Revisa este Merge Request Java en GitLab contra el baseline canónico del kit, y deja comentarios inline en español, objetivos y accionables, con regla incumplida, impacto y ejemplo de corrección."
+
