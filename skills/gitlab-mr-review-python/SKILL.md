@@ -49,17 +49,23 @@ Como `dev-python` no define IDs formales por regla, este skill usa los siguiente
 
 1. Validar que el MR sea principalmente Python.
 2. Revisar primero el diff, no el repo completo.
-3. Traducir cada hallazgo a uno de los tags `PY-*`.
-4. Emitir comentarios inline solo para hallazgos accionables y verificables.
-5. Cada comentario debe:
+3. Revisar las discusiones existentes del MR antes de comentar.
+4. Traducir cada hallazgo a uno de los tags `PY-*`.
+5. Emitir comentarios inline solo para hallazgos accionables y verificables.
+6. Si ya existe un comentario sobre el mismo punto:
+   - no duplicarlo si ya está completo,
+   - complétalo en el mismo hilo si le falta regla/tag, impacto o sugerencia,
+   - y solo abre un hilo nuevo si el problema no está cubierto.
+7. Cada comentario debe:
    - estar en **español**,
    - ser **objetivo, claro y amable**,
    - citar el **tag** incumplido,
    - explicar el **impacto**,
    - y mostrar un **ejemplo corto** solo cuando realmente ayude a corregir más rápido.
-6. Cierra con un comentario resumen del MR.
-7. Usa **formato corto** si el comentario queda inline en el diff.
-8. Usa **formato medio** si el hallazgo debe ir como nota general del MR.
+8. Cierra con un comentario resumen del MR.
+9. Usa **formato corto** si el comentario queda inline en el diff.
+10. Usa **formato medio** si el hallazgo debe ir como nota general del MR.
+11. Si complementas un comentario ya existente, responde en ese mismo hilo con el mismo tono y agrega únicamente el contexto faltante.
 
 ## What to review
 
@@ -82,6 +88,7 @@ Prioriza incumplimientos de:
 - Mantener tono humano y cordial: directo, técnico y respetuoso; evitar sonar robótico o regañón.
 - Si el comentario es inline, mantenerlo corto.
 - Si el comentario es general del MR, dejarlo en formato medio: archivo, línea, problema, impacto y sugerencia.
+- Si ya hay un comentario correcto pero incompleto, complétalo en vez de duplicarlo.
 - El ejemplo es opcional; incluirlo solo cuando reduzca ambigüedad o acelere la corrección.
 - Si el hallazgo es repetido, comentar el caso representativo y mencionar el patrón.
 - Si no puedes comentar inline directamente en GitLab por falta de integración/herramienta, genera comentarios listos para pegar manteniendo el mismo formato.

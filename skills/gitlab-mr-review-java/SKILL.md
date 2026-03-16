@@ -47,17 +47,23 @@ Prioriza incumplimientos de:
 
 1. Validar que el MR sea principalmente Java.
 2. Revisar primero el diff, no el repo completo.
-3. Emitir comentarios inline solo para hallazgos accionables y verificables.
-4. Cada comentario debe:
+3. Revisar las discusiones existentes del MR antes de comentar.
+4. Emitir comentarios inline solo para hallazgos accionables y verificables.
+5. Si ya existe un comentario sobre el mismo punto:
+   - no duplicarlo si ya está completo,
+   - complétalo en el mismo hilo si le falta regla, impacto o sugerencia,
+   - y solo abre un hilo nuevo si el problema no está cubierto.
+6. Cada comentario debe:
    - estar en **español**,
    - ser **objetivo, claro y amable**,
    - citar la **regla** incumplida,
    - explicar el **impacto**,
    - y mostrar un **ejemplo corto** solo cuando realmente ayude a corregir más rápido.
-5. Si un patrón se repite, comenta el caso más representativo y menciona que el problema aparece en más lugares.
-6. Cierra con un comentario resumen del MR.
-7. Usa **formato corto** si el comentario queda inline en el diff.
-8. Usa **formato medio** si el hallazgo debe ir como nota general del MR (por ejemplo, porque la línea ya no hace parte del diff visible).
+7. Si un patrón se repite, comenta el caso más representativo y menciona que el problema aparece en más lugares.
+8. Cierra con un comentario resumen del MR.
+9. Usa **formato corto** si el comentario queda inline en el diff.
+10. Usa **formato medio** si el hallazgo debe ir como nota general del MR (por ejemplo, porque la línea ya no hace parte del diff visible).
+11. Si complementas un comentario ya existente, responde en ese mismo hilo con el mismo tono y agrega únicamente el contexto faltante.
 
 ## Mandatory Comment Rules
 
@@ -67,6 +73,7 @@ Prioriza incumplimientos de:
 - Mantener tono humano y cordial: directo, técnico y respetuoso; evitar sonar robótico o regañón.
 - Si el comentario es inline, mantenerlo corto.
 - Si el comentario es general del MR, dejarlo en formato medio: archivo, línea, problema, impacto y sugerencia.
+- Si ya hay un comentario correcto pero incompleto, complétalo en vez de duplicarlo.
 - El ejemplo es opcional; incluirlo solo cuando reduzca ambigüedad o acelere la corrección.
 - Si el problema no es suficientemente claro para el autor, el comentario está mal redactado.
 - Si no puedes comentar inline directamente en GitLab por falta de integración/herramienta, genera comentarios listos para pegar manteniendo el mismo formato.

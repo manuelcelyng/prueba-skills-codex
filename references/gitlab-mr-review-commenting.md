@@ -39,6 +39,12 @@ Dejar comentarios **accionables, objetivos, humanos y en español** sobre incump
    - Evitar tono frío, agresivo, sarcástico o acusatorio.
    - Se permite abrir con frases cortas como `Ojo aquí`, `Aquí conviene ajustar`, `Pequeño detalle importante`, siempre que el comentario siga siendo técnico y directo.
 
+8. **Complementar comentarios existentes cuando aporte valor**
+   - Antes de comentar, revisar si ya existe una discusión sobre el mismo punto.
+   - Si el comentario existente ya cubre bien el hallazgo, no duplicar.
+   - Si el comentario existente va bien encaminado pero quedó corto, ambiguo o sin regla/impacto/sugerencia, complementar en el mismo hilo.
+   - Preferir responder en la discusión existente antes que abrir un comentario nuevo sobre el mismo problema.
+
 ## Estructura recomendada según el tipo de comentario
 
 ### 1) Comentario inline sobre el diff — formato corto
@@ -93,6 +99,7 @@ Usa como default:
 
 - **formato corto** para comentarios inline,
 - **formato medio** para notas generales del MR.
+- **complemento corto/medio** cuando ya exista un comentario correcto pero incompleto en ese mismo punto.
 
 No alargar el comentario si el mismo hallazgo ya queda claro con menos texto.
 
@@ -100,6 +107,11 @@ Si incluyes ejemplo:
 - que sea corto,
 - que apunte a la corrección exacta,
 - y que no convierta el comentario en una mini solución completa si no hace falta.
+
+Si complementas un comentario existente:
+- agrega lo que falta (regla, impacto o sugerencia),
+- evita repetir literalmente lo que ya dijo el hilo,
+- mantén el tono cordial y colaborativo.
 
 Usa este formato base:
 
