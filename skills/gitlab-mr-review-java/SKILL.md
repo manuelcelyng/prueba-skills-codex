@@ -37,9 +37,9 @@ Este skill es un specialization layer de `review`: no redefine las reglas Java, 
 
 Prioriza incumplimientos de:
 
-- `J-ARC-*`, `J-NAM-*`: arquitectura, ownership y naming.
-- `J-REA-*`: errores de composición reactiva, bloqueos, `subscribe()` manual, excepciones fuera del pipeline.
-- `J-API-*`, `J-ERR-*`: responses auditables, `BusinessException`, `ErrorCode`, logs y trazabilidad.
+- `J-ARC-*`, `J-NAM-*`: arquitectura, ownership, dominio como fuente de verdad, request/response fuera de dominio y naming descriptivo alineado al negocio.
+- `J-REA-*`: errores de composición reactiva, bloqueos, `subscribe()` manual, excepciones fuera del pipeline, materialización innecesaria y loops imperativos dentro del flujo.
+- `J-API-*`, `J-ERR-*`: responses auditables, validator en boundary, `BusinessException`, `ErrorCode`, logs y trazabilidad.
 - `J-MAP-*`, `J-SQL-*`: MapStruct, mapping entre capas, SQL y repositorios.
 - `J-TST-*`, `J-QLT-*`, `J-DOC-*`: pruebas, cleanup, manifests/configsecret y evidencia documental.
 

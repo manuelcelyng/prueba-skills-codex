@@ -54,15 +54,19 @@ Reporta hallazgo de proceso cuando aplique:
 ### `J-ARC-*` y `J-NAM-*`
 - Verifica hexagonal/clean, ownership de capas, puertos `Port` y naming consistente.
 - Señala cualquier `Gateway`, `Repository` de dominio, `Port` nombrado por verbo/proceso, abstracción reusable atada a un contexto transitorio (`Novelty`, `Registration`) o `UseCase` nombrado como verbo genérico (`Manage`, `Create`, `Process`, `Handle`, `execute`).
+- Señala dominio que no sea la fuente de verdad del negocio, lógica de negocio repartida en DTOs/entities/ViewModels o presencia de modelos de request/response dentro de la capa de Dominio.
+- Señala atributos, variables, parámetros o métodos con naming ambiguo/no descriptivo (`x`, `tmp`, `obj`, `data`, etc.) o que no esté alineado al lenguaje ubicuo del dominio.
 - Señala helpers, utilitarios o `*TestData` que debían ser `@UtilityClass` y quedaron como clases instanciables.
-- En `novedades`, valida también que el baseline de `reactive-web` (router path style, CORS, security headers, filters) siga el mismo patrón de `recepcion`, `liquidacion` y `dispersion`.
+- Valida que el baseline común de `reactive-web` (router path style, CORS, security headers, filters y convenciones de entry point) siga alineado entre los micros Java del workspace, salvo desviación explícita.
 
 ### `J-REA-*`
-- Señala `.block()`, `Thread.sleep`, JDBC, `subscribe()` manual no justificado, materialización innecesaria o composición reactiva defectuosa.
-- Señala `try/catch` alrededor de object mappers, serialización JSON o parsing técnico que termina lanzando excepciones antes de retornar el `Mono`/`Flux`; debe pedirse `Mono.fromCallable`/`Mono.defer` + `onErrorMap` dentro del pipeline.
+- Señala `.block()`, `Thread.sleep`, JDBC, `subscribe()` manual no justificado, materialización innecesaria, loops imperativos dentro de código reactivo o composición reactiva defectuosa.
+- Señala pipelines fragmentados en exceso cuando varias operaciones del mismo contexto podían leerse de forma fluida dentro del mismo flujo.
+- Señala `collectList()`/`Flux.fromIterable()` innecesarios, especialmente si la fuente ya es reactiva o si el volumen esperado pide streaming, límites, paginación o backpressure explícito.
+- Señala `try/catch` alrededor de object mappers, serialización JSON o parsing técnico que termina lanzando excepciones antes de retornar el `Mono`/`Flux`; debe pedirse `Mono.fromCallable`/`Mono.defer` + `onErrorMap` dentro del pipeline y, si el error es controlado, mapearlo a `BusinessException`.
 
 ### `J-API-*`
-- Verifica que success y error responses salgan por builders auditables, que propaguen `traceId` y que las validaciones respondan en español con campo funcional.
+- Verifica que success y error responses salgan por builders auditables, que propaguen `traceId`, que el input pase por validator/Bean Validation en el boundary y que las validaciones respondan en español con campo funcional.
 
 ### `J-MAP-*` y `J-SQL-*`
 - Verifica mappers MapStruct, ausencia de builders cross-layer inline en el flujo, estrategia SQL adecuada, named params, aliases legibles y separación de row mapping.

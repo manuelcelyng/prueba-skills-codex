@@ -12,9 +12,9 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 
 | Group | IDs | Tema |
 |---|---|---|
-| Arquitectura | `J-ARC-001` a `J-ARC-006` | Hexagonal, ownership de capas, puertos |
-| Naming | `J-NAM-001` a `J-NAM-007` | Idioma, nombres de UseCase, puertos, clases y utilitarios |
-| Reactividad | `J-REA-001` a `J-REA-006` | WebFlux/R2DBC, sin bloqueos, composición |
+| Arquitectura | `J-ARC-001` a `J-ARC-008` | Hexagonal, ownership de capas, puertos y source of truth del dominio |
+| Naming | `J-NAM-001` a `J-NAM-009` | Idioma, nombres de UseCase, puertos, clases, atributos e identificadores |
+| Reactividad | `J-REA-001` a `J-REA-009` | WebFlux/R2DBC, sin bloqueos, composición y streaming |
 | Contrato / auditoría / validación | `J-API-001` a `J-API-006` | Responses auditadas, validaciones, traceId |
 | Mapeo | `J-MAP-001` a `J-MAP-005` | MapStruct, mapping entre capas, builders inline |
 | Persistencia y SQL | `J-SQL-001` a `J-SQL-006` | Strategy, named params, aliases, row mapping |
@@ -43,7 +43,7 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Apply in**: planning, dev, review.
 
 ### J-ARC-004 — Entry points gestionan boundary concerns
-- **Rule**: routers/handlers leen `traceId`, validan input, llaman al UseCase y construyen la respuesta estándar.
+- **Rule**: routers/handlers leen `traceId`, enrutan el input a través del validator/boundary validation, llaman al UseCase y construyen la respuesta estándar.
 - **Apply in**: planning, dev, review.
 
 ### J-ARC-005 — Dependencias técnicas siempre por inyección, nunca por instancia manual
@@ -52,8 +52,16 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Avoid**: `Mapper.INSTANCE`, `new ResponseBuilderService()`, `new AuditService()` dentro del flujo.
 - **Prefer**: inyección por constructor de mappers, builders, publishers y servicios.
 
-### J-ARC-006 — En `novedades`, el baseline de `reactive-web` replica a los micros de referencia
-- **Rule**: piezas transversales de `reactive-web` (router base/path style, CORS, security headers, filters y convenciones de entry point) deben alinearse con `recepcion`, `liquidacion` y `dispersion`, salvo desviación aprobada y documentada.
+### J-ARC-006 — El baseline de `reactive-web` aplica a todos los microservicios
+- **Rule**: las piezas transversales de `reactive-web` (router base/path style, CORS, security headers, filters y convenciones de entry point) forman parte del baseline común y deben mantenerse alineadas en todos los microservicios Java del workspace, salvo desviación aprobada y documentada.
+- **Apply in**: planning, dev, review.
+
+### J-ARC-007 — El modelo de dominio es la fuente de verdad del negocio
+- **Rule**: el modelo de dominio concentra la semántica y reglas del negocio; DTOs, entidades de persistencia, mensajes, ViewModels y demás representaciones deben mapearse **desde y hacia** este modelo, sin incorporar lógica de negocio fuera de él.
+- **Apply in**: planning, dev, review.
+
+### J-ARC-008 — El Dominio no contiene modelos de Request ni de Response
+- **Rule**: la capa de Dominio solo contiene modelos y lógica del negocio, independientes de transporte, serialización o infraestructura. Los modelos de Request/Response pertenecen a aplicación/interfaz y la conversión hacia/desde dominio se hace con mapeadores explícitos ubicados fuera del Dominio.
 - **Apply in**: planning, dev, review.
 
 ---
@@ -86,8 +94,8 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Avoid**: clases helper con constructor implícito/privado manual, `new TestData()`, utilitarios instanciables.
 - **Prefer**: `@UtilityClass public class DeductionTestData { ... }`.
 
-### J-NAM-006 — Los `Port` se nombran por entidad/capacidad, no por acción verbal
-- **Rule**: además de terminar en `Port`, el nombre del puerto debe representar la entidad o capacidad del dominio y evitar verbos o procesos.
+### J-NAM-006 — Los `Port` se nombran por el modelo/capacidad de la entidad que representan
+- **Rule**: además de terminar en `Port`, el nombre del puerto debe representar el modelo o la capacidad de la entidad del dominio que representa, evitando verbos o procesos.
 - **Apply in**: planning, dev, review.
 - **Avoid**: `DeductionRegistrationPort`, `NoveltyPublishPort`, `CalendarQueryPort`.
 - **Prefer**: `DeductionPort`, `ChangesMessagePort`, `CalendarPort`.
@@ -97,6 +105,18 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Apply in**: planning, dev, review.
 - **Avoid**: `NoveltyMessagePort`, `SqsNoveltyMessagePublisherAdapter`, `DeductionRegistrationPublisher`.
 - **Prefer**: `ChangesMessagePort`, `SqsChangesMessagePublisherAdapter`, `ChangesPublisher`.
+
+### J-NAM-008 — Todos los atributos deben ser descriptivos
+- **Rule**: los atributos/campos de clases, records y DTOs deben describir claramente el dato o concepto del dominio que representan; no se aceptan nombres ambiguos, genéricos o irrelevantes para el negocio.
+- **Apply in**: planning, dev, review.
+- **Avoid**: `data`, `value`, `info`, `tmpStatus`.
+- **Prefer**: `participantIdentification`, `liquidationBatchStatus`, `deductionEffectiveDate`.
+
+### J-NAM-009 — Todos los identificadores deben ser descriptivos y alineados al dominio
+- **Rule**: los nombres de variables, métodos, atributos, funciones y parámetros deben ser completamente descriptivos, escritos en inglés y alineados con el dominio del negocio y el lenguaje ubicuo definido por el equipo. No se permiten identificadores de una sola letra, abreviaturas sin significado o nombres arbitrarios como `x`, `t`, `ttt`, `aaa`, `tmp`, `obj`, `data`.
+- **Apply in**: planning, dev, review.
+- **Avoid**: `String x`, `var tmp`, `Mono<Data> data`, `process(obj)`.
+- **Prefer**: `String participantDocument`, `var pendingDeductions`, `Mono<BatchStatus> batchStatus`, `processAccountingMovement(accountingMovement)`.
 
 ---
 
@@ -123,10 +143,22 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Apply in**: planning, dev, review.
 
 ### J-REA-006 — Las excepciones técnicas deben mapearse dentro del flujo reactivo
-- **Rule**: si una operación síncrona previa al `Mono`/`Flux` puede fallar (serialización JSON, object mappers, parsing, builders técnicos), no encapsularla en `try/catch` que lance la excepción fuera del pipeline. Debe envolverse con `Mono.fromCallable`, `Mono.defer` o equivalente y mapearse con `onErrorMap` / `onErrorResume` dentro del flujo.
+- **Rule**: si una operación síncrona previa al `Mono`/`Flux` puede fallar (serialización JSON, object mappers, parsing, builders técnicos), no encapsularla en `try/catch` que lance la excepción fuera del pipeline. Debe envolverse con `Mono.fromCallable`, `Mono.defer` o equivalente y mapearse con `onErrorMap` / `onErrorResume` dentro del flujo. Cuando el error sea controlado o forme parte del contrato funcional, debe transformarse explícitamente a `BusinessException` con su `ErrorCode` correspondiente.
 - **Apply in**: dev, review.
 - **Avoid**: `try/catch` alrededor de `objectMapper.writeValueAsString(...)` que termina en `throw new BusinessException(...)` antes de retornar el `Mono`.
 - **Prefer**: `Mono.fromCallable(() -> objectMapper.writeValueAsString(dto)) .onErrorMap(JsonProcessingException.class, ...) .flatMap(publisher::send)`.
+
+### J-REA-007 — Un flujo coherente se compone con encadenamiento fluido
+- **Rule**: cuando un conjunto de operaciones pertenece al mismo modelo o contexto de negocio, debe componerse mediante encadenamiento fluido dentro del pipeline reactivo, en lugar de fragmentarlo en métodos dispersos que rompan la lectura del flujo. El encadenamiento debe preservar legibilidad, inmutabilidad cuando aplique y manejo explícito de errores.
+- **Apply in**: planning, dev, review.
+
+### J-REA-008 — No materializar colecciones si el flujo puede seguir en streaming
+- **Rule**: no usar `collectList()` ni `Flux.fromIterable()` si la lógica puede operar de forma totalmente reactiva/streaming. Evitar materializar colecciones en memoria cuando el resultado potencial puede ser grande o no acotado. Controlar el flujo con paginación, límites (`take`, `limitRate`), buffering acotado y backpressure, priorizando fuentes nativas reactivas que ya retornan `Flux`/`Mono`.
+- **Apply in**: planning, dev, review.
+
+### J-REA-009 — Preferir operadores reactivos sobre estructuras imperativas
+- **Rule**: en código reactivo se debe preferir el uso de operadores del flujo (`map`, `flatMap`, `filter`, `reduce`, `buffer`, `window`, `concatMap`, `switchMap`, `groupBy`, etc.) sobre `for`, `for-each`, `while` o acumulaciones manuales. La lógica debe permanecer dentro del pipeline para preservar backpressure, composición declarativa, paralelismo controlado y evitar bloqueos.
+- **Apply in**: planning, dev, review.
 
 ---
 

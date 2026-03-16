@@ -43,10 +43,11 @@ El contrato debe dejar explícito:
 ## Implementation Plan Requirements
 
 El plan debe anticipar el rulebook Java:
-- `J-ARC-*`: capas afectadas, ownership y puertos `Port`;
-- `J-NAM-*`: nombres de UseCase/modelos/`Port` consistentes con la capacidad, no con verbos genéricos, y utilitarios/`*TestData` declarados como `@UtilityClass`;
+- `J-ARC-*`: capas afectadas, ownership, puertos `Port`, paso del input por validator en el boundary, baseline común de `reactive-web`, dominio como source of truth y ausencia de modelos request/response dentro del dominio;
+- `J-NAM-*`: nombres de UseCase/modelos/`Port` consistentes con la capacidad, no con verbos genéricos, atributos/variables/métodos descriptivos en inglés y utilitarios/`*TestData` declarados como `@UtilityClass`;
 - `J-API-*`: auditoría de responses, validaciones con campo, traceabilidad y contrato real;
 - `J-MAP-*`: mappers MapStruct y lugares donde no se debe construir objetos cross-layer inline;
+- `J-REA-*`: composición fluida del pipeline, errores técnicos mapeados dentro del flujo, evitar materialización innecesaria y preferir operadores reactivos sobre loops imperativos;
 - `J-SQL-*`: estrategia de persistencia/query y borrador SQL parametrizado;
 - `J-ERR-*`: constantes, logs y catálogo de errores a tocar;
 - `J-TST-*`: estrategia de pruebas por capa, baseline TDD y convención método inglés + `@DisplayName` en español;
