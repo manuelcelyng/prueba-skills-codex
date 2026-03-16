@@ -79,6 +79,7 @@ Reporta hallazgo de proceso cuando aplique:
 
 ### `J-TST-*` y `J-QLT-*`
 - Verifica TDD implícito en el cambio, slices mínimas, métodos de test en camelCase (preferiblemente `shouldXWhenY`), `@DisplayName` en español, `*TestData`, ausencia de code smells, wrappers artificiales, configuración sin consumidor y comentarios innecesarios/código comentado.
+- No pidas tests unitarios aislados para mappers estrictamente 1-a-1 si ya quedan cubiertos indirectamente por adapters, usecases o entry points; sí señálalos como faltantes cuando el mapper tenga lógica explícita, transformaciones no triviales, normalizaciones, condiciones o cambios estructurales.
 - Si el diff toca `configsecret`, manifests K8s/SAM o configuración operativa, señala `path`, `key`, `url`, endpoints o equivalentes hardcodeados y exige env vars en inglés con naming semántico del dominio/capacidad.
 - Señala unit tests sin `@InjectMocks`/`@Mock` cuando el patrón del repo sí aplica.
 - Señala tests de config simple, helpers sin comportamiento o mappers de infraestructura aislados cuando debían cubrirse vía adapter/usecase/entry point.

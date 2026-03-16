@@ -64,7 +64,7 @@ Detén la implementación y redirige cuando aplique:
 - `J-QLT-006`, `J-QLT-007` y `J-QLT-008`: evitar wrappers sin comportamiento, configuración/beans sin consumidor real y `configsecret`/manifests con `path`, `key`, `url` o endpoints hardcodeados; esas variables deben salir de env vars en inglés y con naming semántico del dominio.
 - `J-TST-001`: trabajar con baseline TDD.
 - `J-SQL-004` y `J-SQL-006`: `snake_case` solo para aliases SQL cuando mejore el mapping; repositorios R2DBC simples permanecen delgados (`R2dbcRepository`).
-- `J-TST-003`, `J-TST-006`, `J-TST-007` y `J-TST-008`: método de test en inglés y camelCase, `@DisplayName` en español, Mockito estándar, `TestData`, parametrización cuando aplique y sin tests aislados de config/mappers sin valor funcional.
+- `J-TST-003`, `J-TST-006`, `J-TST-007` y `J-TST-008`: método de test en inglés y camelCase, `@DisplayName` en español, Mockito estándar, `TestData`, parametrización cuando aplique y sin tests aislados de config/mappers 1-a-1 sin valor funcional; si un mapper tiene lógica, transformación o normalización no trivial, sí debe probarse de forma específica.
 
 ## Done Criteria
 

@@ -300,8 +300,8 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Rule**: valores repetidos, payloads y expectativas reutilizables viven en `*TestData`; si un test cubre una matriz de casos homogéneos, preferir test parametrizado en vez de duplicación.
 - **Apply in**: dev, review.
 
-### J-TST-008 — No testear config simple ni mappers aislados sin valor funcional
-- **Rule**: clases `@Configuration`, beans simples, helpers sin comportamiento y mappers de infraestructura no se testean de forma aislada cuando su valor ya queda cubierto por adapters, usecases o entry points.
+### J-TST-008 — No testear config simple ni mappers 1-a-1 sin valor funcional aislado
+- **Rule**: clases `@Configuration`, beans simples, helpers sin comportamiento y mappers estrictamente 1-a-1 no se testean de forma aislada cuando su valor ya queda cubierto indirectamente por adapters, usecases o entry points. Solo se crean tests unitarios específicos para mappers cuando existe lógica explícita, transformación no trivial, cálculos, normalizaciones, condiciones, reglas de negocio o cambios estructurales entre origen y destino.
 - **Apply in**: dev, review.
 
 ---

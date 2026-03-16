@@ -50,7 +50,7 @@ El plan debe anticipar el rulebook Java:
 - `J-REA-*`: composición fluida del pipeline, errores técnicos mapeados dentro del flujo, evitar materialización innecesaria y preferir operadores reactivos sobre loops imperativos;
 - `J-SQL-*`: estrategia de persistencia/query y borrador SQL parametrizado;
 - `J-ERR-*`: constantes, logs y catálogo de errores a tocar;
-- `J-TST-*`: estrategia de pruebas por capa, baseline TDD y convención método inglés + `@DisplayName` en español;
+- `J-TST-*`: estrategia de pruebas por capa, baseline TDD, convención método inglés + `@DisplayName` en español y criterio explícito para no planear tests aislados de mappers 1-a-1 ya cubiertos indirectamente, reservándolos para transformaciones no triviales;
 - `J-QLT-*`: riesgos de smells, comments, wrappers artificiales y configuración/beans sin consumidor a evitar desde el diseño.
 
 ## Handoff to Implementation
