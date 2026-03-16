@@ -1,4 +1,4 @@
 interface:
   display_name: "GitLab MR Review Python"
   short_description: "Revisa MRs Python y comenta hallazgos inline en español"
-  default_prompt: "Revisa este Merge Request Python en GitLab contra el baseline canónico del kit, y deja comentarios inline en español, objetivos y accionables, con regla incumplida, impacto y ejemplo de corrección."
+  default_prompt: "Revisa este Merge Request Python en GitLab contra el baseline canónico del kit, y deja comentarios inline en español, objetivos, accionables y con tono humano/amigable, incluyendo regla incumplida, impacto y ejemplo de corrección."

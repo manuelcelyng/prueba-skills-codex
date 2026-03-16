@@ -3,8 +3,8 @@ name: gitlab-mr-review-python
 description: >
   Revisa Merge Requests Python directamente en GitLab usando el baseline
   canónico (`review` + `dev-python`) y deja comentarios inline en español,
-  objetivos y accionables, con regla incumplida, impacto y ejemplo de
-  corrección.
+  objetivos, accionables y con tono humano/amigable, con regla incumplida,
+  impacto y ejemplo de corrección.
 license: Internal
 metadata:
   author: pragma-smartpay
@@ -53,7 +53,7 @@ Como `dev-python` no define IDs formales por regla, este skill usa los siguiente
 4. Emitir comentarios inline solo para hallazgos accionables y verificables.
 5. Cada comentario debe:
    - estar en **español**,
-   - ser **objetivo y claro**,
+   - ser **objetivo, claro y amable**,
    - citar el **tag** incumplido,
    - explicar el **impacto**,
    - y mostrar un **ejemplo corto** de cómo corregir.
@@ -77,6 +77,7 @@ Prioriza incumplimientos de:
 - Un hallazgo por comentario.
 - No usar comentarios ambiguos como “mejorar esto”.
 - No comentar observaciones subjetivas sin impacto técnico.
+- Mantener tono humano y cordial: directo, técnico y respetuoso; evitar sonar robótico o regañón.
 - Si el hallazgo es repetido, comentar el caso representativo y mencionar el patrón.
 - Si no puedes comentar inline directamente en GitLab por falta de integración/herramienta, genera comentarios listos para pegar manteniendo el mismo formato.
 
@@ -89,7 +90,7 @@ Ejemplo mínimo esperado:
 ```md
 [P2][PY-CONFIG] Secreto hardcodeado en código productivo
 
-Se está incumpliendo `PY-CONFIG` porque el valor sensible quedó embebido en el módulo en vez de resolverse desde configuración/env vars.
+Ojo aquí con `PY-CONFIG`: el valor sensible quedó embebido en el módulo en vez de resolverse desde configuración/env vars.
 Impacto: dificulta la rotación de credenciales y expone secretos en el código.
 Sugerencia: mueve el valor a `settings` o variable de entorno y consúmelo desde la configuración central del servicio.
 
@@ -110,4 +111,3 @@ api_token = settings.notifications_api_token
 - `skills/review/SKILL.md`
 - `skills/dev-python/SKILL.md`
 - `.ai-kit/references/gitlab-mr-review-commenting.md`
-

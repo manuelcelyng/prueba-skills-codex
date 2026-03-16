@@ -3,8 +3,8 @@ name: gitlab-mr-review-java
 description: >
   Revisa Merge Requests Java directamente en GitLab usando el baseline canónico
   (`review` + `dev-java` + rulebook Java), y deja comentarios inline en
-  español, objetivos y accionables, con regla incumplida, impacto y ejemplo de
-  corrección.
+  español, objetivos, accionables y con tono humano/amigable, con regla
+  incumplida, impacto y ejemplo de corrección.
 license: Internal
 metadata:
   author: pragma-smartpay
@@ -50,7 +50,7 @@ Prioriza incumplimientos de:
 3. Emitir comentarios inline solo para hallazgos accionables y verificables.
 4. Cada comentario debe:
    - estar en **español**,
-   - ser **objetivo y claro**,
+   - ser **objetivo, claro y amable**,
    - citar la **regla** incumplida,
    - explicar el **impacto**,
    - y mostrar un **ejemplo corto** de cómo corregir.
@@ -62,6 +62,7 @@ Prioriza incumplimientos de:
 - Un hallazgo por comentario.
 - No comentar nits subjetivos ni preferencias personales.
 - No dejar comentarios genéricos como “revisar esto” o “mejorar naming”.
+- Mantener tono humano y cordial: directo, técnico y respetuoso; evitar sonar robótico o regañón.
 - Si el problema no es suficientemente claro para el autor, el comentario está mal redactado.
 - Si no puedes comentar inline directamente en GitLab por falta de integración/herramienta, genera comentarios listos para pegar manteniendo el mismo formato.
 
@@ -74,7 +75,7 @@ Ejemplo mínimo esperado:
 ```md
 [P1][J-REA-006] Excepción fuera del flujo reactivo
 
-Se está incumpliendo `J-REA-006` porque la serialización JSON se ejecuta en un `try/catch` que lanza la excepción antes de retornar el `Mono`.
+Aquí conviene ajustar `J-REA-006`, porque la serialización JSON se ejecuta en un `try/catch` que lanza la excepción antes de retornar el `Mono`.
 Impacto: el error sale del pipeline y no podrá ser capturado por operadores reactivos posteriores.
 Sugerencia: mueve la serialización a `Mono.fromCallable(...)` y mapea el error con `onErrorMap(...)`.
 
@@ -100,4 +101,3 @@ return Mono.fromCallable(() -> objectMapper.writeValueAsString(dto))
 - `skills/dev-java/SKILL.md`
 - `.ai-kit/references/java-smartpay-rulebook.md`
 - `.ai-kit/references/gitlab-mr-review-commenting.md`
-

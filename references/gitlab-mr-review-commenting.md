@@ -4,7 +4,7 @@ Guía compartida para skills que revisan Merge Requests directamente en GitLab.
 
 ## Objetivo
 
-Dejar comentarios **accionables, objetivos y en español** sobre incumplimientos reales de reglas del kit, con contexto suficiente para que el autor pueda corregir sin ambigüedad.
+Dejar comentarios **accionables, objetivos, humanos y en español** sobre incumplimientos reales de reglas del kit, con contexto suficiente para que el autor pueda corregir sin ambigüedad.
 
 ## Reglas obligatorias para comentar
 
@@ -34,6 +34,11 @@ Dejar comentarios **accionables, objetivos y en español** sobre incumplimientos
 6. **No especular**
    - Si falta contexto y no puedes afirmar el incumplimiento con confianza, formula el comentario como duda concreta o no comentes.
 
+7. **Mantener un tono humano y amable**
+   - Redactar de forma profesional pero cercana.
+   - Evitar tono frío, agresivo, sarcástico o acusatorio.
+   - Se permite abrir con frases cortas como `Ojo aquí`, `Aquí conviene ajustar`, `Pequeño detalle importante`, siempre que el comentario siga siendo técnico y directo.
+
 ## Formato obligatorio del comentario
 
 Usa este formato base:
@@ -41,7 +46,7 @@ Usa este formato base:
 ```md
 [P<n>][<RULE_ID>] <título corto del hallazgo>
 
-Se está incumpliendo `<RULE_ID>` porque <explicación concreta y verificable>.
+Aquí se está incumpliendo `<RULE_ID>` porque <explicación concreta y verificable>.
 Impacto: <riesgo funcional/técnico breve>.
 Sugerencia: <cambio esperado en una frase>.
 
@@ -62,7 +67,7 @@ Ejemplo sugerido:
 ```md
 [P1][J-REA-006] Excepción fuera del flujo reactivo
 
-Se está incumpliendo `J-REA-006` porque la serialización JSON se ejecuta en un `try/catch` que lanza la excepción antes de retornar el `Mono`.
+Aquí conviene ajustar `J-REA-006`, porque la serialización JSON se está ejecutando en un `try/catch` que lanza la excepción antes de retornar el `Mono`.
 Impacto: el error sale del pipeline y ya no puede ser gestionado por operadores reactivos posteriores.
 Sugerencia: encapsula la serialización con `Mono.fromCallable(...)` y mapea la excepción con `onErrorMap(...)`.
 
@@ -80,7 +85,7 @@ return Mono.fromCallable(() -> objectMapper.writeValueAsString(dto))
 ```md
 [P2][PY-CONFIG] Secreto hardcodeado en código productivo
 
-Se está incumpliendo `PY-CONFIG` porque el valor sensible quedó embebido en el módulo en vez de resolverse desde configuración/env vars.
+Ojo aquí con `PY-CONFIG`: el valor sensible quedó embebido en el módulo en vez de resolverse desde configuración/env vars.
 Impacto: complica rotación de credenciales y expone secretos en el código.
 Sugerencia: mueve el valor a `settings` o variable de entorno y consúmelo desde la configuración central del servicio.
 
@@ -104,4 +109,3 @@ Al cerrar la revisión:
 Revisión completada: no encontré incumplimientos accionables contra las reglas canónicas aplicables a este MR.
 Riesgos residuales: <si existen>.
 ```
-
