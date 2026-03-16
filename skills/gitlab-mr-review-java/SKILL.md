@@ -53,9 +53,11 @@ Prioriza incumplimientos de:
    - ser **objetivo, claro y amable**,
    - citar la **regla** incumplida,
    - explicar el **impacto**,
-   - y mostrar un **ejemplo corto** de cómo corregir.
+   - y mostrar un **ejemplo corto** solo cuando realmente ayude a corregir más rápido.
 5. Si un patrón se repite, comenta el caso más representativo y menciona que el problema aparece en más lugares.
 6. Cierra con un comentario resumen del MR.
+7. Usa **formato corto** si el comentario queda inline en el diff.
+8. Usa **formato medio** si el hallazgo debe ir como nota general del MR (por ejemplo, porque la línea ya no hace parte del diff visible).
 
 ## Mandatory Comment Rules
 
@@ -63,6 +65,9 @@ Prioriza incumplimientos de:
 - No comentar nits subjetivos ni preferencias personales.
 - No dejar comentarios genéricos como “revisar esto” o “mejorar naming”.
 - Mantener tono humano y cordial: directo, técnico y respetuoso; evitar sonar robótico o regañón.
+- Si el comentario es inline, mantenerlo corto.
+- Si el comentario es general del MR, dejarlo en formato medio: archivo, línea, problema, impacto y sugerencia.
+- El ejemplo es opcional; incluirlo solo cuando reduzca ambigüedad o acelere la corrección.
 - Si el problema no es suficientemente claro para el autor, el comentario está mal redactado.
 - Si no puedes comentar inline directamente en GitLab por falta de integración/herramienta, genera comentarios listos para pegar manteniendo el mismo formato.
 

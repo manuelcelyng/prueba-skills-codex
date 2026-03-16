@@ -39,7 +39,67 @@ Dejar comentarios **accionables, objetivos, humanos y en español** sobre incump
    - Evitar tono frío, agresivo, sarcástico o acusatorio.
    - Se permite abrir con frases cortas como `Ojo aquí`, `Aquí conviene ajustar`, `Pequeño detalle importante`, siempre que el comentario siga siendo técnico y directo.
 
+## Estructura recomendada según el tipo de comentario
+
+### 1) Comentario inline sobre el diff — formato corto
+
+Úsalo cuando GitLab permita anclar el hallazgo a una línea del diff actual.
+
+- Título con severidad + regla/tag.
+- 1 párrafo corto explicando el problema.
+- 1 línea de impacto.
+- 1 línea de sugerencia.
+- **Ejemplo solo si realmente acelera la corrección**.
+
+Base sugerida:
+
+```md
+[P<n>][<RULE_ID>] <título corto del hallazgo>
+
+Aquí conviene ajustar `<RULE_ID>`, porque <explicación concreta y verificable>.
+Impacto: <riesgo funcional/técnico breve>.
+Sugerencia: <cambio esperado en una frase>.
+```
+
+### 2) Nota general del MR — formato medio
+
+Úsalo cuando el hallazgo **no pueda quedar inline** porque la línea ya no hace parte del diff visible o porque GitLab no permita anclarla.
+
+- Aclara brevemente que es una nota general del MR.
+- Incluye archivo y línea.
+- 1 párrafo corto explicando el problema.
+- 1 línea de impacto.
+- 1 línea de sugerencia.
+- **Ejemplo solo si realmente reduce ambigüedad**.
+
+Base sugerida:
+
+```md
+Nota general del MR: esta observación no quedó inline porque la línea no hace parte del diff actual.
+
+Archivo: `<path/al/archivo>`
+Línea: `<n>`
+
+[P<n>][<RULE_ID>] <título corto del hallazgo>
+
+Aquí conviene ajustar `<RULE_ID>`, porque <explicación concreta y verificable>.
+Impacto: <riesgo funcional/técnico breve>.
+Sugerencia: <cambio esperado en una frase>.
+```
+
 ## Formato obligatorio del comentario
+
+Usa como default:
+
+- **formato corto** para comentarios inline,
+- **formato medio** para notas generales del MR.
+
+No alargar el comentario si el mismo hallazgo ya queda claro con menos texto.
+
+Si incluyes ejemplo:
+- que sea corto,
+- que apunte a la corrección exacta,
+- y que no convierta el comentario en una mini solución completa si no hace falta.
 
 Usa este formato base:
 
@@ -77,6 +137,21 @@ return Mono.fromCallable(() -> objectMapper.writeValueAsString(dto))
     .onErrorMap(JsonProcessingException.class,
         ex -> new BusinessException(ErrorCode.ERROR_PUBLISHING_MESSAGE, traceId))
     .flatMap(payload -> sqsProducer.produceMessage(payload, properties));
+```
+
+## Ejemplo de nota general del MR
+
+```md
+Nota general del MR: esta observación no quedó inline porque la línea no hace parte del diff actual.
+
+Archivo: `domain/usecase/src/main/java/.../ProcessDailyCxpCancellationUseCase.java`
+Línea: `179`
+
+[P2][J-REA-006] La construcción del request SAP quedó fuera del pipeline reactivo
+
+Aquí conviene mover `requestBuilder.buildRequest(...)` dentro del flujo reactivo con `Mono.fromCallable(...)`.
+Impacto: si la construcción falla de forma síncrona, el error sale del pipeline.
+Sugerencia: construye el request dentro del `Mono` y luego encadena el envío con `flatMap(...)`.
 ```
 ```
 

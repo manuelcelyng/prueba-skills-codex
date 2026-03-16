@@ -56,8 +56,10 @@ Como `dev-python` no define IDs formales por regla, este skill usa los siguiente
    - ser **objetivo, claro y amable**,
    - citar el **tag** incumplido,
    - explicar el **impacto**,
-   - y mostrar un **ejemplo corto** de cómo corregir.
+   - y mostrar un **ejemplo corto** solo cuando realmente ayude a corregir más rápido.
 6. Cierra con un comentario resumen del MR.
+7. Usa **formato corto** si el comentario queda inline en el diff.
+8. Usa **formato medio** si el hallazgo debe ir como nota general del MR.
 
 ## What to review
 
@@ -78,6 +80,9 @@ Prioriza incumplimientos de:
 - No usar comentarios ambiguos como “mejorar esto”.
 - No comentar observaciones subjetivas sin impacto técnico.
 - Mantener tono humano y cordial: directo, técnico y respetuoso; evitar sonar robótico o regañón.
+- Si el comentario es inline, mantenerlo corto.
+- Si el comentario es general del MR, dejarlo en formato medio: archivo, línea, problema, impacto y sugerencia.
+- El ejemplo es opcional; incluirlo solo cuando reduzca ambigüedad o acelere la corrección.
 - Si el hallazgo es repetido, comentar el caso representativo y mencionar el patrón.
 - Si no puedes comentar inline directamente en GitLab por falta de integración/herramienta, genera comentarios listos para pegar manteniendo el mismo formato.
 
