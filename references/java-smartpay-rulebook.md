@@ -20,7 +20,7 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 | Persistencia y SQL | `J-SQL-001` a `J-SQL-006` | Strategy, named params, aliases, row mapping |
 | Errores y logging | `J-ERR-001` a `J-ERR-004` | `BusinessException`, `ErrorCode`, logs, constantes |
 | Testing | `J-TST-001` a `J-TST-008` | TDD, naming, `*TestData`, slices mínimas |
-| Calidad | `J-QLT-001` a `J-QLT-007` | Clean code, smells, comentarios, wrappers y configuración muerta |
+| Calidad | `J-QLT-001` a `J-QLT-008` | Clean code, smells, comentarios, wrappers y configuración/manifests |
 | Documentación | `J-DOC-001` a `J-DOC-003` | contrato, ADRs, catálogos |
 
 ---
@@ -307,6 +307,12 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Apply in**: planning, dev, review.
 - **Avoid**: `ObjectMapperConfig`/helpers que solo envuelven una implementación default sin un consumidor explícito.
 - **Prefer**: apoyarse en autoconfiguración existente o agregar el bean solo cuando haya una necesidad real demostrable por el código y las pruebas.
+
+### J-QLT-008 — En `configsecret` y manifests no se hardcodean paths, keys ni URLs
+- **Rule**: en `configsecret`, manifests K8s/SAM y configuración operativa no se deben hardcodear `path`, `key`, `url`, endpoints ni valores equivalentes; deben resolverse por variable de entorno o mecanismo centralizado de configuración.
+- **Apply in**: planning, dev, review.
+- **Avoid**: `API_URL: https://...`, `FILE_PATH: /opt/...`, `SECRET_KEY: payments/token` escritos directo en el manifest o con nombres ambiguos/localizados.
+- **Prefer**: variables de entorno en inglés, semánticas y alineadas al dominio/capacidad donde se usan, por ejemplo `PAYMENTS_API_BASE_URL`, `PRELIQ_REPORTS_BUCKET_PATH`, `THIRD_PARTY_OPERATOR_KEY`.
 
 ---
 

@@ -75,6 +75,7 @@ Reporta hallazgo de proceso cuando aplique:
 
 ### `J-TST-*` y `J-QLT-*`
 - Verifica TDD implícito en el cambio, slices mínimas, métodos de test en camelCase (preferiblemente `shouldXWhenY`), `@DisplayName` en español, `*TestData`, ausencia de code smells, wrappers artificiales, configuración sin consumidor y comentarios innecesarios/código comentado.
+- Si el diff toca `configsecret`, manifests K8s/SAM o configuración operativa, señala `path`, `key`, `url`, endpoints o equivalentes hardcodeados y exige env vars en inglés con naming semántico del dominio/capacidad.
 - Señala unit tests sin `@InjectMocks`/`@Mock` cuando el patrón del repo sí aplica.
 - Señala tests de config simple, helpers sin comportamiento o mappers de infraestructura aislados cuando debían cubrirse vía adapter/usecase/entry point.
 - Cuando haya múltiples casos homogéneos con duplicación, recomienda test parametrizado y extracción de datos a `*TestData`.
@@ -90,7 +91,7 @@ Reporta hallazgo de proceso cuando aplique:
 
 ### 2) Observabilidad, configuración y seguridad
 - Aplica las secciones 3 y 4 de `dev-python`.
-- Señala logging deficiente, secretos hardcodeados, runtime/configuración desalineada o manifests sin actualizar.
+- Señala logging deficiente, secretos hardcodeados, runtime/configuración desalineada, manifests sin actualizar o `configsecret` con `path`/`key`/`url` hardcodeados en lugar de env vars en inglés y con naming semántico.
 
 ### 3) Persistencia, estilo y calidad
 - Aplica las secciones 5, 6 y 8 de `dev-python`.

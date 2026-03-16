@@ -39,7 +39,7 @@ Como `dev-python` no define IDs formales por regla, este skill usa los siguiente
 - `PY-ARC`: arquitectura y separación de capas.
 - `PY-CONTRACT`: contrato, validación y payloads.
 - `PY-OBS`: logging, errores y trazabilidad.
-- `PY-CONFIG`: configuración, secretos y seguridad.
+- `PY-CONFIG`: configuración, secretos, manifests y seguridad.
 - `PY-SQL`: persistencia y SQL seguro.
 - `PY-STYLE`: estilo, tipado, formato y mantenibilidad.
 - `PY-TEST`: cobertura, `pytest`, fixtures y evidencia real.
@@ -74,7 +74,7 @@ Prioriza incumplimientos de:
 - `PY-ARC`: handlers/routers con lógica de negocio o capas mezcladas.
 - `PY-CONTRACT`: payloads/validaciones desalineadas con el contrato.
 - `PY-OBS`: manejo deficiente de errores o falta de `trace_id`.
-- `PY-CONFIG`: secretos hardcodeados o configuración fuera de env/settings.
+- `PY-CONFIG`: secretos, `path`, `key`, `url` o endpoints hardcodeados, o configuración fuera de env/settings.
 - `PY-SQL`: queries inseguras o acceso a datos inconsistente.
 - `PY-STYLE`: ausencia de type hints, formato o convenciones del repo.
 - `PY-TEST`: falta de `pytest`, fixtures o evidencia de ejecución.

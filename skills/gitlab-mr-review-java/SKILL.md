@@ -41,7 +41,7 @@ Prioriza incumplimientos de:
 - `J-REA-*`: errores de composición reactiva, bloqueos, `subscribe()` manual, excepciones fuera del pipeline.
 - `J-API-*`, `J-ERR-*`: responses auditables, `BusinessException`, `ErrorCode`, logs y trazabilidad.
 - `J-MAP-*`, `J-SQL-*`: MapStruct, mapping entre capas, SQL y repositorios.
-- `J-TST-*`, `J-QLT-*`, `J-DOC-*`: pruebas, cleanup y evidencia documental.
+- `J-TST-*`, `J-QLT-*`, `J-DOC-*`: pruebas, cleanup, manifests/configsecret y evidencia documental.
 
 ## Workflow
 

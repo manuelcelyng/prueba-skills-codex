@@ -58,6 +58,7 @@ Detén la implementación y redirige cuando aplique:
 
 ### 4) Configuración y seguridad
 - Secretos y configuraciones sensibles por env vars/SSM/Parameter Store; nunca hardcode.
+- En `configsecret`, manifests y configuración operativa, todo `path`, `key`, `url`, endpoint o equivalente debe salir de env vars/config centralizada; además, el nombre de la variable debe ir en inglés y reflejar el dominio/capacidad donde se usa.
 - Si cambias runtime, dependencias o variables requeridas, actualiza también `pyproject.toml`, `template.yaml`, manifests o documentación operativa correspondiente.
 - No acoples endpoints/URLs externas directo en el código si el repo ya usa settings/config centralizada.
 
@@ -96,4 +97,3 @@ Antes de cerrar el cambio confirma:
 - `.ai-kit/references/delivery-flow.md`
 - `.ai-kit/references/python-smartpay-reference.md`
 - `.ai-kit/references/sdd/sdd-playbook.md`
-
