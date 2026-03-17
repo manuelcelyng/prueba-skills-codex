@@ -11,6 +11,7 @@ Referencia consolidada para planning Python en servicios FastAPI, Lambdas y ETLs
 - Cuando `planning-python` necesite redactar o revisar `contrato.md` y `plan-implementacion.md`.
 - Cuando `review` necesite contrastar expectativas de artefactos Python.
 - Cuando `dev-python` necesite verificar que el contrato/plan cubren runtime, configuración y pruebas antes de implementar.
+- Esta referencia **no reemplaza** el baseline técnico: las reglas normativas viven en `python-smartpay-rulebook.md`.
 
 ## 2. Plantilla de contrato Python
 
@@ -84,4 +85,3 @@ Elegir uno:
 ### 3.6 Riesgos y validación
 - riesgos (runtime, deps, perf, seguridad);
 - preguntas abiertas o dependencias externas.
-

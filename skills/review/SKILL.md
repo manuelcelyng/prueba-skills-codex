@@ -6,7 +6,7 @@ description: >
 license: Internal
 metadata:
   author: pragma-smartpay
-  version: "0.6"
+  version: "0.7"
   scope: [root]
   auto_invoke:
     - "Revisar cambios"
@@ -24,7 +24,7 @@ Leer `.ai-kit/references/delivery-flow.md` antes de revisar. Ese documento defin
 ## Normative Baseline
 
 - Para Java, el baseline obligatorio es `dev-java` + `.ai-kit/references/java-smartpay-rulebook.md`.
-- Para Python, el baseline obligatorio es `dev-python`.
+- Para Python, el baseline obligatorio es `dev-python` + `.ai-kit/references/python-smartpay-rulebook.md`.
 - Usa `.ai-kit/references/java-smartpay-reference.md` o `.ai-kit/references/python-smartpay-reference.md` solo cuando necesites contrastar contrato, ejemplos, plan, dependencias o ADRs.
 
 ## Review Workflow
@@ -88,23 +88,37 @@ Reporta hallazgo de proceso cuando aplique:
 ### `J-DOC-*`
 - Verifica que contrato, catálogo de errores y ADRs/artefactos asociados se hayan actualizado cuando el cambio lo requiere.
 
-## Python Audit Lens (audit against `dev-python`)
+## Python Audit Lens (audit against `dev-python` + rulebook)
 
-### 1) Arquitectura y contrato
-- Aplica las secciones 1 y 2 de `dev-python`.
-- Señala lógica de negocio en handlers/routers o contratos que no coinciden con lo aprobado.
+### `PY-ARC-*`
+- Señala handlers/routers/Lambdas con lógica de negocio, ETL o SQL mezclados en el boundary.
+- Señala mezcla de capas (`extract` con persistencia, `load` con decisiones de negocio, `transform` con I/O) o falta de lifecycle explícito de recursos (`trace_id`, engines, consumers, lifespan).
 
-### 2) Observabilidad, configuración y seguridad
-- Aplica las secciones 3 y 4 de `dev-python`.
-- Señala logging deficiente, secretos hardcodeados, runtime/configuración desalineada, manifests sin actualizar o `configsecret` con `path`/`key`/`url` hardcodeados en lugar de env vars en inglés y con naming semántico.
+### `PY-NAM-*`
+- Señala nombres internos en español cuando debían estar en inglés, constantes mal nombradas, identificadores ambiguos/no descriptivos y ausencia de type hints en boundaries/servicios/helpers públicos.
+- Señala nombres internos que no respeten `snake_case` / `PascalCase` / `UPPER_SNAKE_CASE`.
 
-### 3) Persistencia, estilo y calidad
-- Aplica las secciones 5, 6 y 8 de `dev-python`.
-- Señala acceso a datos inseguro, falta de tipado/formatters del repo, side-effects globales, código muerto o duplicación.
+### `PY-CON-*`
+- Señala contratos/eventos desalineados con el payload real, parseos dispersos de wrappers SQS/EventBridge y falta de normalización centralizada de metadata.
+- Señala IDs o campos requeridos que no se validan/sanitizan al inicio del flujo.
+- Señala metadata inventada o hardcodeada en vez de preservarse desde el evento.
 
-### 4) Testing
-- Aplica la sección 7 de `dev-python`.
-- Verifica que existan tests `pytest` suficientes y evidencia real de ejecución.
+### `PY-OBS-*`
+- Señala ausencia de `trace_id`, lifecycle incompleto, logs sin contexto o errores ambiguos.
+- Señala logging de payloads crudos, PII, secretos o DataFrames completos.
+
+### `PY-CFG-*` y `PY-RUN-*`
+- Señala secretos hardcodeados, `path`/`key`/`url`/queue names/endpoint hardcodeados o metadata operativa fija (`usuario`, `usuarioIp`, etc.).
+- Señala cambios de runtime, env vars, SAM/K8s, `Dockerfile`, `pyproject.toml`, `samconfig*` o lifecycle FastAPI que no fueron acompañados por sus artefactos operativos.
+
+### `PY-MAP-*` y `PY-SQL-*`
+- Señala mappers/transformers con side effects, sin validación de inputs o con lógica de I/O.
+- Señala acceso a datos fuera de `extract/load/repositories`, concatenación insegura de SQL, batch/upsert improvisado o lifecycle deficiente de engine/conexiones.
+
+### `PY-TST-*` y `PY-QLT-*`
+- Verifica `pytest` suficiente para happy path + error path, estructura de tests coherente con capas y cobertura de handler/trace lifecycle cuando el boundary cambia.
+- No pidas tests aislados para mappers 1-a-1 si ya están cubiertos indirectamente; sí repórtalos como faltantes cuando haya lookup logic, normalización, dedupe, cálculos o cambios estructurales.
+- Señala handlers gigantes, inputs mutados in-place, código muerto, comentarios obsoletos y ausencia de evidencia real de checks.
 
 ## Done Criteria
 
@@ -112,3 +126,9 @@ Un review está completo cuando:
 - el cambio fue contrastado contra contrato/specs y reglas canónicas del stack;
 - los hallazgos tienen archivo, línea y severidad suficientes para actuar;
 - quedó claro qué falta para aprobar o por qué puede aprobarse.
+
+## References
+- `.ai-kit/references/java-smartpay-rulebook.md`
+- `.ai-kit/references/python-smartpay-rulebook.md`
+- `.ai-kit/references/java-smartpay-reference.md`
+- `.ai-kit/references/python-smartpay-reference.md`

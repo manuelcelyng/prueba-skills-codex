@@ -8,7 +8,7 @@ description: >
 license: Internal
 metadata:
   author: pragma-smartpay
-  version: "0.1"
+  version: "0.2"
   scope: [root]
   auto_invoke:
     - "Revisar MR Python en GitLab"
@@ -29,28 +29,31 @@ Este skill adapta la auditoría de `review` al contexto de comentarios inline en
 1. Leer `AGENTS.md`.
 2. Leer `skills/review/SKILL.md`.
 3. Leer `skills/dev-python/SKILL.md`.
-4. Leer `.ai-kit/references/gitlab-mr-review-commenting.md`.
-5. Cargar solo el diff del MR y el contexto mínimo de los archivos tocados.
+4. Leer `.ai-kit/references/python-smartpay-rulebook.md`.
+5. Leer `.ai-kit/references/gitlab-mr-review-commenting.md`.
+6. Cargar solo el diff del MR y el contexto mínimo de los archivos tocados.
 
-## Python Review Tags (mandatory)
+## Python Review Rule IDs (mandatory)
 
-Como `dev-python` no define IDs formales por regla, este skill usa los siguientes tags estables para comentar:
+Este skill debe comentar usando **IDs formales del rulebook**, no tags genéricos:
 
-- `PY-ARC`: arquitectura y separación de capas.
-- `PY-CONTRACT`: contrato, validación y payloads.
-- `PY-OBS`: logging, errores y trazabilidad.
-- `PY-CONFIG`: configuración, secretos, manifests y seguridad.
-- `PY-SQL`: persistencia y SQL seguro.
-- `PY-STYLE`: estilo, tipado, formato y mantenibilidad.
-- `PY-TEST`: cobertura, `pytest`, fixtures y evidencia real.
-- `PY-CLEAN`: cleanup, duplicación, side-effects globales y código muerto.
+- `PY-ARC-*`: arquitectura, handlers, ownership de capas, ETL y lifecycle.
+- `PY-NAM-*`: naming interno, inglés, type hints y convenciones Python.
+- `PY-CON-*`: contrato, validación, metadata y payloads.
+- `PY-OBS-*`: logging, `trace_id`, errores y observabilidad.
+- `PY-CFG-*`: configuración, secretos, env vars y ausencia de hardcodes operativos.
+- `PY-MAP-*`: mapping, normalización y transformaciones puras.
+- `PY-SQL-*`: persistencia y SQL seguro.
+- `PY-TST-*`: `pytest`, cobertura y estrategia de pruebas.
+- `PY-RUN-*`: runtime, manifests y packaging.
+- `PY-QLT-*`: cleanup, mutaciones in-place, tamaño del handler y evidencia real.
 
 ## Workflow
 
 1. Validar que el MR sea principalmente Python.
 2. Revisar primero el diff, no el repo completo.
 3. Revisar las discusiones existentes del MR antes de comentar.
-4. Traducir cada hallazgo a uno de los tags `PY-*`.
+4. Traducir cada hallazgo a un **ID concreto** del rulebook `PY-*`.
 5. Emitir comentarios inline solo para hallazgos accionables y verificables.
 6. Si ya existe un comentario sobre el mismo punto:
    - no duplicarlo si ya está completo,
@@ -59,7 +62,7 @@ Como `dev-python` no define IDs formales por regla, este skill usa los siguiente
 7. Cada comentario debe:
    - estar en **español**,
    - ser **objetivo, claro y amable**,
-   - citar el **tag** incumplido,
+   - citar la **regla** incumplida,
    - explicar el **impacto**,
    - y mostrar un **ejemplo corto** solo cuando realmente ayude a corregir más rápido.
 8. Cierra con un comentario resumen del MR.
@@ -71,14 +74,16 @@ Como `dev-python` no define IDs formales por regla, este skill usa los siguiente
 
 Prioriza incumplimientos de:
 
-- `PY-ARC`: handlers/routers con lógica de negocio o capas mezcladas.
-- `PY-CONTRACT`: payloads/validaciones desalineadas con el contrato.
-- `PY-OBS`: manejo deficiente de errores o falta de `trace_id`.
-- `PY-CONFIG`: secretos, `path`, `key`, `url` o endpoints hardcodeados, o configuración fuera de env/settings.
-- `PY-SQL`: queries inseguras o acceso a datos inconsistente.
-- `PY-STYLE`: ausencia de type hints, formato o convenciones del repo.
-- `PY-TEST`: falta de `pytest`, fixtures o evidencia de ejecución.
-- `PY-CLEAN`: código muerto, side-effects globales, duplicación, funciones gigantes.
+- `PY-ARC-*`: handlers/routers con lógica de negocio, ETL o capas mezcladas.
+- `PY-CON-*`: payloads, metadata o validaciones desalineadas con el contrato.
+- `PY-OBS-*`: lifecycle deficiente de `trace_id`, logs con PII/payloads crudos o manejo ambiguo de errores.
+- `PY-CFG-*`: secretos, `path`, `key`, `url`, queue names, endpoints o metadata operativa hardcodeados, o configuración fuera de env/settings/SSM.
+- `PY-MAP-*`: transforms/mappers con side effects, sin validación de inputs o con lógica fuera de su capa.
+- `PY-SQL-*`: queries inseguras, acceso a datos fuera de `extract/load/repositories` o lifecycle incorrecto de engine/conexiones.
+- `PY-NAM-*`: nombres internos en español, identificadores ambiguos o ausencia de type hints relevantes.
+- `PY-TST-*`: falta de `pytest`, fixtures, edge cases o evidencia de ejecución.
+- `PY-RUN-*`: `pyproject.toml`, `template.yaml`, `samconfig*`, lifecycle FastAPI o runtime desalineados con el cambio.
+- `PY-QLT-*`: código muerto, mutaciones in-place innecesarias, duplicación o handlers gigantes.
 
 ## Mandatory Comment Rules
 
@@ -100,26 +105,27 @@ Usa siempre el formato de `.ai-kit/references/gitlab-mr-review-commenting.md`.
 Ejemplo mínimo esperado:
 
 ```md
-[P2][PY-CONFIG] Secreto hardcodeado en código productivo
+[P2][PY-CFG-002] Queue URL hardcodeada en código productivo
 
-Ojo aquí con `PY-CONFIG`: el valor sensible quedó embebido en el módulo en vez de resolverse desde configuración/env vars.
-Impacto: dificulta la rotación de credenciales y expone secretos en el código.
-Sugerencia: mueve el valor a `settings` o variable de entorno y consúmelo desde la configuración central del servicio.
+Ojo aquí: la queue quedó fija en código en vez de resolverse desde configuración/env vars.
+Impacto: acopla el despliegue a un ambiente puntual y complica rotación/configuración entre QA, PDN o local.
+Sugerencia: muévela a settings o variable de entorno y consúmela desde la configuración central del servicio.
 
 Ejemplo sugerido:
 ```python
-api_token = settings.notifications_api_token
+queue_url = settings.notifications_queue_url
 ```
 ```
 
 ## Limits
 
 - No aprobar por ausencia de comentarios si falta evidencia de tests/checks.
-- No inventar tags fuera del catálogo `PY-*`.
+- No inventar reglas fuera del catálogo `PY-*` del rulebook.
 - No usar inglés en los comentarios del MR.
 
 ## References
 
 - `skills/review/SKILL.md`
 - `skills/dev-python/SKILL.md`
+- `.ai-kit/references/python-smartpay-rulebook.md`
 - `.ai-kit/references/gitlab-mr-review-commenting.md`
