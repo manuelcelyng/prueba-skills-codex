@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR Description"
+  short_description: "Resume cambios y redacta descripciones de Pull Request"
+  default_prompt: "Escribe la descripción de este Pull Request/Merge Request usando el formato estándar del kit con secciones What, Why y Changes, basándote en `git diff main...HEAD`, agrupando cambios relacionados y destacando pruebas, contratos, config, renames/deletions o puntos sensibles para peer review cuando apliquen."

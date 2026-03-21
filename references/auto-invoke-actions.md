@@ -44,6 +44,7 @@ Usa estas acciones tal cual para evitar drift:
 - `Enrutar cambios multi-micro (SmartPay)` → `smartpay-workspace-router`
 - `Configurar herramientas IA` → `ai-setup`
 - `Regenerar auto-invoke (sync)` → `skill-sync`
+- `Escribir descripción de PR` → `pr-description`
 - `Después de crear/modificar un skill` → `skill-sync`
 - `Coordinar planning multi-stack` → `planning`
 - `Coordinar implementación multi-stack` → `dev`
