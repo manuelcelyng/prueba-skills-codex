@@ -10,18 +10,18 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 
 ## Mapa rápido de reglas
 
-| Group | IDs | Tema |
-|---|---|---|
-| Arquitectura | `J-ARC-001` a `J-ARC-008` | Hexagonal, ownership de capas, puertos y source of truth del dominio |
+| Group | IDs                       | Tema |
+|---|---------------------------|---|
+| Arquitectura | `J-ARC-001` a `J-ARC-010` | Hexagonal, ownership de capas, puertos y source of truth del dominio |
 | Naming | `J-NAM-001` a `J-NAM-009` | Idioma, nombres de UseCase, puertos, clases, atributos e identificadores |
 | Reactividad | `J-REA-001` a `J-REA-009` | WebFlux/R2DBC, sin bloqueos, composición y streaming |
-| Contrato / auditoría / validación | `J-API-001` a `J-API-006` | Responses auditadas, validaciones, traceId |
+| Contrato / auditoría / validación | `J-API-001` a `J-API-007` | Responses auditadas, validaciones, traceId |
 | Mapeo | `J-MAP-001` a `J-MAP-005` | MapStruct, mapping entre capas, builders inline |
-| Persistencia y SQL | `J-SQL-001` a `J-SQL-006` | Strategy, named params, aliases, row mapping |
+| Persistencia y SQL | `J-SQL-001` a `J-SQL-008` | Strategy, named params, aliases, row mapping |
 | Errores y logging | `J-ERR-001` a `J-ERR-004` | `BusinessException`, `ErrorCode`, logs, constantes |
 | Testing | `J-TST-001` a `J-TST-008` | TDD, naming, `*TestData`, slices mínimas |
-| Calidad | `J-QLT-001` a `J-QLT-008` | Clean code, smells, comentarios, wrappers y configuración/manifests |
-| Documentación | `J-DOC-001` a `J-DOC-003` | contrato, ADRs, catálogos |
+| Calidad | `J-QLT-001` a `J-QLT-011` | Clean code, smells, comentarios, wrappers y configuración/manifests |
+| Documentación | `J-DOC-001` a `J-DOC-004` | contrato, ADRs, catálogos |
 
 ---
 
@@ -63,6 +63,29 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 ### J-ARC-008 — El Dominio no contiene modelos de Request ni de Response
 - **Rule**: la capa de Dominio solo contiene modelos y lógica del negocio, independientes de transporte, serialización o infraestructura. Los modelos de Request/Response pertenecen a aplicación/interfaz y la conversión hacia/desde dominio se hace con mapeadores explícitos ubicados fuera del Dominio.
 - **Apply in**: planning, dev, review.
+
+### J-ARC-009 — Endpoint  Health Deployment
+- **Rule**: Todos los microservicios deben el endpoint de health deployment.
+- **Apply in**: planning, dev, review.
+- **Prefer**: management:
+  endpoints:
+  web:
+  base-path: /api/v1/&microservice_name&
+  exposure:
+  include: health
+  endpoint:
+  health:
+  show-details: never
+  probes:
+  enabled: false
+
+
+### J-ARC-010 — Nombramiento Parametros ConfigSecret
+- **Rule**: Los nombres de los parametros en el configsecret deben ser nombrados en minuscula y separado por "-", y la variable de entorno sepadara por "_".
+- **Apply in**: planning, dev, review.
+- **Avoid**: liquidationbatchparticipant: path-participant: &liquidaction_batch_participant_path&
+- **Prefer**:  participant-basic-data-path: &payments_participant_basic_data_path&
+  
 
 ---
 
@@ -173,7 +196,7 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Apply in**: planning, dev, review.
 
 ### J-API-003 — Validaciones con mensajes en español y campo traducido
-- **Rule**: los errores de validación deben responder en español e indicar el campo funcional (`campo`, `mensaje`), no solo el path técnico Java.
+- **Rule**: los errores de validación deben responder en español e indicar el campo funcional (`campo`, `mensaje`), no solo el path técnico Java, las traducciones se hacen a través de `ValidationMessages` lo mensajes y su traducción se colocan en public static final Map<String, String> FIELD_TRANSLATIONS;.
 - **Apply in**: planning, dev, review.
 
 ### J-API-004 — Validación en DTO/boundary con Bean Validation + validator centralizado
@@ -181,12 +204,20 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Apply in**: planning, dev, review.
 
 ### J-API-005 — Contrato y OpenAPI alineados con el payload real
-- **Rule**: request, response, ejemplos JSON, códigos HTTP y `ErrorCode` deben estar alineados entre contrato, OpenAPI, handlers y tests.
+- **Rule**: request, response, ejemplos JSON, códigos HTTP y `ErrorCode` deben estar alineados entre contrato, OpenAPI, handlers y tests y deben ser actualizados cada vez que el contrato se actualice.
 - **Apply in**: planning, dev, review.
 
-### J-API-006 — Paths y shape del entry point se sincronizan con el baseline del workspace
-- **Rule**: cuando el review funcional marque un path o shape de router para `novedades`, ese ajuste debe reflejarse también en tests, curls, contrato y artefactos HU/SDD del micro.
+
+### J-API-006 — Fechas zona horaria Bogotá/Colombia
+- **Rule**: Todas las fechas deben estar en zona horaria Bogotá/Colombia ,"America/Bogota" vive en una constante.
+- **Avoid**: `ZonedDateTime.now(ZoneId.of("UTC"))`, `LocalDateTime.now()`, `Instant.now()`.
+- **Prefer**: `ZonedDateTime.now(ZoneId.of("America/Bogota"))`, `LocalDateTime.now(ZoneId.of("America/Bogota"))`.
 - **Apply in**: planning, dev, review.
+- 
+### J-API-007 — TraceId obligatorio en requests en el Header X-B3-TraceId, debe enviarse y/o usarlo en observabilidad, logging y demás fuentes externas que comuniquen el flujo.
+- **Rule**: Todas las requests deben tener un traceId obligatorio.
+- **Apply in**: planning, dev, review.
+
 
 ---
 
@@ -196,7 +227,7 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Rule**: todo mapping DTO↔domain, domain↔entity, DTO↔message o entity↔domain debe vivir en mappers MapStruct salvo excepción muy justificada.
 - **Apply in**: planning, dev, review.
 
-### J-MAP-002 — No hardcodear creación de objetos cross-layer en flujos
+### J-MAP-002 —  No deben construir manualmente objetos entre capas
 - **Rule**: handlers, usecases y adapters no deben construir manualmente objetos de otra capa cuando el cambio sea claramente un mapping; usar mapper o método dedicado.
 - **Apply in**: dev, review.
 - **Avoid**: builder chains inline para pasar DTO→dominio o dominio→DTO dentro del flujo.
@@ -215,25 +246,34 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Apply in**: planning, dev, review.
 - **Avoid**: `ChangesRequestEntityMapper.INSTANCE.toEntity(...)`.
 - **Prefer**: `private final ChangesRequestEntityMapper changesRequestEntityMapper`.
+- 
+### J-MAP-006 — Omitir @Mapping cuando el mapeo sea 1:1
+- **Rule**: Omitir @Mapping cuando el mapeo sea 1:1
+- **Apply in**: planning, dev, review.
+
+### J-MAP-007 — Mappers Clases por separado
+- **Rule**: Los mappers deben tener una clase por cada modelo de datos que se mapea..
+- **Apply in**: planning, dev, review.
 
 ---
 
 ## Persistencia y SQL
 
 ### J-SQL-001 — Strategy de query según complejidad
-- **Rule**: derived query para lo simple, `@Query` para lo intermedio legible, `DatabaseClient`/`SQLProvider` para lo complejo.
+- **Rule**: ReactiveCrudRepository derived query para las operaciones de una sola tabla, `@Query` para Joins de Máximo 3 tablas, `DatabaseClient`/`SQLProvider` para filtros dinamicos o operaciones multitabla.
 - **Apply in**: planning, dev, review.
 
+
 ### J-SQL-002 — SQL siempre parametrizado
-- **Rule**: usar named params/bind; nunca concatenar input del usuario.
+- **Rule**: usar named params/bind/arrayBind; nunca concatenar input del usuario.
 - **Apply in**: planning, dev, review.
 
 ### J-SQL-003 — SQL Providers legibles y cohesionados
-- **Rule**: query base clara, filtros opcionales encapsulados, métodos cohesionados y sin mezclar demasiadas responsabilidades.
+- **Rule**: query base clara, filtros opcionales encapsulados, métodos cohesionados y sin mezclar demasiadas responsabilidades - Hardcodear el query para que sea legible.
 - **Apply in**: planning, dev, review.
 
 ### J-SQL-004 — Alias explícitos y semánticos
-- **Rule**: los alias de columnas/derivados deben ser legibles; usar `snake_case` solo en aliases SQL cuando mejore el mapping.
+- **Rule**: los alias de columnas/derivados deben ser legibles; usar `snake_case` y en inglés.
 - **Apply in**: dev, review.
 
 ### J-SQL-005 — Row mapping separado de la lógica del adapter
@@ -241,10 +281,20 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Apply in**: planning, dev, review.
 
 ### J-SQL-006 — Repositorios R2DBC simples se mantienen delgados
-- **Rule**: para persistencia reactiva simple usar `R2dbcRepository` y métodos derivados explícitos; no agregar `ReactiveQueryByExampleExecutor`, helpers genéricos o extensiones de repositorio si el flujo no las necesita.
+- **Rule**: para persistencia reactiva simple usar `ReactiveCrudRepository` y métodos derivados explícitos; no agregar `ReactiveQueryByExampleExecutor`, helpers genéricos o extensiones de repositorio si el flujo no las necesita.
 - **Apply in**: planning, dev, review.
 - **Avoid**: repositorios que extienden varios contratos reactivos genéricos “por si acaso”.
-- **Prefer**: `public interface DeductionRepository extends R2dbcRepository<...>`.
+- **Prefer**: `public interface DeductionRepository extends ReactiveCrudRepository<...>`.
+
+### J-SQL-007 — Cantidad de registros por query
+- **Rule**: Las consultas que retornen multiples datos deben ser limitadas a 100 registros.
+- **Apply in**: planning, dev, review.
+
+
+### J-SQL-008 — SQL como Constantes, No como métodos
+- **Rule**: Las consultas SQL deben estar encapsuladas en constantes y no en métodos..
+- **Apply in**: planning, dev, review.
+
 
 ---
 
@@ -255,61 +305,66 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Apply in**: planning, dev, review.
 
 ### J-ERR-002 — Logs en español, sin PII, con `traceId`
-- **Rule**: logs funcionales en español, sin datos sensibles, e incluyendo `traceId` como dato principal de correlación.
+- **Rule**: logs funcionales en español, sin datos sensibles, preferiblemente usar Ids internos ej: idParticipante, idSolicitud.., e incluyendo `traceId` como dato principal de correlación.
 - **Apply in**: dev, review.
 
 ### J-ERR-003 — Literales repetidos a `Constants`
-- **Rule**: headers, logs, columnas, estados, mensajes y códigos repetidos deben salir de `Constants` o clases equivalentes.
+- **Rule**: headers, logs, columnas, estados, mensajes y códigos repetidos deben salir de `Constants` o clases equivalentes, las contantes de un único dominio deben vivir dentro de su respectiva clase.
 - **Apply in**: planning, dev, review.
 
 ### J-ERR-004 — No concatenar logs con `+`
 - **Rule**: usar placeholders del logger; no armar mensajes manualmente.
 - **Apply in**: dev, review.
+- **Avoid**: log.error(Constants.TRACE_ID_PLACEHOLDER + " " + Constants.LOG_ERROR_DISPERSION_BATCH_BY_ID + " - " + e.getMessage() +
+  traceId + dispersionBatchId)
+- **Prefer**: log.error(Constants.TRACE_ID_PLACEHOLDER + Constants.LOG_ERROR_DISPERSION_BATCH_BY_ID,
+  traceId, dispersionBatchId, e.getMessage(), e))
 
 ---
 
 ## Testing
 
-### J-TST-001 — Flujo base TDD
-- **Rule**: analizar HU/change, diseñar pruebas primero, implementar por capas, refactorizar y luego validar build/tests.
-- **Apply in**: planning, dev, review.
-
-### J-TST-002 — Cobertura mínima por slice
+### J-TST-001 — Cobertura mínima por slice
 - **Rule**: cada cambio relevante debe cubrir al menos UseCase + SQLProvider + Adapter + Handler/Router, según aplique.
 - **Apply in**: planning, dev, review.
 
-### J-TST-003 — Naming de tests
+### J-TST-002 — Naming de tests
 - **Rule**: clase `XxxTest`; método en camelCase inglés, sin `_` ni otros separadores; `@DisplayName` en español, consistente y descriptivo. El patrón `should<Expected>When<Condition>` es el preferido cuando aplique.
 - **Apply in**: dev, review.
 - **Avoid**: `@DisplayName("shouldMapMetadata_WhenDtoIsValid")`, métodos `snake_case`, nombres en español o estilos mixtos dentro del mismo módulo.
 - **Prefer**: método `shouldMapMetadataWhenDtoIsValid()` + `@DisplayName("Debe mapear metadata cuando el DTO es válido")`.
 
-### J-TST-004 — Datos de prueba centralizados
+### J-TST-003 — Datos de prueba centralizados
 - **Rule**: usar `*TestData`, fixtures u Object Mothers; evitar datos de negocio hardcodeados regados.
 - **Apply in**: dev, review.
 
-### J-TST-005 — Reactor y asserts correctos
+### J-TST-004 — Reactor y asserts correctos
 - **Rule**: `StepVerifier` para flujos reactivos, `WebTestClient` para entry points reactivos, AssertJ encadenado cuando aplique.
 - **Apply in**: dev, review.
 
-### J-TST-006 — Wiring Mockito estándar
+### J-TST-005 — Wiring Mockito estándar
 - **Rule**: en unit tests usar `@InjectMocks` para el SUT y `@Mock` para dependencias; nombres de variables de prueba deben ser descriptivos y evitar abreviaturas crípticas.
 - **Apply in**: dev, review.
 
-### J-TST-007 — Datos repetidos a `*TestData` y matrices a tests parametrizados
+### J-TST-006 — Datos repetidos a `*TestData` y matrices a tests parametrizados
 - **Rule**: valores repetidos, payloads y expectativas reutilizables viven en `*TestData`; si un test cubre una matriz de casos homogéneos, preferir test parametrizado en vez de duplicación.
 - **Apply in**: dev, review.
 
-### J-TST-008 — No testear config simple ni mappers 1-a-1 sin valor funcional aislado
+### J-TST-007 — No testear config simple ni mappers 1-a-1 sin valor funcional aislado
 - **Rule**: clases `@Configuration`, beans simples, helpers sin comportamiento y mappers estrictamente 1-a-1 no se testean de forma aislada cuando su valor ya queda cubierto indirectamente por adapters, usecases o entry points. Solo se crean tests unitarios específicos para mappers cuando existe lógica explícita, transformación no trivial, cálculos, normalizaciones, condiciones, reglas de negocio o cambios estructurales entre origen y destino.
 - **Apply in**: dev, review.
+
+### J-TST-008 — Test Parametrizados
+- **Rule**: Usar test Parametrizados cuando sea necesario, ej: tests de multiples estados, condiciones, payloads.
+- **Apply in**: dev, review.
+
 
 ---
 
 ## Calidad
 
 ### J-QLT-001 — Sin code smells evidentes
-- **Rule**: evitar métodos gigantes, parámetros >5 sin objeto, duplicación, nested logic innecesaria, imports wildcard y mutabilidad compartida en flujos.
+- **Rule**: evitar métodos gigantes, parámetros >6 sin objeto, duplicación, nested logic innecesaria, imports wildcard , mutabilidad compartida en flujos , "eq()" en los tests, constantes repetidas, imports sin usar.
 - **Apply in**: planning, dev, review.
 
 ### J-QLT-002 — Sin código comentado ni comentarios explicativos innecesarios
@@ -341,10 +396,24 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Prefer**: apoyarse en autoconfiguración existente o agregar el bean solo cuando haya una necesidad real demostrable por el código y las pruebas.
 
 ### J-QLT-008 — En `configsecret` y manifests no se hardcodean paths, keys ni URLs
-- **Rule**: en `configsecret`, manifests K8s/SAM y configuración operativa no se deben hardcodear `path`, `key`, `url`, endpoints ni valores equivalentes; deben resolverse por variable de entorno o mecanismo centralizado de configuración.
+- **Rule**: en `configsecret`, manifests K8s/SAM y configuración operativa no se deben hardcodear `path`, `key`, `url`, endpoints ni valores equivalentes; deben resolverse por variable de entorno o mecanismo centralizado de configuración. En multiples paths , se debe tener url base y cad path por separado, NO urls completas
 - **Apply in**: planning, dev, review.
 - **Avoid**: `API_URL: https://...`, `FILE_PATH: /opt/...`, `SECRET_KEY: payments/token` escritos directo en el manifest o con nombres ambiguos/localizados.
 - **Prefer**: variables de entorno en inglés, semánticas y alineadas al dominio/capacidad donde se usan, por ejemplo `PAYMENTS_API_BASE_URL`, `PRELIQ_REPORTS_BUCKET_PATH`, `THIRD_PARTY_OPERATOR_KEY`.
+
+### J-QLT-009 — Los imports deben estár al inicio del código.
+- **Rule**: Los imports deben estár al inicio del código.
+- **Apply in**: dev, review.
+
+### J-QLT-010 — Usar Builder Patterns en clases de multiples atributos
+- **Rule**: Usar Builder cuando construimos clases de multiples atributos.
+- **Apply in**: dev, review.
+
+
+### J-QLT-011 — Usar clases Record
+- **Rule**: Usar clases Record cuando se traten de datos que representen una forma inmutable.
+- **Apply in**: dev, review.
+
 
 ---
 
@@ -360,4 +429,8 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 
 ### J-DOC-003 — Planning debe cubrir todas las familias de reglas
 - **Rule**: el contrato y plan deben anticipar arquitectura, naming, validación, auditoría, mapping, SQL, errores, tests y cleanup.
+- **Apply in**: planning, review.
+
+### J-DOC-004 — Swagger/OpenAPI debe reflejar el contrato real
+- **Rule**: el contrato y el swagger/openapi deben reflejar el estado real del micro.
 - **Apply in**: planning, review.
