@@ -25,9 +25,9 @@ Ser el **orquestador delegate-only** del flujo SDD en SmartPay:
 ## Required Context (load order)
 
 1. `AGENTS.md` del repo actual.
-2. `./.ai-kit/references/sdd/sdd-playbook.md`.
-3. `./.ai-kit/references/sdd/persistence-contract.md`.
-4. `./.ai-kit/references/sdd/openspec-convention.md` o `engram-convention.md` según el `artifact_store.mode`.
+2. `references/sdd/sdd-playbook.md`.
+3. `references/sdd/persistence-contract.md`.
+4. `references/sdd/openspec-convention.md` o `engram-convention.md` según el `artifact_store.mode`.
 5. `openspec/config.yaml` y `openspec/changes/<change>/state.yaml` si existen.
 6. Stack real del repo para saber qué skill cargar en `apply` y cómo verificar.
 7. Si estás en workspace multi-repo, parar y usar `smartpay-workspace-router`.
@@ -53,7 +53,7 @@ Interpreta estos comandos como atajos del flujo:
 
 ## Storage Policy
 
-Resuelve el backend con `./.ai-kit/references/sdd/persistence-contract.md`.
+Resuelve el backend con `references/sdd/persistence-contract.md`.
 
 Default SmartPay:
 - `artifact_store.mode: openspec`

@@ -17,7 +17,7 @@ Ser la compuerta de calidad del cambio: comprobar completitud, coherencia y cump
 
 ## Required References
 
-- `./.ai-kit/references/sdd/persistence-contract.md`
+- `references/sdd/persistence-contract.md`
 - `proposal`, `spec`, `design`, `tasks`
 - `openspec/config.yaml`
 - `./.ai/skills/review/SKILL.md`

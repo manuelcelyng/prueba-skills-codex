@@ -28,4 +28,4 @@ allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 - `references/<archivo>.md`
 
 ## Notes
-- Actions y `scope`: ver `.ai-kit/references/auto-invoke-actions.md`
+- Actions y `scope`: ver `references/auto-invoke-actions.md`

@@ -20,9 +20,9 @@ Planear cambios Java y dejar listo el material para que `dev-java` implemente y 
 ## Shared Operating Model
 
 Leer primero:
-1. `.ai-kit/references/delivery-flow.md`
-2. `.ai-kit/references/java-smartpay-rulebook.md`
-3. `.ai-kit/references/java-smartpay-reference.md`
+1. `references/delivery-flow.md`
+2. `references/java-smartpay-rulebook.md`
+3. `references/java-smartpay-reference.md`
 
 ## Deliverables (mandatory order)
 
@@ -63,7 +63,7 @@ No marques el planning como listo si falta alguno de estos puntos:
 - estrategia de mapping, tests y cleanup verificable.
 
 ## References
-- `.ai-kit/references/delivery-flow.md`
-- `.ai-kit/references/java-smartpay-rulebook.md`
-- `.ai-kit/references/java-smartpay-reference.md`
-- `.ai-kit/references/sdd/sdd-playbook.md`
+- `references/delivery-flow.md`
+- `references/java-smartpay-rulebook.md`
+- `references/java-smartpay-reference.md`
+- `references/sdd/sdd-playbook.md`

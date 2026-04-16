@@ -17,7 +17,7 @@ Implementar código real siguiendo los artefactos del cambio y las reglas canón
 
 ## Required References
 
-- `./.ai-kit/references/sdd/persistence-contract.md`
+- `references/sdd/persistence-contract.md`
 - `proposal`, `spec`, `design`, `tasks`
 - `openspec/config.yaml`
 - `./.ai/skills/dev-java/SKILL.md` o `./.ai/skills/dev-python/SKILL.md` según el stack

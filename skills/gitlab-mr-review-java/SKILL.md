@@ -29,8 +29,8 @@ Este skill es un specialization layer de `review`: no redefine las reglas Java, 
 1. Leer `AGENTS.md`.
 2. Leer `skills/review/SKILL.md`.
 3. Leer `skills/dev-java/SKILL.md`.
-4. Leer `.ai-kit/references/java-smartpay-rulebook.md`.
-5. Leer `.ai-kit/references/gitlab-mr-review-commenting.md`.
+4. Leer `references/java-smartpay-rulebook.md`.
+5. Leer `references/gitlab-mr-review-commenting.md`.
 6. Cargar solo el diff del MR y el contexto mínimo de los archivos tocados.
 
 ## What to review
@@ -80,7 +80,7 @@ Prioriza incumplimientos de:
 
 ## Comment Format
 
-Usa siempre el formato de `.ai-kit/references/gitlab-mr-review-commenting.md`.
+Usa siempre el formato de `references/gitlab-mr-review-commenting.md`.
 
 Ejemplo mínimo esperado:
 
@@ -111,5 +111,5 @@ return Mono.fromCallable(() -> objectMapper.writeValueAsString(dto))
 
 - `skills/review/SKILL.md`
 - `skills/dev-java/SKILL.md`
-- `.ai-kit/references/java-smartpay-rulebook.md`
-- `.ai-kit/references/gitlab-mr-review-commenting.md`
+- `references/java-smartpay-rulebook.md`
+- `references/gitlab-mr-review-commenting.md`

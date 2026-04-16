@@ -17,9 +17,9 @@ Preparar el baseline SDD del proyecto sin inventar contexto. Detecta stack, coma
 
 ## Required References
 
-- `./.ai-kit/references/sdd/persistence-contract.md`
-- `./.ai-kit/references/sdd/openspec-convention.md`
-- `./.ai-kit/references/sdd/engram-convention.md` (solo si el modo resuelve a `engram`)
+- `references/sdd/persistence-contract.md`
+- `references/sdd/openspec-convention.md`
+- `references/sdd/engram-convention.md` (solo si el modo resuelve a `engram`)
 - `AGENTS.md` del repo
 
 ## What You Receive

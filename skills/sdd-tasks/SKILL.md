@@ -17,7 +17,7 @@ Romper el cambio en un checklist ejecutable por sesiones cortas, alineado con sp
 
 ## Required References
 
-- `./.ai-kit/references/sdd/persistence-contract.md`
+- `references/sdd/persistence-contract.md`
 - `design.md`, specs y proposal
 - `openspec/config.yaml`
 

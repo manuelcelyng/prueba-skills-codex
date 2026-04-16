@@ -9,3 +9,8 @@
 # Node
 node_modules/
 npm-debug.log*
+
+# AI KIT (BEGIN)
+.kiro/
+.codex/
+# AI KIT (END)

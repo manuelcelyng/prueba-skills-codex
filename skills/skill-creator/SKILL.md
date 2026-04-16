@@ -59,7 +59,7 @@ Usa `assets/SKILL-TEMPLATE.md` como base o ejecuta el generador:
 
 ## Guía de scopes y auto_invoke
 
-Ver `.ai-kit/references/auto-invoke-actions.md` para:
+Ver `references/auto-invoke-actions.md` para:
 - catálogo recomendado de `auto_invoke` Actions,
 - cómo definir `scope`,
 - ejemplos para skills core vs skills por micro.

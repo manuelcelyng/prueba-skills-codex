@@ -20,7 +20,7 @@ Coordinar cambios que impactan múltiples microservicios dentro del mismo worksp
 ## Required Context
 
 1. `AGENTS.md` del workspace root.
-2. `./.ai-kit/references/sdd/sdd-playbook.md`.
+2. `references/sdd/sdd-playbook.md`.
 3. Inventario real de subrepos con `.git/`.
 4. Skills proyectados en el workspace (`.ai/skills/`).
 

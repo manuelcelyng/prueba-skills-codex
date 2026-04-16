@@ -24,7 +24,7 @@ Usa este skill cuando la tarea combine Java y Python o el lenguaje no esté clar
 - Si el stack no está claro, inspeccionar manifests (`build.gradle*`, `pom.xml`, `pyproject.toml`, `requirements*.txt`, `template.yaml`) antes de planear.
 
 ## Reglas mínimas
-- Leer `.ai-kit/references/delivery-flow.md` para el baseline operativo compartido.
+- Leer `references/delivery-flow.md` para el baseline operativo compartido.
 - Cargar contexto raíz y de servicio antes de planear.
 - Entregar primero contrato/interfaz y luego plan de implementación.
 - Alinear el planning con el flujo SDD si el repo ya trabaja con `openspec/`.

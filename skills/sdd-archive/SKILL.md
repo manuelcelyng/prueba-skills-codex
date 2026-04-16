@@ -17,8 +17,8 @@ Cerrar el ciclo SDD dejando trazabilidad: specs main actualizadas y audit trail 
 
 ## Required References
 
-- `./.ai-kit/references/sdd/persistence-contract.md`
-- `./.ai-kit/references/sdd/openspec-convention.md`
+- `references/sdd/persistence-contract.md`
+- `references/sdd/openspec-convention.md`
 - `verify-report`
 
 ## Workflow

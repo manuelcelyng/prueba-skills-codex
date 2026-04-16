@@ -17,7 +17,7 @@ Traducir el proposal/spec a una estrategia técnica concreta y auditable antes d
 
 ## Required References
 
-- `./.ai-kit/references/sdd/persistence-contract.md`
+- `references/sdd/persistence-contract.md`
 - `openspec/config.yaml`
 - código relevante del repo
 

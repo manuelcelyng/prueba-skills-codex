@@ -17,8 +17,8 @@ Definir el comportamiento esperado del cambio con requirements y escenarios que 
 
 ## Required References
 
-- `./.ai-kit/references/sdd/persistence-contract.md`
-- `./.ai-kit/references/sdd/openspec-convention.md`
+- `references/sdd/persistence-contract.md`
+- `references/sdd/openspec-convention.md`
 - `openspec/specs/` si existen specs previas
 
 ## Workflow

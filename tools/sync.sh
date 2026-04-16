@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 # Sync skill metadata to AGENTS.md "Auto-invoke Skills" sections (Bash 3.2 compatible).
 #
-# Reads from: .ai/skills/*/SKILL.md
+# Reads from: native agent folders (auto-detected or --skills-dir override)
+#   Priority: .kiro/skills/, .codex/skills/, .claude/skills/, .gemini/skills/
 # Writes to: AGENTS.md (scope=root) or <scope>/AGENTS.md
 #
 # Usage:
-#   .ai-kit/tools/sync.sh [--dry-run] [--scope <scope>]
+#   tools/sync.sh [--dry-run] [--scope <scope>] [--skills-dir <path>]
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="${REPO_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
-SKILLS_DIR="$REPO_ROOT/.ai/skills"
+REPO_ROOT="${REPO_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -22,6 +22,7 @@ NC='\033[0m'
 DRY_RUN=false
 FILTER_SCOPE=""
 PROJECT="${AI_SKILLS_PROJECT:-}"
+SKILLS_DIR=""
 
 LOCK_FILE="$REPO_ROOT/ai-kit.lock"
 if [ -f "$LOCK_FILE" ]; then
@@ -35,8 +36,9 @@ while [[ $# -gt 0 ]]; do
   case $1 in
     --dry-run) DRY_RUN=true; shift ;;
     --scope) FILTER_SCOPE="$2"; shift 2 ;;
+    --skills-dir) SKILLS_DIR="$2"; shift 2 ;;
     --help|-h)
-      echo "Usage: $0 [--dry-run] [--scope <scope>]"
+      echo "Usage: $0 [--dry-run] [--scope <scope>] [--skills-dir <path>]"
       exit 0
       ;;
     *)
@@ -45,6 +47,16 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+# ── Auto-detect skills directory if not provided via --skills-dir ───────────
+if [ -z "$SKILLS_DIR" ]; then
+  for candidate in ".kiro/skills" ".codex/skills" ".claude/skills" ".gemini/skills"; do
+    if [ -d "$REPO_ROOT/$candidate" ]; then
+      SKILLS_DIR="$REPO_ROOT/$candidate"
+      break
+    fi
+  done
+fi
 
 get_agents_path() {
   local scope="$1"
@@ -125,9 +137,9 @@ extract_metadata() {
 }
 
 if [ ! -d "$SKILLS_DIR" ]; then
-  echo -e "${RED}Missing $SKILLS_DIR.${NC}"
-  echo -e "${YELLOW}Service repo:${NC} run ./scripts/ai/setup.sh --codex (or --all) then retry."
-  echo -e "${YELLOW}Workspace root:${NC} run ./workspace-ai.sh --init-agents --codex (or --all) then retry."
+  echo -e "${RED}Missing skills directory.${NC}"
+  echo -e "${YELLOW}No agent skills folder found in $REPO_ROOT.${NC}"
+  echo -e "${YELLOW}Run: install.sh --kiro (or --all) to install skills, then retry.${NC}"
   exit 1
 fi
 
@@ -192,7 +204,7 @@ while IFS= read -r skill_file; do
       printf "%s\t%s\t%s\n" "$scope" "$action" "$skill_name" >> "$rows_file"
     done
   done
-# Note: .ai/skills contains symlinks to skill directories; BSD find does not
+# Note: native agent folders may contain symlinks; BSD find does not
 # traverse symlinked directories unless -L is used.
 done < <(find -L "$SKILLS_DIR" -mindepth 2 -maxdepth 2 -name SKILL.md -print | sort)
 
@@ -264,6 +276,16 @@ When performing these actions, ALWAYS invoke the corresponding skill FIRST:
 
   rm -f "$section_file"
 done
+
+# ── Auto-detect skills directory if not provided via --skills-dir ───────────
+if [ -z "$SKILLS_DIR" ]; then
+  for candidate in ".kiro/skills" ".codex/skills" ".claude/skills" ".gemini/skills"; do
+    if [ -d "$REPO_ROOT/$candidate" ]; then
+      SKILLS_DIR="$REPO_ROOT/$candidate"
+      break
+    fi
+  done
+fi
 
 echo ""
 echo -e "${GREEN}Done!${NC}"

@@ -2,19 +2,21 @@
 # Initialize a service AGENTS.md if missing (Bash 3.2 compatible).
 #
 # Usage (from a service repo root):
-#   ./.ai-kit/tools/init-agents.sh
-#   ./.ai-kit/tools/init-agents.sh --force
-#   ./.ai-kit/tools/init-agents.sh --service pagos
-#   ./.ai-kit/tools/init-agents.sh --claude
+#   ./tools/init-agents.sh
+#   ./tools/init-agents.sh --force
+#   ./tools/init-agents.sh --service pagos
+#   ./tools/init-agents.sh --claude
 #
 # Notes:
-# - This script generates a minimal **stub**. The first AI action should be invoking the `ai-init-agents`
-#   skill to generate a useful, repo-specific AGENTS.md.
+# - This script generates a minimal **stub**. The first AI action should be
+#   invoking the `ai-init-agents` skill to generate a useful, repo-specific
+#   AGENTS.md.
+# - No references to .ai-kit/, scripts/ai/, or ai-kit.lock.
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="${REPO_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
+REPO_ROOT="${REPO_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 
 SERVICE_NAME=""
 FORCE=false
@@ -22,15 +24,15 @@ SETUP_CLAUDE=false
 SETUP_GEMINI=false
 SETUP_CODEX=false
 SETUP_COPILOT=false
-SETUP_TOUCHED=false
+SETUP_KIRO=false
 
 show_help() {
   cat <<EOF
-Usage: $0 [--service <name>] [--force] [--all|--claude|--gemini|--codex|--copilot]
+Usage: $0 [--service <name>] [--force] [--all|--kiro|--claude|--gemini|--codex|--copilot]
 
 Notes:
-  - If no assistant flags are provided, defaults to --codex.
-  - The chosen flags are only used to print the recommended setup command in the stub.
+  - If no assistant flags are provided, defaults to --kiro.
+  - Agent flags are accepted for compatibility but do not change the stub content.
 EOF
 }
 
@@ -39,17 +41,18 @@ while [[ $# -gt 0 ]]; do
     --service) SERVICE_NAME="$2"; shift 2 ;;
     --force) FORCE=true; shift ;;
     --all)
-      SETUP_TOUCHED=true
+      SETUP_KIRO=true
       SETUP_CLAUDE=true
       SETUP_GEMINI=true
       SETUP_CODEX=true
       SETUP_COPILOT=true
       shift
       ;;
-    --claude) SETUP_TOUCHED=true; SETUP_CLAUDE=true; shift ;;
-    --gemini) SETUP_TOUCHED=true; SETUP_GEMINI=true; shift ;;
-    --codex) SETUP_TOUCHED=true; SETUP_CODEX=true; shift ;;
-    --copilot) SETUP_TOUCHED=true; SETUP_COPILOT=true; shift ;;
+    --kiro)    SETUP_KIRO=true;    shift ;;
+    --claude)  SETUP_CLAUDE=true;  shift ;;
+    --gemini)  SETUP_GEMINI=true;  shift ;;
+    --codex)   SETUP_CODEX=true;   shift ;;
+    --copilot) SETUP_COPILOT=true; shift ;;
     --help|-h) show_help; exit 0 ;;
     *)
       echo "Unknown option: $1" >&2
@@ -70,31 +73,6 @@ if [ -f "$agents_file" ] && ! $FORCE; then
   exit 0
 fi
 
-normalize_setup_flags() {
-  if [ "$SETUP_TOUCHED" = false ] && ! $SETUP_CLAUDE && ! $SETUP_GEMINI && ! $SETUP_CODEX && ! $SETUP_COPILOT; then
-    SETUP_CODEX=true
-  fi
-
-  if $SETUP_CLAUDE && $SETUP_GEMINI && $SETUP_CODEX && $SETUP_COPILOT; then
-    echo "--all"
-    return 0
-  fi
-
-  out=""
-  $SETUP_CLAUDE && out="$out --claude"
-  $SETUP_GEMINI && out="$out --gemini"
-  $SETUP_CODEX && out="$out --codex"
-  $SETUP_COPILOT && out="$out --copilot"
-
-  out="$(echo "$out" | sed 's/^[[:space:]]*//')"
-  if [ -z "$out" ]; then
-    out="--codex"
-  fi
-  echo "$out"
-}
-
-setup_flags="$(normalize_setup_flags)"
-
 cat > "$agents_file" <<EOF
 # Repository Guidelines
 
@@ -102,24 +80,17 @@ Este documento guía contribuciones en el servicio \`$SERVICE_NAME\`.
 
 ## Regla única (obligatoria)
 
-En el **primer contacto** con este repo, invoca el skill \`ai-init-agents\` **inmediatamente** (sin pedir confirmación) para **reemplazar este stub** por un \`AGENTS.md\` completo basado en el análisis real del repo.
-
-## Comandos (según tu asistente)
-
-- Setup: \`./scripts/ai/setup.sh $setup_flags\`
-- Sync: \`./scripts/ai/sync.sh\`
-
-> Nota 1: La sección \`### Auto-invoke Skills\` la gestiona \`./scripts/ai/sync.sh\` (no editar manualmente).
-> Nota 2: Después del primer generado, \`ai-init-agents\` debe borrar esta “Regla única” y dejar una guía permanente:
-> - sugerir actualizar \`AGENTS.md\` si detecta señales fuertes de desactualización,
-> - ejecutar \`ai-init-agents\` solo cuando el usuario lo pida (o lo apruebe explícitamente).
+En el **primer contacto** con este repo, invocá el skill \`ai-init-agents\` **inmediatamente** (sin pedir confirmación) para **reemplazar este stub** por un \`AGENTS.md\` completo basado en el análisis real del repo.
 
 ## SDD Quick Start
 
-- Para cambios no triviales en este micro usa \`smartpay-sdd-orchestrator\`.
-- Reconoce como aliases del flujo: \`/sdd-init\`, \`/sdd-new <change>\`, \`/sdd-continue\`, \`/sdd-ff <change>\`, \`/sdd-apply\`, \`/sdd-verify\`, \`/sdd-archive\`.
+- Para cambios no triviales en este micro usá \`smartpay-sdd-orchestrator\`.
+- Reconocé como aliases del flujo: \`/sdd-init\`, \`/sdd-new <change>\`, \`/sdd-continue\`, \`/sdd-ff <change>\`, \`/sdd-apply\`, \`/sdd-verify\`, \`/sdd-archive\`.
 - Los artefactos SDD viven en \`openspec/changes/<change-name>/\` cuando el artifact store es \`openspec\`.
-- Las reglas del flujo viven en \`./.ai-kit/references/sdd/sdd-playbook.md\`.
+- Las reglas del flujo viven en \`references/sdd/sdd-playbook.md\`.
+
+> Nota: La sección \`### Auto-invoke Skills\` la gestiona el sync tool (no editar manualmente).
+> Después del primer generado, \`ai-init-agents\` debe borrar esta "Regla única" y dejar una guía permanente.
 EOF
 
 echo ""

@@ -2,21 +2,107 @@
 
 Este repo contiene el **AI Kit** (skills + tools + references) para integrarlo en repos de servicios y workspaces multi-repo.
 
-## Qué cambió en este kit
+## Modelo de instalación
 
-Además de las reglas canónicas por stack, el kit ahora proyecta un flujo **Spec-Driven Development** inspirado en Agent Teams Lite:
+El instalador copia skills, references y steering files **directamente** a las carpetas nativas de cada agente (`.kiro/`, `.codex/`, `.claude/`, `.gemini/`). No se crea `.ai-kit/`, `.ai/`, `ai-kit.lock` ni `scripts/ai/` en el repo destino.
 
-- orquestador **delegate-only** por micro (`smartpay-sdd-orchestrator`)
-- router multi-micro (`smartpay-workspace-router`)
-- fases `sdd-*` con DAG y gates
-- backend de artefactos pluggable (`openspec | engram | none`)
-- overlays SDD por asistente al ejecutar `setup.sh`
+### Agentes soportados
 
-La fuente de verdad del flujo está en:
-- `references/sdd/sdd-playbook.md`
-- `references/sdd/persistence-contract.md`
-- `references/sdd/openspec-convention.md`
-- `references/sdd/engram-convention.md`
+| Agente | Skills | References | Instrucciones | Steering |
+|--------|--------|------------|---------------|----------|
+| Kiro | `.kiro/skills/` | `.kiro/references/` | — (usa steering) | `.kiro/steering/*.md` |
+| Codex | `.codex/skills/` | `.codex/references/` | `AGENTS.md` | — |
+| Claude | `.claude/skills/` | `.claude/references/` | `CLAUDE.md` | — |
+| Gemini | `.gemini/skills/` | `.gemini/references/` | `GEMINI.md` | — |
+| Copilot | — | — | `.github/copilot-instructions.md` | — |
+
+> Las references son transversales: todo agente que recibe skills también recibe references, porque las skills las referencian directamente.
+
+## Quick start (1 repo / 1 microservicio)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/manuelcelyng/prueba-skills-codex/main/install.sh | bash
+```
+
+Durante la instalación podés elegir agentes. Si presionás Enter sin seleccionar nada, se configura **Kiro** (default).
+
+### Con flags explícitos
+
+```bash
+bash install.sh --kiro --codex
+bash install.sh --all --force
+bash install.sh --kit-ref v2.0 --codex --claude
+```
+
+## Quick start (workspace multi-repo)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/manuelcelyng/prueba-skills-codex/main/workspace-install.sh | bash
+```
+
+O con flags:
+
+```bash
+bash workspace-install.sh --kiro --codex --repos dispersion,pagos
+bash workspace-install.sh --all --force
+```
+
+El workspace installer:
+1. Copia skills/references/steering al workspace root
+2. Crea symlinks relativos en cada micro apuntando al workspace root
+3. Genera `workspace-ai.sh` runner
+
+### Estructura resultante (workspace)
+
+```
+workspace/
+├── .kiro/
+│   ├── skills/          # Copia directa
+│   ├── references/      # Copia directa
+│   └── steering/        # Generado con frontmatter Kiro
+├── .codex/
+│   ├── skills/          # Copia directa
+│   └── references/      # Copia directa
+├── micro-a/
+│   ├── .kiro/
+│   │   ├── skills → ../../.kiro/skills        # Symlink relativo
+│   │   ├── references → ../../.kiro/references
+│   │   └── steering → ../../.kiro/steering
+│   └── .codex/
+│       ├── skills → ../../.codex/skills
+│       └── references → ../../.codex/references
+├── AGENTS.md
+└── workspace-ai.sh
+```
+
+## Opciones del instalador
+
+### install.sh
+
+| Flag | Descripción |
+|------|-------------|
+| `--kit-repo <url>` | URL del repo ai-kit (default: GitHub) |
+| `--kit-ref <ref>` | Branch/tag/commit (default: main) |
+| `--project <name>` | Perfil de filtrado de skills (default: smartpay) |
+| `--kiro` | Configurar Kiro |
+| `--codex` | Configurar Codex |
+| `--claude` | Configurar Claude |
+| `--gemini` | Configurar Gemini |
+| `--copilot` | Configurar Copilot |
+| `--all` | Configurar todos los agentes |
+| `--force` | Sobrescribir archivos existentes |
+| `--no-setup` | Solo descargar, no configurar |
+
+### workspace-install.sh
+
+Mismos flags que install.sh, más:
+
+| Flag | Descripción |
+|------|-------------|
+| `--repos <a,b,c>` | Solo configurar estos micros |
+| `--no-runner` | No crear workspace-ai.sh |
+| `--setup-interactive` | Preguntar una vez, aplicar a todos |
+| `--setup-none` | No configurar agentes |
 
 ## Project profile (`--project`)
 
@@ -26,98 +112,46 @@ SmartPay incluye:
 - `smartpay-sdd-orchestrator`
 - `sdd-*`
 - `smartpay-workspace-router` (solo en workspace root)
-- reglas canónicas de implementación/review para Java y Python
-
-## Quick start (1 repo / 1 microservicio)
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/manuelcelyng/prueba-skills-codex/main/install.sh | bash
-```
-
-Durante la instalación podrás elegir asistentes. Si presionas Enter sin seleccionar nada, se configura **Codex**.
-
-## Qué instala
-
-En cada repo del micro:
-- `ai-kit.lock`
-- `scripts/ai/*`
-- `.ai-kit/`
-- `.ai/skills/`
-- `AGENTS.md` stub si no existía
-- `.codex/skills`, `.claude/skills`, `.gemini/skills` según el setup
-- `CLAUDE.md`, `GEMINI.md` y `.github/copilot-instructions.md` con overlays SDD cuando aplica
+- Reglas canónicas de implementación/review para Java y Python
 
 ## SDD Quick Start
 
-### Un micro
+Usa el entrypoint `smartpay-sdd-orchestrator`:
 
-Usa el entrypoint:
-- `smartpay-sdd-orchestrator`
+- `/sdd-init` — inicializar contexto SDD
+- `/sdd-new <change>` — nuevo cambio
+- `/sdd-continue` — continuar fase siguiente
+- `/sdd-ff <change>` — fast-forward planning
+- `/sdd-apply` — implementar
+- `/sdd-verify` — verificar
+- `/sdd-archive` — archivar
 
-Aliases soportados por el flujo:
-- `/sdd-init`
-- `/sdd-new <change-name>`
-- `/sdd-continue`
-- `/sdd-ff <change-name>`
-- `/sdd-apply`
-- `/sdd-verify`
-- `/sdd-archive`
+Playbook completo: `references/sdd/sdd-playbook.md`
 
-### Workspace multi-repo
+## Scripts
 
-1. Inicializa el workspace root:
-```bash
-./workspace-ai.sh --init-agents --project smartpay --codex
-```
-2. Usa `smartpay-workspace-router`.
-3. Ejecuta el mismo `change-name` en cada micro involucrado.
+| Script | Descripción |
+|--------|-------------|
+| `install.sh` | Instala el kit en un repo (copia directa) |
+| `workspace-install.sh` | Instala el kit en un workspace multi-repo |
+| `tools/lib.sh` | Funciones compartidas (detect_stack, should_include_skill) |
+| `tools/sync.sh` | Regenera `### Auto-invoke Skills` en AGENTS.md |
+| `tools/init-agents.sh` | Crea AGENTS.md stub para un repo |
+| `tools/init-workspace-agents.sh` | Crea AGENTS.md router para workspace |
 
-## Artifact store policy
+## Verificación post-instalación
 
-SmartPay usa por defecto:
-- `openspec`
+El instalador verifica automáticamente que:
+- Cada agente tiene `skills/` con al menos un skill
+- Cada agente con skills tiene `references/` con archivos
+- Kiro tiene `steering/` con al menos un archivo `.md`
 
-También soporta:
-- `engram` → persistencia sin archivos del repo
-- `none` → flujo efímero
+Si la verificación falla, reporta el path problemático y retorna exit code ≠ 0.
 
-### Engram (actualizado)
+## Idempotencia
 
-Si quieres usar `artifact_store.mode=engram`, primero asegúrate de tener Engram instalado y configurado en tu asistente.
+Re-ejecutar el instalador actualiza skills y references sin romper nada. Los archivos de instrucciones (AGENTS.md, CLAUDE.md, etc.) y steering files se preservan salvo que se use `--force`.
 
-Comandos actuales del repo oficial:
-- Codex: `engram setup codex`
-- Gemini CLI: `engram setup gemini-cli`
-- Claude Code: `engram setup claude-code` o plugin marketplace
+## Detección de artefactos legacy
 
-Si Engram no está disponible en la sesión, el flujo SDD debe caer explícitamente a `openspec` o `none`; no debe fingir que `engram` quedó activo.
-
-## Assistant behavior
-
-| Assistant | Cómo opera el flujo |
-|-----------|---------------------|
-| Codex | Inline, siguiendo skills + gates |
-| Claude Code | Puede delegar con `Task` cuando convenga |
-| Gemini CLI | Inline, siguiendo skills + gates |
-| Copilot | Inline, siguiendo skills + gates |
-
-## Filosofía `AGENTS.md` stub-first
-
-Si el repo no tiene `AGENTS.md`, el kit crea un stub mínimo y la primera acción debe ser `ai-init-agents`.
-
-Ese skill debe dejar un `AGENTS.md` final con:
-- tablas de skills realmente proyectadas,
-- comandos build/test reales,
-- reglas no negociables del repo,
-- quick start SDD,
-- referencia a `dev-java` / `dev-python` y `review` como rulebooks.
-
-## Scripts clave
-
-- `install.sh` → instala el kit en un repo
-- `workspace-install.sh` → instala el kit en varios repos
-- `tools/setup.sh` → proyecta skills y genera/copía overlays por asistente
-- `tools/sync.sh` → regenera `### Auto-invoke Skills`
-- `tools/init-agents.sh` → crea stub inicial
-- `tools/init-workspace-agents.sh` → crea router del workspace
-- `tools/build-skills.sh` → arma `.ai/skills`
+Si el instalador detecta `.ai-kit/`, `.ai/`, `scripts/ai/` o `ai-kit.lock`, emite un warning sugiriendo eliminarlos manualmente.

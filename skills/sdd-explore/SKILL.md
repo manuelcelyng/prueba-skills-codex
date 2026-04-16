@@ -17,7 +17,7 @@ Investigar el código real y devolver análisis estructurado para que proposal/s
 
 ## Required References
 
-- `./.ai-kit/references/sdd/persistence-contract.md`
+- `references/sdd/persistence-contract.md`
 - `AGENTS.md` del repo
 - `openspec/config.yaml` si existe
 

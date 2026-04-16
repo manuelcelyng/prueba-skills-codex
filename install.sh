@@ -1,432 +1,168 @@
 #!/usr/bin/env bash
-# AI Kit installer (service repo).
-#
-# Intended usage (run inside a service repo root):
-#   curl -fsSL https://raw.githubusercontent.com/manuelcelyng/prueba-skills-codex/main/install.sh | bash
-#
-# Options:
-#   --kit-repo <git-url>   Override AI_KIT_REPO
-#   --kit-ref <ref>        Override AI_KIT_REF (default: main)
-#   --project <name>       Skill projection profile (default: smartpay)
-#   --all/--claude/...     Pass-through flags for ./scripts/ai/setup.sh
-#   --no-run               Only install files; don't bootstrap/setup/sync
-#   --no-setup             Skip setup (symlinks/copies) step
-#   --force                Overwrite existing files
-#
-# Notes:
-# - This installer creates: ai-kit.lock, scripts/ai/*, updates .gitignore, creates an AGENTS.md stub if missing.
-# - Requires: git, bash, and network access.
-
 set -euo pipefail
-
-KIT_REPO_DEFAULT="https://github.com/manuelcelyng/prueba-skills-codex.git"
-KIT_REF_DEFAULT="main"
-
-KIT_REPO="$KIT_REPO_DEFAULT"
-KIT_REF="$KIT_REF_DEFAULT"
-PROJECT="smartpay"
-NO_RUN=false
-NO_SETUP=false
-FORCE=false
-SETUP_ARGS=()
-SETUP_ARGS_FINAL=()
-
-usage() {
-  cat <<EOF
-Usage: install.sh [--kit-repo <git-url>] [--kit-ref <ref>] [--project <name>] [--no-run] [--force]
-EOF
-}
-
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --kit-repo)
-      [ $# -ge 2 ] || { echo "install: --kit-repo requires a value" >&2; exit 1; }
-      KIT_REPO="$2"; shift 2 ;;
-    --kit-ref)
-      [ $# -ge 2 ] || { echo "install: --kit-ref requires a value" >&2; exit 1; }
-      KIT_REF="$2"; shift 2 ;;
-    --project)
-      [ $# -ge 2 ] || { echo "install: --project requires a value" >&2; exit 1; }
-      PROJECT="$2"; shift 2 ;;
-    --all|--claude|--gemini|--codex|--copilot)
-      SETUP_ARGS+=("$1"); shift ;;
-    --no-run) NO_RUN=true; shift ;;
-    --no-setup) NO_SETUP=true; shift ;;
-    --force) FORCE=true; shift ;;
-    --help|-h) usage; exit 0 ;;
-    *)
-      echo "Unknown option: $1" >&2
-      usage >&2
-      exit 1
-      ;;
-  esac
-done
-
-REPO_ROOT="$(pwd)"
-
-if [ ! -d "$REPO_ROOT/.git" ]; then
-  echo "install: expected to run in a git repo root (missing .git in $REPO_ROOT)" >&2
-  exit 1
-fi
-
-write_file() {
-  local path="$1"
-  shift
-  if [ -f "$path" ] && ! $FORCE; then
-    echo "install: skip (exists): $path"
-    return 0
-  fi
-  mkdir -p "$(dirname "$path")"
-  cat > "$path" <<EOF
-$*
-EOF
-  echo "install: wrote $path"
-}
-
-append_gitignore_block() {
-  local path="$1"
-  local marker_begin="# AI KIT (BEGIN)"
-  local marker_end="# AI KIT (END)"
-
-  if [ ! -f "$path" ]; then
-    touch "$path"
-  fi
-
-  if grep -qF "$marker_begin" "$path" 2>/dev/null; then
-    echo "install: .gitignore already contains AI kit block"
-    return 0
-  fi
-
-  cat >> "$path" <<'EOF'
-
-# AI KIT (BEGIN)
-.ai-kit/
-.ai/
-.claude/skills
-.gemini/skills
-.codex/skills
-CLAUDE.md
-GEMINI.md
-.github/copilot-instructions.md
-# AI KIT (END)
-EOF
-  echo "install: updated $path"
-}
-
-write_file "$REPO_ROOT/ai-kit.lock" \
-"AI_KIT_REPO=$KIT_REPO
-AI_KIT_REF=$KIT_REF
-$( [ -n "$PROJECT" ] && echo "AI_SKILLS_PROJECT=$PROJECT" )"
-
-write_file "$REPO_ROOT/scripts/ai/bootstrap.sh" \
-'#!/usr/bin/env bash
-set -euo pipefail
-
+REPO_ROOT="${REPO_ROOT:-$(pwd)}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-LOCK_FILE="$REPO_ROOT/ai-kit.lock"
+if [ -f "$SCRIPT_DIR/tools/lib.sh" ]; then source "$SCRIPT_DIR/tools/lib.sh"; fi
 
-if [ ! -f "$LOCK_FILE" ]; then
-  echo "bootstrap: missing ai-kit.lock at $LOCK_FILE" 1>&2
-  exit 1
-fi
+KIT_REPO="https://github.com/manuelcelyng/prueba-skills-codex.git"
+KIT_REF="main"; PROJECT="smartpay"; FORCE=false; NO_SETUP=false
+SETUP_KIRO=false; SETUP_CODEX=false; SETUP_CLAUDE=false; SETUP_GEMINI=false; SETUP_COPILOT=false
+KIT_DIR=""; is_java=false; is_python=false; is_workspace=false
 
-# shellcheck disable=SC1090
-source "$LOCK_FILE"
+parse_args() { while [ $# -gt 0 ]; do case "$1" in
+  --kit-repo) KIT_REPO="$2"; shift 2;; --kit-ref) KIT_REF="$2"; shift 2;; --project) PROJECT="$2"; shift 2;;
+  --kiro) SETUP_KIRO=true; shift;; --codex) SETUP_CODEX=true; shift;; --claude) SETUP_CLAUDE=true; shift;;
+  --gemini) SETUP_GEMINI=true; shift;; --copilot) SETUP_COPILOT=true; shift;;
+  --all) SETUP_KIRO=true;SETUP_CODEX=true;SETUP_CLAUDE=true;SETUP_GEMINI=true;SETUP_COPILOT=true; shift;;
+  --force) FORCE=true; shift;; --no-setup) NO_SETUP=true; shift;;
+  --help|-h) echo "install.sh [--kit-repo url] [--kit-ref ref] [--project name] [--kiro|--codex|--all] [--force]"; exit 0;;
+  *) err "Unknown: $1"; exit 1;; esac; done; }
 
-if [ -z "${AI_KIT_REPO:-}" ]; then
-  echo "bootstrap: AI_KIT_REPO is required in ai-kit.lock" 1>&2
-  exit 1
-fi
+download_kit() {
+  if [ -d "$KIT_REPO" ]; then
+    KIT_DIR="$(mktemp -d)"; setup_cleanup; cp -R "$KIT_REPO"/. "$KIT_DIR"/; log "ai-kit from local path"; return 0; fi
+  KIT_DIR="$(mktemp -d)"; setup_cleanup; log "downloading ($KIT_REF)..."
+  local ok=false; for i in 1 2 3; do rm -rf "$KIT_DIR"; KIT_DIR="$(mktemp -d)"
+    if git clone "$KIT_REPO" "$KIT_DIR" >/dev/null 2>&1; then ok=true; break; fi; sleep "$i"; done
+  if $ok; then if [ -d "$KIT_DIR/.git" ]; then git -C "$KIT_DIR" checkout -q "$KIT_REF" 2>/dev/null || true; fi
+    log "downloaded (git clone)"; return 0; fi
+  local src="${KIT_REPO%.git}" owner="" repo=""
+  if [[ "$src" =~ github\.com/([^/]+)/([^/]+) ]]; then owner="${BASH_REMATCH[1]}"; repo="${BASH_REMATCH[2]}"; fi
+  if [ -z "$owner" ]; then err "clone failed"; exit 1; fi
+  local url="https://codeload.github.com/$owner/$repo/tar.gz/$KIT_REF" tgz="$KIT_DIR/k.tgz"
+  warn "trying tarball..."; local dl=false
+  for i in 1 2 3; do if curl -fsSL -o "$tgz" "$url" 2>/dev/null; then dl=true; break; fi; sleep "$i"; done
+  if ! $dl; then err "tarball failed"; exit 1; fi
+  tar -xzf "$tgz" -C "$KIT_DIR"
+  local ex; ex="$(find "$KIT_DIR" -maxdepth 1 -type d -name "${repo}-*" | head -1)"
+  if [ ! -d "$ex" ]; then err "extract failed"; exit 1; fi
+  local t; t="$(mktemp -d)"; mv "$ex"/* "$t"/; rm -rf "$KIT_DIR"; mv "$t" "$KIT_DIR"; log "downloaded (tarball)"; }
 
-AI_KIT_REF="${AI_KIT_REF:-main}"
-AI_KIT_MODE="${AI_KIT_MODE:-git}"
+show_menu() {
+  if $SETUP_KIRO || $SETUP_CODEX || $SETUP_CLAUDE || $SETUP_GEMINI || $SETUP_COPILOT; then return 0; fi
+  if [ ! -t 0 ]; then warn "no TTY — defaulting to --kiro"; SETUP_KIRO=true; return 0; fi
+  echo "Which agents? (Enter=Kiro) 1)Kiro 2)Codex 3)Claude 4)Gemini 5)Copilot a)All n)None"
+  printf "Select: "; local c=""; read -r c < /dev/tty 2>/dev/null || read -r c || c=""
+  case "$c" in "") SETUP_KIRO=true;; a|A) SETUP_KIRO=true;SETUP_CODEX=true;SETUP_CLAUDE=true;SETUP_GEMINI=true;SETUP_COPILOT=true;;
+    n|N) ;; *) for x in $c; do case "$x" in 1)SETUP_KIRO=true;;2)SETUP_CODEX=true;;3)SETUP_CLAUDE=true;;4)SETUP_GEMINI=true;;5)SETUP_COPILOT=true;;esac;done;; esac; }
 
-src="$AI_KIT_REPO"
-if [[ "$src" != /* ]] && [[ "$src" != *"://"* ]] && [[ "$src" != *@*:* ]]; then
-  src="$(cd "$REPO_ROOT" && cd "$src" && pwd)"
-fi
+filter_skills() {
+  local kd="$KIT_DIR/skills" ld="$REPO_ROOT/skills" names=""
+  if [ -d "$kd" ]; then for d in "$kd"/*/; do if [ -d "$d" ]; then local n; n="$(basename "$d")"
+    if should_include_skill "$n"; then echo "$d"; names="$names $n "; fi; fi; done; fi
+  if [ -d "$ld" ]; then for d in "$ld"/*/; do if [ -d "$d" ]; then local n; n="$(basename "$d")"
+    case "$names" in *" $n "*) ;; *) echo "$d";; esac; fi; done; fi; }
 
-dest="$REPO_ROOT/.ai-kit"
+install_skills_for_agent() {
+  local a="$1" dest="$REPO_ROOT/.${1}/skills"; rm -rf "$dest"; mkdir -p "$dest"; local c=0
+  while IFS= read -r p; do if [ -n "$p" ] && [ -d "$p" ]; then cp -R "$p" "$dest/$(basename "$p")"; c=$((c+1)); fi
+  done <<SK
+$(filter_skills)
+SK
+  log "$a: $c skills"; }
 
-# If a previous pilot used a symlink, replace it with a real clone.
-if [ -L "$dest" ]; then
-  rm -rf "$dest"
-fi
+install_references_for_agent() {
+  local a="$1" src="$KIT_DIR/references" dest="$REPO_ROOT/.${1}/references"
+  if [ ! -d "$src" ]; then warn "$a: no refs"; return 0; fi
+  rm -rf "$dest"; mkdir -p "$dest"; cp -R "$src"/* "$dest"/ 2>/dev/null || true
+  log "$a: $(find "$dest" -type f | wc -l | tr -d ' ') refs"; }
 
-if [ "$AI_KIT_MODE" = "workdir" ]; then
-  if [[ "$src" == *"://"* ]] || [[ "$src" == *@*:* ]]; then
-    echo "bootstrap: AI_KIT_MODE=workdir requires a local path (got $src)" 1>&2
-    exit 1
-  fi
-  if [ ! -d "$src" ]; then
-    echo "bootstrap: AI_KIT_REPO path not found: $src" 1>&2
-    exit 1
-  fi
-  rm -rf "$dest"
-  ln -s "$src" "$dest"
-  echo "bootstrap: .ai-kit linked -> $src"
-  exit 0
-fi
+install_steering_for_kiro() {
+  local d="$REPO_ROOT/.kiro/steering"; mkdir -p "$d"
+  if [ ! -f "$d/main.md" ] || [ "$FORCE" = "true" ]; then
+    printf '%s\n' '---' 'inclusion: always' 'name: ai-kit-main' 'description: Reglas principales del kit AI.' '---' '' '# AI Kit Main' '- AGENTS.md | .kiro/skills/ | .kiro/references/ | references/sdd/sdd-playbook.md' > "$d/main.md"
+    log "kiro: main.md"; fi
+  if [ ! -f "$d/collaboration.md" ] || [ "$FORCE" = "true" ]; then
+    printf '%s\n' '---' 'inclusion: auto' 'name: ai-kit-collaboration' 'description: GitLab/Azure DevOps collaboration.' '---' '' '# Collaboration' '- gitlab-mr-review-* | azuredevops | pr-description' > "$d/collaboration.md"
+    log "kiro: collaboration.md"; fi; }
 
-parse_github_owner_repo() {
-  # Supports:
-  # - https://github.com/<owner>/<repo>.git
-  # - git@github.com:<owner>/<repo>.git
-  local s="$1"
-  s="${s%.git}"
-  if [[ "$s" =~ ^https?://github\.com/([^/]+)/([^/]+)$ ]]; then
-    echo "${BASH_REMATCH[1]} ${BASH_REMATCH[2]}"
-    return 0
-  fi
-  if [[ "$s" =~ ^git@github\.com:([^/]+)/([^/]+)$ ]]; then
-    echo "${BASH_REMATCH[1]} ${BASH_REMATCH[2]}"
-    return 0
-  fi
-  return 1
-}
+generate_agents_md() {
+  if [ -f "$REPO_ROOT/AGENTS.md" ] && [ "$FORCE" != "true" ]; then log "AGENTS.md exists"; return 0; fi
+  printf '%s\n' "# $(basename "$REPO_ROOT")" "" "Invoca ai-init-agents en el primer contacto." "" "SDD: smartpay-sdd-orchestrator | Playbook: references/sdd/sdd-playbook.md" > "$REPO_ROOT/AGENTS.md"
+  log "AGENTS.md stub"; }
 
-install_from_github_tarball() {
-  local src_url="$1"
-  local ref="$2"
+generate_instruction_file() {
+  local a="$1" out="$REPO_ROOT/$2"
+  if [ -f "$out" ] && [ "$FORCE" != "true" ]; then log "$a: $2 exists"; return 0; fi
+  if [ ! -f "$REPO_ROOT/AGENTS.md" ]; then warn "$a: no AGENTS.md"; return 0; fi
+  mkdir -p "$(dirname "$out")"; cp "$REPO_ROOT/AGENTS.md" "$out"
+  local ov="$KIT_DIR/references/sdd/assistant-overlays/${a}.md"
+  if [ -f "$ov" ]; then printf '\n' >> "$out"; cat "$ov" >> "$out"; fi; log "$a: $2"; }
 
-  local parsed
-  if ! parsed="$(parse_github_owner_repo "$src_url")"; then
-    echo "bootstrap: tarball fallback only supports github.com urls (got $src_url)" 1>&2
-    return 1
-  fi
-  local owner repo
-  IFS=' ' read -r owner repo <<<"$parsed"
-  if [ -z "${owner:-}" ] || [ -z "${repo:-}" ]; then
-    echo "bootstrap: failed to parse owner/repo from: $parsed" 1>&2
-    return 1
-  fi
+run_sync() {
+  local s=""
+  if [ -f "$SCRIPT_DIR/tools/sync.sh" ]; then s="$SCRIPT_DIR/tools/sync.sh"
+  elif [ -f "$KIT_DIR/tools/sync.sh" ]; then s="$KIT_DIR/tools/sync.sh"; fi
+  if [ -z "$s" ]; then warn "no sync.sh"; return 0; fi
+  local sd=""
+  for c in .kiro/skills .codex/skills .claude/skills .gemini/skills; do
+    if [ -d "$REPO_ROOT/$c" ]; then sd="$REPO_ROOT/$c"; break; fi; done
+  if [ -z "$sd" ]; then warn "no skills for sync"; return 0; fi
+  REPO_ROOT="$REPO_ROOT" AI_SKILLS_PROJECT="$PROJECT" bash "$s" --skills-dir "$sd" 2>&1 || true; }
 
-  local tmp
-  tmp="$(mktemp -d)"
-  local tgz="$tmp/ai-kit.tgz"
-  local url="https://codeload.github.com/${owner}/${repo}/tar.gz/${ref}"
+update_gitignore() {
+  local gi="$REPO_ROOT/.gitignore" bm="# AI KIT (BEGIN)" em="# AI KIT (END)"
+  local bf; bf="$(mktemp)"; echo "$bm" > "$bf"
+  if $SETUP_KIRO; then echo ".kiro/" >> "$bf"; fi
+  if $SETUP_CODEX; then echo ".codex/" >> "$bf"; fi
+  if $SETUP_CLAUDE; then echo ".claude/" >> "$bf"; echo "CLAUDE.md" >> "$bf"; fi
+  if $SETUP_GEMINI; then echo ".gemini/" >> "$bf"; echo "GEMINI.md" >> "$bf"; fi
+  if $SETUP_COPILOT; then echo ".github/copilot-instructions.md" >> "$bf"; fi
+  echo "$em" >> "$bf"
+  if [ ! -f "$gi" ]; then cp "$bf" "$gi"; rm -f "$bf"; log ".gitignore created"; return 0; fi
+  if grep -qF "$bm" "$gi"; then
+    local t; t="$(mktemp)"
+    awk -v b="$bm" -v e="$em" -v f="$bf" '$0==b{while((getline l<f)>0)print l;close(f);sk=1;next}sk&&$0==e{sk=0;next}!sk{print}' "$gi" > "$t"
+    mv "$t" "$gi"; rm -f "$bf"; log ".gitignore updated"
+  else echo "" >> "$gi"; cat "$bf" >> "$gi"; rm -f "$bf"; log ".gitignore appended"; fi; }
 
-  echo "bootstrap: git clone failed; trying tarball fallback..." 1>&2
-  echo "bootstrap: downloading $url" 1>&2
-
-  # Retry tarball download (transient 5xx / network hiccups)
-  local ok=false
-  for i in 1 2 3; do
-    if curl -fsSL -o "$tgz" "$url" >/dev/null 2>&1; then
-      ok=true
-      break
-    fi
-    sleep "$i"
+verify_installation() {
+  local fail=false
+  for a in $1; do
+    if [ ! -d "$REPO_ROOT/.${a}/skills" ] || [ "$(find "$REPO_ROOT/.${a}/skills" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')" -eq 0 ]; then err "verify: .${a}/skills"; fail=true; fi
+    if [ ! -d "$REPO_ROOT/.${a}/references" ] || [ "$(find "$REPO_ROOT/.${a}/references" -type f 2>/dev/null | wc -l | tr -d ' ')" -eq 0 ]; then err "verify: .${a}/refs"; fail=true; fi
   done
-  if [ "$ok" != "true" ]; then
-    echo "bootstrap: tarball download failed ($url)" 1>&2
-    rm -rf "$tmp"
-    return 1
-  fi
+  if $SETUP_KIRO; then
+    if [ ! -d "$REPO_ROOT/.kiro/steering" ] || [ "$(find "$REPO_ROOT/.kiro/steering" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')" -eq 0 ]; then err "verify: steering"; fail=true; fi; fi
+  if $fail; then return 1; fi; return 0; }
 
-  tar -xzf "$tgz" -C "$tmp"
-  local extracted
-  extracted="$(find "$tmp" -maxdepth 1 -type d -name "${repo}-*" -print | head -n 1)"
-  if [ -z "$extracted" ] || [ ! -d "$extracted" ]; then
-    echo "bootstrap: tarball extraction failed" 1>&2
-    rm -rf "$tmp"
-    return 1
-  fi
+detect_legacy() {
+  if [ -d "$REPO_ROOT/.ai-kit" ]; then warn "legacy: .ai-kit/"; fi
+  if [ -d "$REPO_ROOT/.ai" ]; then warn "legacy: .ai/"; fi
+  if [ -d "$REPO_ROOT/scripts/ai" ]; then warn "legacy: scripts/ai/"; fi
+  if [ -f "$REPO_ROOT/ai-kit.lock" ]; then warn "legacy: ai-kit.lock"; fi; }
 
-  rm -rf "$dest"
-  mv "$extracted" "$dest"
-  echo "tarball:${owner}/${repo}@${ref}" > "$dest/.ai-kit-tarball"
-  rm -rf "$tmp"
-  return 0
-}
+print_summary() {
+  log "=== Summary ==="
+  for a in $1; do
+    local sc; sc="$(find "$REPO_ROOT/.${a}/skills" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')"
+    local rc; rc="$(find "$REPO_ROOT/.${a}/references" -type f 2>/dev/null | wc -l | tr -d ' ')"
+    local st="-"; if [ "$a" = "kiro" ]; then st="$(find "$REPO_ROOT/.kiro/steering" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')"; fi
+    log "  $a: $sc skills, $rc refs, $st steering"
+  done; }
 
-git_clone_with_retries() {
-  local url="$1"
-  local out="$2"
+main() {
+  parse_args "$@"
+  if [ ! -d "$REPO_ROOT/.git" ]; then err "not a git repo: $REPO_ROOT"; exit 1; fi
+  download_kit
+  if [ -f "$KIT_DIR/tools/lib.sh" ]; then source "$KIT_DIR/tools/lib.sh"; fi
+  detect_stack "$REPO_ROOT"
+  if $NO_SETUP; then log "done (--no-setup)"; return 0; fi
+  show_menu
+  if ! $SETUP_KIRO && ! $SETUP_CODEX && ! $SETUP_CLAUDE && ! $SETUP_GEMINI && ! $SETUP_COPILOT; then warn "no agents"; return 0; fi
+  local agents=""
+  if $SETUP_KIRO; then agents="$agents kiro"; fi
+  if $SETUP_CODEX; then agents="$agents codex"; fi
+  if $SETUP_CLAUDE; then agents="$agents claude"; fi
+  if $SETUP_GEMINI; then agents="$agents gemini"; fi
+  for a in $agents; do install_skills_for_agent "$a"; install_references_for_agent "$a"; done
+  if $SETUP_KIRO; then install_steering_for_kiro; fi
+  generate_agents_md
+  if $SETUP_CLAUDE; then generate_instruction_file "claude" "CLAUDE.md"; fi
+  if $SETUP_GEMINI; then generate_instruction_file "gemini" "GEMINI.md"; fi
+  if $SETUP_COPILOT; then generate_instruction_file "copilot" ".github/copilot-instructions.md"; fi
+  run_sync; update_gitignore
+  if verify_installation "$agents"; then print_summary "$agents"; fi
+  detect_legacy; log "complete"; }
 
-  # Retry clone (GitHub can intermittently return 5xx; some proxies also flake).
-  for i in 1 2 3; do
-    rm -rf "$out"
-    if git clone "$url" "$out" >/dev/null 2>&1; then
-      return 0
-    fi
-    # Try HTTP/1.1 on second attempt (some corporate proxies break HTTP/2)
-    if [ "$i" -eq 2 ]; then
-      rm -rf "$out"
-      if git -c http.version=HTTP/1.1 clone "$url" "$out" >/dev/null 2>&1; then
-        return 0
-      fi
-    fi
-    sleep "$i"
-  done
-  return 1
-}
-
-tarball_marker="$dest/.ai-kit-tarball"
-
-if [ -f "$tarball_marker" ] && [ ! -d "$dest/.git" ]; then
-  # If previous install used tarball, keep updating via tarball (no git required).
-  install_from_github_tarball "$src" "$AI_KIT_REF"
-elif [ -d "$dest/.git" ]; then
-  git -C "$dest" remote set-url origin "$src" >/dev/null 2>&1 || true
-else
-  if ! git_clone_with_retries "$src" "$dest"; then
-    install_from_github_tarball "$src" "$AI_KIT_REF"
-  fi
-fi
-
-if [ -d "$dest/.git" ]; then
-  git -C "$dest" fetch --all --tags >/dev/null 2>&1 || true
-  git -C "$dest" checkout -q "$AI_KIT_REF"
-  git -C "$dest" pull --ff-only origin "$AI_KIT_REF" >/dev/null 2>&1 || true
-fi
-
-echo "bootstrap: .ai-kit ready ($AI_KIT_REF)"'
-
-write_file "$REPO_ROOT/scripts/ai/setup.sh" \
-'#!/usr/bin/env bash
-set -euo pipefail
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-
-"$REPO_ROOT/scripts/ai/bootstrap.sh"
-
-args=("$@")
-
-# If no args and AGENTS.md is missing, choose flags once so the stub matches the selection.
-if [ ${#args[@]} -eq 0 ] && [ ! -f "$REPO_ROOT/AGENTS.md" ]; then
-  flags_line="--codex"
-  if [ -t 0 ] || exec 3<>/dev/tty 2>/dev/null; then
-    exec 3<&- 2>/dev/null || true
-    exec 3>&- 2>/dev/null || true
-    tmp_flags="$(mktemp)"
-    "$REPO_ROOT/.ai-kit/tools/setup.sh" --choose-flags | tee "$tmp_flags"
-    flags_line="$(sed -n "s/^AI_KIT_FLAGS: //p" "$tmp_flags" | head -n 1)"
-    rm -f "$tmp_flags"
-    [ -z "$flags_line" ] && flags_line="--codex"
-  fi
-  # shellcheck disable=SC2206
-  args=($flags_line)
-  "$REPO_ROOT/scripts/ai/init-agents.sh" "${args[@]}" >/dev/null 2>&1 || true
-elif [ ! -f "$REPO_ROOT/AGENTS.md" ]; then
-  "$REPO_ROOT/scripts/ai/init-agents.sh" "${args[@]}" >/dev/null 2>&1 || true
-fi
-
-(cd "$REPO_ROOT" && "$REPO_ROOT/.ai-kit/tools/build-skills.sh")
-(cd "$REPO_ROOT" && "$REPO_ROOT/.ai-kit/tools/setup.sh" "${args[@]}")'
-
-write_file "$REPO_ROOT/scripts/ai/sync.sh" \
-'#!/usr/bin/env bash
-set -euo pipefail
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-
-"$REPO_ROOT/scripts/ai/bootstrap.sh"
-
-if [ ! -f "$REPO_ROOT/AGENTS.md" ]; then
-  "$REPO_ROOT/scripts/ai/init-agents.sh" >/dev/null 2>&1 || true
-fi
-
-(cd "$REPO_ROOT" && "$REPO_ROOT/.ai-kit/tools/build-skills.sh")
-(cd "$REPO_ROOT" && "$REPO_ROOT/.ai-kit/tools/sync.sh" "$@")'
-
-write_file "$REPO_ROOT/scripts/ai/create-skill.sh" \
-'#!/usr/bin/env bash
-set -euo pipefail
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-
-"$REPO_ROOT/scripts/ai/bootstrap.sh" >/dev/null
-exec "$REPO_ROOT/.ai-kit/tools/create-skill.sh" --where "$REPO_ROOT/skills" "$@"'
-
-write_file "$REPO_ROOT/scripts/ai/init-agents.sh" \
-'#!/usr/bin/env bash
-set -euo pipefail
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-
-"$REPO_ROOT/scripts/ai/bootstrap.sh" >/dev/null
-exec "$REPO_ROOT/.ai-kit/tools/init-agents.sh" "$@"'
-
-chmod +x \
-  "$REPO_ROOT/scripts/ai/bootstrap.sh" \
-  "$REPO_ROOT/scripts/ai/setup.sh" \
-  "$REPO_ROOT/scripts/ai/sync.sh" \
-  "$REPO_ROOT/scripts/ai/create-skill.sh" \
-  "$REPO_ROOT/scripts/ai/init-agents.sh"
-
-append_gitignore_block "$REPO_ROOT/.gitignore"
-
-if $NO_RUN; then
-  echo "install: done (--no-run)"
-  exit 0
-fi
-
-  echo "install: running bootstrap/setup/sync"
-"$REPO_ROOT/scripts/ai/bootstrap.sh"
-
-choose_setup_args() {
-  if [ ${#SETUP_ARGS[@]} -gt 0 ]; then
-    SETUP_ARGS_FINAL=("${SETUP_ARGS[@]}")
-    return 0
-  fi
-
-  # If setup is skipped, avoid prompting; keep a deterministic default for stub commands.
-  if $NO_SETUP; then
-    SETUP_ARGS_FINAL=(--codex)
-    return 0
-  fi
-
-  # Prompt if we can actually read AND write user input:
-  # - stdin is a TTY (script executed from a file), OR
-  # - /dev/tty is usable (curl | bash).
-  flags_line="--codex"
-  can_prompt=false
-  if [ -t 0 ]; then
-    can_prompt=true
-  elif exec 3<>/dev/tty 2>/dev/null; then
-    exec 3<&-
-    exec 3>&-
-    can_prompt=true
-  fi
-
-  if [ "$can_prompt" = true ]; then
-    echo "install: choose assistants (Enter = Codex default)..."
-    tmp_flags="$(mktemp)"
-    # Show menu output to the user while capturing it for parsing.
-    "$REPO_ROOT/.ai-kit/tools/setup.sh" --choose-flags | tee "$tmp_flags"
-    flags_line="$(sed -n "s/^AI_KIT_FLAGS: //p" "$tmp_flags" | head -n 1)"
-    rm -f "$tmp_flags"
-    [ -z "$flags_line" ] && flags_line="--codex"
-  else
-    echo "install: non-interactive (no TTY). Defaulting to --codex." 1>&2
-    echo "install: to choose interactively, run:" 1>&2
-    echo "  curl -fsSLO https://raw.githubusercontent.com/manuelcelyng/prueba-skills-codex/main/install.sh && bash install.sh" 1>&2
-  fi
-
-  # Parse flags line into array
-  # shellcheck disable=SC2206
-  SETUP_ARGS_FINAL=($flags_line)
-  if [ ${#SETUP_ARGS_FINAL[@]} -eq 0 ]; then
-    SETUP_ARGS_FINAL=(--codex)
-  fi
-}
-
-choose_setup_args
-
-if [ ! -f "$REPO_ROOT/AGENTS.md" ]; then
-  "$REPO_ROOT/scripts/ai/init-agents.sh" "${SETUP_ARGS_FINAL[@]}" >/dev/null 2>&1 || true
-fi
-
-if ! $NO_SETUP; then
-  "$REPO_ROOT/scripts/ai/setup.sh" "${SETUP_ARGS_FINAL[@]}"
-fi
-
-"$REPO_ROOT/scripts/ai/sync.sh"
-
-echo "install: done"
+main "$@"

@@ -19,13 +19,13 @@ Este skill es la **fuente normativa de auditoría** del kit. Su trabajo es valid
 
 ## Shared Operating Model
 
-Leer `.ai-kit/references/delivery-flow.md` antes de revisar. Ese documento define precedencia, contexto mínimo, gates y evidencia requerida. `review` no debe aprobar como “listo” un cambio que incumpla ese baseline.
+Leer `references/delivery-flow.md` antes de revisar. Ese documento define precedencia, contexto mínimo, gates y evidencia requerida. `review` no debe aprobar como “listo” un cambio que incumpla ese baseline.
 
 ## Normative Baseline
 
-- Para Java, el baseline obligatorio es `dev-java` + `.ai-kit/references/java-smartpay-rulebook.md`.
-- Para Python, el baseline obligatorio es `dev-python` + `.ai-kit/references/python-smartpay-rulebook.md`.
-- Usa `.ai-kit/references/java-smartpay-reference.md` o `.ai-kit/references/python-smartpay-reference.md` solo cuando necesites contrastar contrato, ejemplos, plan, dependencias o ADRs.
+- Para Java, el baseline obligatorio es `dev-java` + `references/java-smartpay-rulebook.md`.
+- Para Python, el baseline obligatorio es `dev-python` + `references/python-smartpay-rulebook.md`.
+- Usa `references/java-smartpay-reference.md` o `references/python-smartpay-reference.md` solo cuando necesites contrastar contrato, ejemplos, plan, dependencias o ADRs.
 
 ## Review Workflow
 
@@ -128,7 +128,7 @@ Un review está completo cuando:
 - quedó claro qué falta para aprobar o por qué puede aprobarse.
 
 ## References
-- `.ai-kit/references/java-smartpay-rulebook.md`
-- `.ai-kit/references/python-smartpay-rulebook.md`
-- `.ai-kit/references/java-smartpay-reference.md`
-- `.ai-kit/references/python-smartpay-reference.md`
+- `references/java-smartpay-rulebook.md`
+- `references/python-smartpay-rulebook.md`
+- `references/java-smartpay-reference.md`
+- `references/python-smartpay-reference.md`

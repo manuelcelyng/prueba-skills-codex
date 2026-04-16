@@ -19,9 +19,9 @@ Planear cambios Python y dejar el material listo para que `dev-python` implement
 
 ## Shared Operating Model
 
-Leer `.ai-kit/references/delivery-flow.md` antes de producir artefactos. Ese documento define contexto mínimo, gates HU/SDD, write locations y evidencia esperada para pasar a implementación y review.
+Leer `references/delivery-flow.md` antes de producir artefactos. Ese documento define contexto mínimo, gates HU/SDD, write locations y evidencia esperada para pasar a implementación y review.
 
-Además, el planning debe quedar alineado con `.ai-kit/references/python-smartpay-rulebook.md`, especialmente con:
+Además, el planning debe quedar alineado con `references/python-smartpay-rulebook.md`, especialmente con:
 - `PY-ARC-*` para ownership de capas / handlers / ETL / lifecycle;
 - `PY-CON-*` y `PY-OBS-*` para contrato, metadata, validación y `trace_id`;
 - `PY-CFG-*`, `PY-SQL-*` y `PY-RUN-*` para configuración, persistencia y artefactos operativos;
@@ -62,7 +62,7 @@ No marques el planning como listo si falta alguno de estos puntos:
 - estrategia de pruebas verificable.
 
 ## References
-- `.ai-kit/references/delivery-flow.md`
-- `.ai-kit/references/python-smartpay-rulebook.md`
-- `.ai-kit/references/python-smartpay-reference.md`
-- `.ai-kit/references/sdd/sdd-playbook.md`
+- `references/delivery-flow.md`
+- `references/python-smartpay-rulebook.md`
+- `references/python-smartpay-reference.md`
+- `references/sdd/sdd-playbook.md`

@@ -19,7 +19,7 @@ Este skill es la **fuente normativa** para implementación Python del kit. `revi
 
 ## Shared Operating Model
 
-Antes de codificar, leer `.ai-kit/references/delivery-flow.md` para precedencia, contexto mínimo, gates HU/SDD, write locations y evidencia de cierre.
+Antes de codificar, leer `references/delivery-flow.md` para precedencia, contexto mínimo, gates HU/SDD, write locations y evidencia de cierre.
 
 ## Mandatory Reroute
 
@@ -39,7 +39,7 @@ Detén la implementación y redirige cuando aplique:
 ## Canonical Python Rulebook
 
 La **fuente de verdad obligatoria** es:
-- `.ai-kit/references/python-smartpay-rulebook.md`
+- `references/python-smartpay-rulebook.md`
 
 Durante implementación debes revisar explícitamente estos grupos:
 - `PY-ARC-*`: arquitectura, ownership de capas, handlers delgados, ETL y lifecycle.
@@ -71,7 +71,7 @@ Antes de cerrar el cambio confirma:
 - reportas archivos tocados, pruebas ejecutadas y cualquier desviación del plan.
 
 ## References
-- `.ai-kit/references/delivery-flow.md`
-- `.ai-kit/references/python-smartpay-rulebook.md`
-- `.ai-kit/references/python-smartpay-reference.md`
-- `.ai-kit/references/sdd/sdd-playbook.md`
+- `references/delivery-flow.md`
+- `references/python-smartpay-rulebook.md`
+- `references/python-smartpay-reference.md`
+- `references/sdd/sdd-playbook.md`

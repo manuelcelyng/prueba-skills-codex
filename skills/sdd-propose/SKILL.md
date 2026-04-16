@@ -17,8 +17,8 @@ Formalizar el cambio en un `proposal` corto y aprobable por el usuario antes de 
 
 ## Required References
 
-- `./.ai-kit/references/sdd/persistence-contract.md`
-- `./.ai-kit/references/sdd/openspec-convention.md`
+- `references/sdd/persistence-contract.md`
+- `references/sdd/openspec-convention.md`
 - specs actuales de `openspec/specs/` si existen
 
 ## Workflow

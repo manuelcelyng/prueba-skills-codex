@@ -64,7 +64,7 @@ El `AGENTS.md` final debe dejar explícito:
 - entrypoint por micro: `smartpay-sdd-orchestrator`
 - entrypoint por workspace: `smartpay-workspace-router`
 - aliases del flujo: `/sdd-init`, `/sdd-new <change>`, `/sdd-continue`, `/sdd-ff`, `/sdd-apply`, `/sdd-verify`, `/sdd-archive`
-- fuente de verdad del flujo: `./.ai-kit/references/sdd/sdd-playbook.md`
+- fuente de verdad del flujo: `references/sdd/sdd-playbook.md`
 - `delegate-only orchestrator` = coordina y delega fases; no hace el trabajo de fase directamente
 - las reglas de implementación viven en `dev-java` / `dev-python`
 - las reglas de auditoría viven en `review`

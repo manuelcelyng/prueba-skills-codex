@@ -16,9 +16,9 @@ allowed-tools: Read, Edit, Write, Glob, Grep, Bash, Task
 # Desarrollo Java (canónico)
 
 Este skill es la **fuente normativa** para implementación Java del kit. La lectura obligatoria para una tarea Java es:
-1. `.ai-kit/references/delivery-flow.md`
-2. `.ai-kit/references/java-smartpay-rulebook.md`
-3. `.ai-kit/references/java-smartpay-reference.md` (solo si necesitas contrato/plan/ejemplos)
+1. `references/delivery-flow.md`
+2. `references/java-smartpay-rulebook.md`
+3. `references/java-smartpay-reference.md` (solo si necesitas contrato/plan/ejemplos)
 
 ## Mandatory Reroute
 
@@ -75,7 +75,7 @@ Antes de cerrar el cambio confirma:
 - reportas archivos tocados, pruebas ejecutadas y cualquier desviación del plan.
 
 ## References
-- `.ai-kit/references/delivery-flow.md`
-- `.ai-kit/references/java-smartpay-rulebook.md`
-- `.ai-kit/references/java-smartpay-reference.md`
-- `.ai-kit/references/sdd/sdd-playbook.md`
+- `references/delivery-flow.md`
+- `references/java-smartpay-rulebook.md`
+- `references/java-smartpay-reference.md`
+- `references/sdd/sdd-playbook.md`

@@ -24,7 +24,7 @@ Usa este skill cuando la tarea combine Java y Python o el lenguaje no esté clar
 - Si el stack no está claro, inspeccionar manifests (`build.gradle*`, `pom.xml`, `pyproject.toml`, `requirements*.txt`, `template.yaml`) antes de implementar.
 
 ## Reglas mínimas
-- Leer `.ai-kit/references/delivery-flow.md` para el baseline operativo compartido.
+- Leer `references/delivery-flow.md` para el baseline operativo compartido.
 - Cargar contexto raíz y del servicio antes de implementar.
 - No codificar sin contrato + plan o sin artefactos SDD aprobados.
 - Tomar `dev-java` y `dev-python` como fuentes canónicas de reglas de implementación; este skill solo enruta.

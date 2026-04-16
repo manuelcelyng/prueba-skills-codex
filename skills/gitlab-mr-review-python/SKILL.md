@@ -29,8 +29,8 @@ Este skill adapta la auditoría de `review` al contexto de comentarios inline en
 1. Leer `AGENTS.md`.
 2. Leer `skills/review/SKILL.md`.
 3. Leer `skills/dev-python/SKILL.md`.
-4. Leer `.ai-kit/references/python-smartpay-rulebook.md`.
-5. Leer `.ai-kit/references/gitlab-mr-review-commenting.md`.
+4. Leer `references/python-smartpay-rulebook.md`.
+5. Leer `references/gitlab-mr-review-commenting.md`.
 6. Cargar solo el diff del MR y el contexto mínimo de los archivos tocados.
 
 ## Python Review Rule IDs (mandatory)
@@ -100,7 +100,7 @@ Prioriza incumplimientos de:
 
 ## Comment Format
 
-Usa siempre el formato de `.ai-kit/references/gitlab-mr-review-commenting.md`.
+Usa siempre el formato de `references/gitlab-mr-review-commenting.md`.
 
 Ejemplo mínimo esperado:
 
@@ -127,5 +127,5 @@ queue_url = settings.notifications_queue_url
 
 - `skills/review/SKILL.md`
 - `skills/dev-python/SKILL.md`
-- `.ai-kit/references/python-smartpay-rulebook.md`
-- `.ai-kit/references/gitlab-mr-review-commenting.md`
+- `references/python-smartpay-rulebook.md`
+- `references/gitlab-mr-review-commenting.md`
