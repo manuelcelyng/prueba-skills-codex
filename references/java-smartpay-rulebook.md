@@ -13,7 +13,7 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 | Group | IDs                       | Tema |
 |---|---------------------------|---|
 | Arquitectura | `J-ARC-001` a `J-ARC-010` | Hexagonal, ownership de capas, puertos y source of truth del dominio |
-| Naming | `J-NAM-001` a `J-NAM-009` | Idioma, nombres de UseCase, puertos, clases, atributos e identificadores |
+| Naming | `J-NAM-001` a `J-NAM-010` | Idioma, nombres de UseCase, puertos, clases, atributos, identificadores y convención de embargos |
 | Reactividad | `J-REA-001` a `J-REA-009` | WebFlux/R2DBC, sin bloqueos, composición y streaming |
 | Contrato / auditoría / validación | `J-API-001` a `J-API-007` | Responses auditadas, validaciones, traceId |
 | Mapeo | `J-MAP-001` a `J-MAP-005` | MapStruct, mapping entre capas, builders inline |
@@ -140,6 +140,13 @@ Rulebook canónico para micros Java de SmartPay/ASULADO. Úsalo como fuente de v
 - **Apply in**: planning, dev, review.
 - **Avoid**: `String x`, `var tmp`, `Mono<Data> data`, `process(obj)`.
 - **Prefer**: `String participantDocument`, `var pendingDeductions`, `Mono<BatchStatus> batchStatus`, `processAccountingMovement(accountingMovement)`.
+
+### J-NAM-010 — Embargos de nómina usan `garnishment`, no `seizure`; datos del juzgado usan `COURT`, no `JUDICIAL`
+- **Rule**: todo descuento de nómina por embargo se traduce como `garnishment` (nunca `seizure`). Los tipos válidos son: `Voluntary garnishment` (conciliatorio), `Judicial garnishment` (judicial), `Child support garnishment` (alimentos). Cuando los datos corresponden al juzgado o autoridad, el prefijo es `COURT` (no `JUDICIAL`).
+- **Apply in**: planning, dev, review.
+- **Avoid**: `SEIZURE_TYPE`, `JUDICIAL_ACCOUNT_NUMBER`, `seizureAmount`.
+- **Prefer**: `GARNISHMENT_TYPE`, `COURT_ACCOUNT_NUMBER`, `garnishmentAmount`, `COURT_NAME`, `COURT_FILE_NUMBER`.
+- **Reference**: `references/garnishment-naming-convention.md`
 
 ---
 

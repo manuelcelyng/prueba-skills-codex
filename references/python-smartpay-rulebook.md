@@ -20,7 +20,7 @@ Este baseline se derivó de patrones reales observados en:
 | Group | IDs | Tema |
 |---|---|---|
 | Arquitectura | `PY-ARC-001` a `PY-ARC-005` | ownership de capas, handlers, ETL y lifecycle |
-| Naming y tipado | `PY-NAM-001` a `PY-NAM-004` | idioma, identificadores, constantes y type hints |
+| Naming y tipado | `PY-NAM-001` a `PY-NAM-005` | idioma, identificadores, constantes, type hints y convención de embargos |
 | Contrato y validación | `PY-CON-001` a `PY-CON-004` | payloads, metadata, sanitización y responses |
 | Observabilidad y errores | `PY-OBS-001` a `PY-OBS-004` | `trace_id`, logging y manejo de errores |
 | Configuración y seguridad | `PY-CFG-001` a `PY-CFG-004` | env vars, SSM, metadata operativa y bootstrap |
@@ -91,6 +91,13 @@ Este baseline se derivó de patrones reales observados en:
 - **Apply in**: planning, dev, review.
 - **Avoid**: helpers públicos sin tipo alguno cuando son parte del flujo principal.
 - **Prefer**: `def execute_migration(...) -> dict`, `def get_connection_string(self) -> str`.
+
+### PY-NAM-005 — Embargos de nómina usan `garnishment`, no `seizure`; datos del juzgado usan `court`, no `judicial`
+- **Rule**: todo descuento de nómina por embargo se traduce como `garnishment` (nunca `seizure`). Los tipos válidos son: `voluntary_garnishment` (conciliatorio), `judicial_garnishment` (judicial), `child_support_garnishment` (alimentos). Cuando los datos corresponden al juzgado o autoridad, el prefijo es `court` (no `judicial`).
+- **Apply in**: planning, dev, review.
+- **Avoid**: `seizure_type`, `judicial_account_number`, `seizure_amount`.
+- **Prefer**: `garnishment_type`, `court_account_number`, `garnishment_amount`, `court_name`, `court_file_number`.
+- **Reference**: `references/garnishment-naming-convention.md`
 
 ---
 
