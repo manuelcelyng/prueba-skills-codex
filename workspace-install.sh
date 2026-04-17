@@ -31,9 +31,14 @@
 #   --force                Overwrite existing files/symlinks
 #   --help                 Show help
 
-set -euo pipefail
+set -eo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WORKSPACE_ROOT="${REPO_ROOT:-$(pwd)}"
+
+SCRIPT_DIR=""; if [ -n "${BASH_SOURCE[0]:-}" ] && [ -f "${BASH_SOURCE[0]:-}" ]; then SCRIPT_DIR=""
+if [ -n "${BASH_SOURCE[0]:-}" ] && [ -f "${BASH_SOURCE[0]:-}" ]; then
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+fi; fi
 
 # ── Defaults ────────────────────────────────────────────────────────────────
 KIT_REPO_DEFAULT="https://github.com/manuelcelyng/prueba-skills-codex.git"
@@ -61,20 +66,18 @@ is_java=false
 is_python=false
 is_workspace=true
 
-WORKSPACE_ROOT="$(pwd)"
-REPO_ROOT="$WORKSPACE_ROOT"
 
 
 # ── Source shared utilities (local dev) ─────────────────────────────────────
-# When running from the kit repo itself, lib.sh is next to us.
-# When running via curl|bash, we re-source from the downloaded kit later.
-if [ -f "$SCRIPT_DIR/tools/lib.sh" ]; then
-  # shellcheck disable=SC1091
-  source "$SCRIPT_DIR/tools/lib.sh"
-elif [ -f "$SCRIPT_DIR/lib.sh" ]; then
-  # shellcheck disable=SC1091
-  source "$SCRIPT_DIR/lib.sh"
-fi
+# Inline fallbacks for curl|bash mode
+log()  { printf '\033[0;32minstall:\033[0m %s\n' "$*"; }
+warn() { printf '\033[1;33minstall:\033[0m %s\n' "$*" >&2; }
+err()  { printf '\033[0;31minstall:\033[0m %s\n' "$*" >&2; }
+setup_cleanup() { trap '_do_cleanup' EXIT; }
+_do_cleanup() { [ -n "${KIT_DIR:-}" ] && [ -d "${KIT_DIR:-}" ] && rm -rf "$KIT_DIR" || true; }
+detect_stack() { local r="${1:-.}"; is_java=false; is_python=false; is_workspace=true; { [ -f "$r/gradlew" ] || [ -f "$r/build.gradle" ]; } && is_java=true || true; { [ -f "$r/pyproject.toml" ] || [ -f "$r/requirements.txt" ]; } && is_python=true || true; }
+should_include_skill() { return 0; }
+if [ -n "$SCRIPT_DIR" ] && [ -f "$SCRIPT_DIR/tools/lib.sh" ]; then source "$SCRIPT_DIR/tools/lib.sh"; fi
 
 # ── parse_args ──────────────────────────────────────────────────────────────
 parse_args() {
@@ -737,7 +740,7 @@ generate_runner() {
 #   ./workspace-ai.sh --all
 #   ./workspace-ai.sh --repos dispersion,pagos --kiro --codex
 #   ./workspace-ai.sh --setup-interactive
-set -euo pipefail
+set -eo pipefail
 
 WORKSPACE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
