@@ -73,9 +73,9 @@ should_include_skill() {
   local skill="$1"
   local stack="${AI_SKILLS_STACK:-}"
 
-  # Always include orchestration + utilities
+  # Always include orchestration + utilities + universal skills
   case "$skill" in
-    ai-init-agents|review|skill-sync|skill-creator|ai-setup|azuredevops|postgres-qa-backup-restore|pr-description) return 0 ;;
+    ai-init-agents|review|skill-sync|skill-creator|ai-setup|azuredevops|postgres-qa-backup-restore|pr-description|caveman) return 0 ;;
   esac
 
   # Always include SDD generic skills (project-agnostic)
